@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
 import Circular from './components/visualizers/Circular';
+import CyberMatrix from './components/visualizers/CyberMatrix';
 import SheetMusic from './components/visualizers/SheetMusic';
 import Bars from './components/visualizers/Bars';
 import Tunnel from './components/visualizers/Tunnel';
@@ -21,7 +22,7 @@ import FireworksShow from './components/visualizers/FireworksShow';
 import PerlinSphere from './components/visualizers/PerlinSphere';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin';
+type VisualizerType = 'circular' | 'cybermatrix' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin';
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -90,6 +91,7 @@ export default function App() {
     if (!stream) return null;
     switch (activeVisualizer) {
       case 'circular': return <Circular stream={stream} settings={settings} />;
+      case 'cybermatrix': return <CyberMatrix stream={stream} settings={settings} />;
       case 'sheet': return <SheetMusic stream={stream} settings={settings} />;
       case 'bars': return <Bars stream={stream} settings={settings} />;
       case 'tunnel': return <Tunnel stream={stream} settings={settings} />;
@@ -139,6 +141,7 @@ export default function App() {
                     <option value="sheet" className="bg-gray-900">Sheet Music</option>
                     <option value="tunnel" className="bg-gray-900">Tunnel</option>
                     <option value="circular" className="bg-gray-900">Circular</option>
+                    <option value="cybermatrix" className="bg-gray-900">Cyber Matrix</option>
                     <option value="bars" className="bg-gray-900">Bars</option>
                     <option value="neon" className="bg-gray-900">Neon Wave</option>
                     <option value="sphere" className="bg-gray-900">Poly Sphere</option>
@@ -146,14 +149,14 @@ export default function App() {
                     <option value="ghost" className="bg-gray-900">Ghost Rainbow</option>
                     <option value="hextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
                     <option value="fluidsmoke" className="bg-gray-900">Fluid Smoke</option>
-                    <option value="webgl" className="bg-gray-900">Cosmic Particles (GPU)</option>
-                    <option value="3dequalizer" className="bg-gray-900">3D Equalizer (GPU)</option>
-                    <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid (GPU)</option>
-                    <option value="festival" className="bg-gray-900">Festival Stage (GPU)</option>
-                    <option value="megafestival" className="bg-gray-900">Defqon Mainstage (GPU)</option>
-                    <option value="droneshow" className="bg-gray-900">Disney Drone Show (GPU)</option>
-                    <option value="fireworks" className="bg-gray-900">Fireworks Show (GPU)</option>
-                    <option value="perlin" className="bg-gray-900">Perlin Glow Sphere (GPU)</option>
+                    <option value="webgl" className="bg-gray-900">Cosmic Particles</option>
+                    <option value="3dequalizer" className="bg-gray-900">3D Equalizer</option>
+                    <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid</option>
+                    <option value="festival" className="bg-gray-900">Festival Stage</option>
+                    <option value="megafestival" className="bg-gray-900">Defqon Mainstage</option>
+                    <option value="droneshow" className="bg-gray-900">Disney Drone Show</option>
+                    <option value="fireworks" className="bg-gray-900">Fireworks Show</option>
+                    <option value="perlin" className="bg-gray-900">Perlin Glow Sphere</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>

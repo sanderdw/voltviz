@@ -161,7 +161,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     stageGroup.add(crowd);
 
     // --- Lasers (Massive Banks) ---
-    const laserCount = 400;
+    const laserCount = 320;
     const laserGeo = new THREE.CylinderGeometry(0.2, 0.8, 1000, 4);
     laserGeo.translate(0, 500, 0);
     laserGeo.rotateX(Math.PI / 2);
@@ -184,14 +184,14 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     for (let i = 0; i < laserCount; i++) {
       let x, y, z, rx, ry, rz, bank;
       
-      if (i < 100) {
+      if (i < 80) {
         // Center Idol Lasers (shooting out in a starburst)
         x = 0; y = 60; z = -20;
         rx = (Math.random() - 0.5) * Math.PI;
         ry = (Math.random() - 0.5) * Math.PI;
         rz = 0;
         bank = 0;
-      } else if (i < 250) {
+      } else if (i < 200) {
         // Left Wing Lasers (Fan)
         x = -60 - Math.random() * 40; y = 10 + Math.random() * 60; z = -10;
         rx = -0.2 + (Math.random() - 0.5) * 0.4;
@@ -239,6 +239,49 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       });
     }
 
+    // --- Fireworks / Spark Bursts ---
+    const maxParticles = 7000;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(maxParticles * 3);
+    const particleColors = new Float32Array(maxParticles * 3);
+    const particleSizes = new Float32Array(maxParticles);
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+
+    const particleMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+          vec2 xy = gl_PointCoord.xy - vec2(0.5);
+          float ll = length(xy);
+          if (ll > 0.5) discard;
+          float alpha = (0.5 - ll) * 2.0;
+          gl_FragColor = vec4(vColor, alpha);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const particleSystem = new THREE.Points(particleGeo, particleMat);
+    stageGroup.add(particleSystem);
+
+    const particles: { pos: THREE.Vector3, vel: THREE.Vector3, life: number, maxLife: number, color: THREE.Color, size: number }[] = [];
+
     // Lighting
     const ambientLight = new THREE.AmbientLight(0x111111);
     scene.add(ambientLight);
@@ -257,6 +300,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     let time = 0;
     let lastTime = performance.now();
     let beatTimer = 0;
+    let fireworksTimer = 0;
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
@@ -268,6 +312,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       const currentSettings = settingsRef.current;
       time += dt * currentSettings.speed;
       if (beatTimer > 0) beatTimer -= dt;
+      if (fireworksTimer > 0) fireworksTimer -= dt;
 
       analyser.getByteFrequencyData(dataArray);
 
@@ -279,6 +324,9 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       const bassNorm = bass / 255;
       const midNorm = mid / 255;
       const trebleNorm = treble / 255;
+      const bassTrigger = bassNorm > 0.88 * (1.5 - currentSettings.sensitivity);
+      const bassDominant = bass > mid * 1.15 && bass > treble * 1.2;
+      const isBassDrop = bassTrigger && bassDominant;
 
       // 1. Camera Shake (Heavy impact on kicks)
       if (bassNorm > 0.85 * (1.5 - currentSettings.sensitivity)) {
@@ -363,7 +411,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
 
       // 6. Pyrotechnics (Fire Jets)
       // Trigger fire on massive bass drops
-      if (bassNorm > 0.9 * (1.5 - currentSettings.sensitivity) && beatTimer <= 0) {
+      if (isBassDrop && beatTimer <= 0) {
         beatTimer = 0.4; // Cooldown
         // Ignite random jets
         fireData.forEach(f => {
@@ -391,6 +439,65 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       fireMesh.instanceMatrix.needsUpdate = true;
       if (fireMesh.instanceColor) fireMesh.instanceColor.needsUpdate = true;
 
+      // 7. Fireworks / Spark Bursts
+      if (isBassDrop && fireworksTimer <= 0) {
+        fireworksTimer = 0.25;
+        const numSparks = 120 + Math.random() * 140;
+        const spawnPoints = [-48, -24, 0, 24, 48];
+        const originX = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+
+        for (let i = 0; i < numSparks; i++) {
+          if (particles.length >= maxParticles) break;
+
+          const angleX = (Math.random() - 0.5) * 0.8;
+          const angleZ = (Math.random() - 0.5) * 0.8;
+          const speed = 55 + Math.random() * 75;
+
+          particles.push({
+            pos: new THREE.Vector3(originX + (Math.random() - 0.5) * 5, 6, -8 + (Math.random() - 0.5) * 4),
+            vel: new THREE.Vector3(angleX * speed, speed, angleZ * speed),
+            life: 0,
+            maxLife: 1.0 + Math.random() * 1.3,
+            color: new THREE.Color().setHSL((mainHue + Math.random() * 0.2) % 1.0, 1.0, 0.7),
+            size: 4 + Math.random() * 7
+          });
+        }
+      }
+
+      let pCount = 0;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life += dt;
+
+        if (p.life >= p.maxLife) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        p.vel.y -= 55 * dt;
+        p.vel.multiplyScalar(0.98);
+        p.pos.addScaledVector(p.vel, dt);
+
+        particlePositions[pCount * 3] = p.pos.x;
+        particlePositions[pCount * 3 + 1] = p.pos.y;
+        particlePositions[pCount * 3 + 2] = p.pos.z;
+
+        const lifeRatio = p.life / p.maxLife;
+        const alpha = 1.0 - Math.pow(lifeRatio, 2);
+
+        particleColors[pCount * 3] = p.color.r * alpha;
+        particleColors[pCount * 3 + 1] = p.color.g * alpha;
+        particleColors[pCount * 3 + 2] = p.color.b * alpha;
+
+        particleSizes[pCount] = p.size * (1.0 - lifeRatio * 0.5) * currentSettings.scale;
+        pCount++;
+      }
+
+      particleGeo.setDrawRange(0, pCount);
+      particleGeo.attributes.position.needsUpdate = true;
+      particleGeo.attributes.color.needsUpdate = true;
+      particleGeo.attributes.size.needsUpdate = true;
+
       renderer.render(scene, camera);
     };
 
@@ -416,6 +523,8 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       laserMat.dispose();
       fireGeo.dispose();
       fireMat.dispose();
+      particleGeo.dispose();
+      particleMat.dispose();
       renderer.dispose();
       
       if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
