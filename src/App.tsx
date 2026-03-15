@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Github } from 'lucide-react';
 import Circular from './components/visualizers/Circular';
 import CyberMatrix from './components/visualizers/CyberMatrix';
 import CyberGridCanvas from './components/visualizers/CyberGridCanvas';
@@ -166,7 +166,17 @@ export default function App() {
               )}
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
+              <a
+                href="https://github.com/sanderdw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white"
+                title="GitHub"
+                aria-label="Open GitHub profile"
+              >
+                <Github size={18} />
+              </a>
               {!stream ? (
                 <>
                   <button 
