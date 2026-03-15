@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
 import Circular from './components/visualizers/Circular';
 import CyberMatrix from './components/visualizers/CyberMatrix';
+import CyberGridCanvas from './components/visualizers/CyberGridCanvas';
 import SheetMusic from './components/visualizers/SheetMusic';
 import Bars from './components/visualizers/Bars';
 import Tunnel from './components/visualizers/Tunnel';
@@ -22,7 +23,7 @@ import FireworksShow from './components/visualizers/FireworksShow';
 import PerlinSphere from './components/visualizers/PerlinSphere';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'cybermatrix' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin';
+type VisualizerType = 'circular' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin';
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -92,6 +93,7 @@ export default function App() {
     switch (activeVisualizer) {
       case 'circular': return <Circular stream={stream} settings={settings} />;
       case 'cybermatrix': return <CyberMatrix stream={stream} settings={settings} />;
+      case 'cybergridcanvas': return <CyberGridCanvas stream={stream} settings={settings} />;
       case 'sheet': return <SheetMusic stream={stream} settings={settings} />;
       case 'bars': return <Bars stream={stream} settings={settings} />;
       case 'tunnel': return <Tunnel stream={stream} settings={settings} />;
@@ -142,6 +144,7 @@ export default function App() {
                     <option value="tunnel" className="bg-gray-900">Tunnel</option>
                     <option value="circular" className="bg-gray-900">Circular</option>
                     <option value="cybermatrix" className="bg-gray-900">Cyber Matrix</option>
+                    <option value="cybergridcanvas" className="bg-gray-900">Cyber Grid Canvas</option>
                     <option value="bars" className="bg-gray-900">Bars</option>
                     <option value="neon" className="bg-gray-900">Neon Wave</option>
                     <option value="sphere" className="bg-gray-900">Poly Sphere</option>
