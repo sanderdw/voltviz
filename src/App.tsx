@@ -49,12 +49,12 @@ export default function App() {
 
   const startMicrophone = async () => {
     try {
-      const audioStream = await navigator.mediaDevices.getUserMedia({ 
+      const audioStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           autoGainControl: false,
           echoCancellation: false,
           noiseSuppression: false
-        } 
+        }
       });
       setStream(audioStream);
       setError(null);
@@ -65,23 +65,23 @@ export default function App() {
 
   const startSystemAudio = async () => {
     try {
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({ 
-        video: true, 
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
         audio: {
           autoGainControl: false,
           echoCancellation: false,
           noiseSuppression: false
-        } 
+        }
       });
-      
+
       if (displayStream.getAudioTracks().length === 0) {
         displayStream.getTracks().forEach(track => track.stop());
         throw new Error('No audio found. Please make sure to check "Share audio" when selecting the screen/tab.');
       }
-      
+
       setStream(displayStream);
       setError(null);
-      
+
       displayStream.getVideoTracks()[0].onended = () => {
         stopStream(displayStream);
       };
@@ -141,9 +141,9 @@ export default function App() {
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
                 <h1 className="text-2xl font-light tracking-widest uppercase">VoltViz<span className="font-bold text-green-400">Music Visualizer</span></h1>
-                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">created by sanderdw</p>
+                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by sanderdw</p>
               </div>
-              
+
               {stream && (
                 <div className="relative">
                   <select
@@ -151,7 +151,7 @@ export default function App() {
                     onChange={(e) => setActiveVisualizer(e.target.value as VisualizerType)}
                     className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
                   >
-                    <option value="grid" className="bg-gray-900">Grid</option>
+                    <option value="grid" className="bg-gray-900">Dutch Grid</option>
                     <option value="sheet" className="bg-gray-900">Sheet Music</option>
                     <option value="tunnel" className="bg-gray-900">Tunnel</option>
                     <option value="circular" className="bg-gray-900">Circular</option>
@@ -177,7 +177,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex gap-4 items-center">
               <a
                 href="https://github.com/sanderdw"
@@ -191,14 +191,14 @@ export default function App() {
               </a>
               {!stream ? (
                 <>
-                  <button 
+                  <button
                     onClick={startMicrophone}
                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/5 text-sm cursor-pointer"
                   >
                     <Mic size={16} />
                     <span>Microphone</span>
                   </button>
-                  <button 
+                  <button
                     onClick={startSystemAudio}
                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/80 hover:bg-purple-500 transition-colors border border-purple-400/30 text-sm shadow-[0_0_15px_rgba(147,51,234,0.3)] cursor-pointer"
                   >
@@ -208,21 +208,21 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <button 
+                  <button
                     onClick={() => setShowControls(false)}
                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white text-sm cursor-pointer"
                   >
                     <Maximize size={16} />
                     <span>Hide UI</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowSettings(!showSettings)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors border text-sm cursor-pointer ${showSettings ? 'bg-white/20 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
                   >
                     <Settings2 size={16} />
                     <span>Settings</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => stopStream()}
                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors border border-red-500/30 text-sm cursor-pointer"
                   >
@@ -276,21 +276,21 @@ export default function App() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-8">
               <div>
                 <div className="flex justify-between mb-2">
                   <label className="text-sm text-white/70">Sensitivity</label>
                   <span className="text-sm text-purple-400">{settings.sensitivity.toFixed(1)}x</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0.1" 
-                  max="3" 
-                  step="0.1" 
-                  value={settings.sensitivity} 
-                  onChange={e => setSettings({...settings, sensitivity: parseFloat(e.target.value)})} 
-                  className="w-full accent-purple-500" 
+                <input
+                  type="range"
+                  min="0.1"
+                  max="3"
+                  step="0.1"
+                  value={settings.sensitivity}
+                  onChange={e => setSettings({...settings, sensitivity: parseFloat(e.target.value)})}
+                  className="w-full accent-purple-500"
                 />
                 <p className="text-xs text-white/40 mt-2">Adjusts how strongly the visualizer reacts to volume.</p>
               </div>
@@ -300,14 +300,14 @@ export default function App() {
                   <label className="text-sm text-white/70">Speed</label>
                   <span className="text-sm text-purple-400">{settings.speed.toFixed(1)}x</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0.1" 
-                  max="3" 
-                  step="0.1" 
-                  value={settings.speed} 
-                  onChange={e => setSettings({...settings, speed: parseFloat(e.target.value)})} 
-                  className="w-full accent-purple-500" 
+                <input
+                  type="range"
+                  min="0.1"
+                  max="3"
+                  step="0.1"
+                  value={settings.speed}
+                  onChange={e => setSettings({...settings, speed: parseFloat(e.target.value)})}
+                  className="w-full accent-purple-500"
                 />
                 <p className="text-xs text-white/40 mt-2">Controls the animation and movement speed.</p>
               </div>
@@ -317,14 +317,14 @@ export default function App() {
                   <label className="text-sm text-white/70">Scale</label>
                   <span className="text-sm text-purple-400">{settings.scale.toFixed(1)}x</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0.5" 
-                  max="3" 
-                  step="0.1" 
-                  value={settings.scale} 
-                  onChange={e => setSettings({...settings, scale: parseFloat(e.target.value)})} 
-                  className="w-full accent-purple-500" 
+                <input
+                  type="range"
+                  min="0.5"
+                  max="3"
+                  step="0.1"
+                  value={settings.scale}
+                  onChange={e => setSettings({...settings, scale: parseFloat(e.target.value)})}
+                  className="w-full accent-purple-500"
                 />
                 <p className="text-xs text-white/40 mt-2">Scales the visualizer elements to fit the screen.</p>
               </div>
@@ -334,19 +334,19 @@ export default function App() {
                   <label className="text-sm text-white/70">Color Shift</label>
                   <span className="text-sm text-purple-400">{settings.hueShift}°</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="360" 
-                  step="1" 
-                  value={settings.hueShift} 
-                  onChange={e => setSettings({...settings, hueShift: parseInt(e.target.value)})} 
-                  className="w-full accent-purple-500" 
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  step="1"
+                  value={settings.hueShift}
+                  onChange={e => setSettings({...settings, hueShift: parseInt(e.target.value)})}
+                  className="w-full accent-purple-500"
                 />
                 <p className="text-xs text-white/40 mt-2">Shifts the base colors across the spectrum.</p>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => setSettings({ sensitivity: 1.0, speed: 1.0, hueShift: 0, scale: 1.0 })}
                 className="w-full py-2 mt-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer"
               >

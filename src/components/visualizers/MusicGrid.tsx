@@ -442,7 +442,7 @@ export default function MusicGrid({ stream, settings }: Props) {
       // Title
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText('Created out of appreciation for our Dutch grid operators; this app is not affiliated with Alliander.', 35, 150);
+      ctx.fillText('This visualization is inspired by the work of Dutch grid operators.', 35, 150);
     };
 
     draw();
@@ -461,7 +461,7 @@ export default function MusicGrid({ stream, settings }: Props) {
     <div ref={containerRef} className="w-full h-full relative">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#021210] z-10">
-          <div className="text-emerald-400 font-mono animate-pulse">Initializing Grid Topology...</div>
+          <div className="text-emerald-400 font-mono animate-pulse">Initializing Dutch Grid Topology...</div>
         </div>
       )}
       <canvas ref={canvasRef} className="w-full h-full block" />
