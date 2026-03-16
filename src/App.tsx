@@ -22,9 +22,11 @@ import MegaFestivalStage from './components/visualizers/MegaFestivalStage';
 import DisneyDroneShow from './components/visualizers/DisneyDroneShow';
 import FireworksShow from './components/visualizers/FireworksShow';
 import PerlinSphere from './components/visualizers/PerlinSphere';
+import CRTTerminal from './components/visualizers/CRTTerminal';
+import DataDashboard from './components/visualizers/DataDashboard';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin';
+type VisualizerType = 'circular' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -121,6 +123,8 @@ export default function App() {
       case 'droneshow': return <DisneyDroneShow stream={stream} settings={settings} />;
       case 'fireworks': return <FireworksShow stream={stream} settings={settings} />;
       case 'perlin': return <PerlinSphere stream={stream} settings={settings} />;
+      case 'crtterminal': return <CRTTerminal stream={stream} settings={settings} />;
+      case 'datadashboard': return <DataDashboard stream={stream} settings={settings} />;
       default: return null;
     }
   };
@@ -172,6 +176,8 @@ export default function App() {
                     <option value="droneshow" className="bg-gray-900">Disney Drone Show</option>
                     <option value="fireworks" className="bg-gray-900">Fireworks Show</option>
                     <option value="perlin" className="bg-gray-900">Perlin Glow Sphere</option>
+                    <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
+                    <option value="datadashboard" className="bg-gray-900">Data Dashboard</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>
