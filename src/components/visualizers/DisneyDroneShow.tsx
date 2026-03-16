@@ -55,7 +55,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -81,21 +81,13 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
     container.appendChild(renderer.domElement);
 
     // --- Environment ---
-    // Ground plane
-    const groundGeo = new THREE.PlaneGeometry(1000, 1000);
-    const groundMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -30;
-    scene.add(ground);
-
     // Background Stars
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(1000 * 3);
@@ -111,25 +103,25 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
 
     // --- Drones Setup ---
     const droneCount = 2500;
-    
+
     // Generate Shapes
     const shapes: THREE.Vector3[][] = [];
-    
+
     // 0. Mickey Head
     const mickey = [];
     for(let i=0; i<droneCount; i++) {
       const r = Math.random();
       let center, radius;
-      if (r < 0.5) { center = new THREE.Vector3(0, 0, 0); radius = 20; }
-      else if (r < 0.75) { center = new THREE.Vector3(-22, 22, 0); radius = 10; }
-      else { center = new THREE.Vector3(22, 22, 0); radius = 10; }
+      if (r < 0.5) { center = new THREE.Vector3(0, 15, 0); radius = 20; }
+      else if (r < 0.75) { center = new THREE.Vector3(-22, 37, 0); radius = 10; }
+      else { center = new THREE.Vector3(22, 37, 0); radius = 10; }
 
       const u = Math.random();
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
       const phi = Math.acos(2.0 * v - 1.0);
       const rCube = Math.cbrt(Math.random()) * radius;
-      
+
       mickey.push(new THREE.Vector3(
         center.x + rCube * Math.sin(phi) * Math.cos(theta),
         center.y + rCube * Math.sin(phi) * Math.sin(theta),
@@ -179,10 +171,10 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
     const heart = [];
     for(let i=0; i<droneCount; i++) {
       const t = Math.random() * Math.PI * 2;
-      const r = Math.random() * 3; 
+      const r = Math.random() * 3;
       const x = 16 * Math.pow(Math.sin(t), 3);
       const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-      heart.push(new THREE.Vector3(x * 1.8 + (Math.random()-0.5)*r, y * 1.8 + 10 + (Math.random()-0.5)*r, (Math.random()-0.5)*15));
+      heart.push(new THREE.Vector3(x * 1.8 + (Math.random()-0.5)*r, y * 1.8 + 25 + (Math.random()-0.5)*r, (Math.random()-0.5)*15));
     }
     shapes.push(heart);
 
@@ -222,7 +214,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
       currentPositions[i*3] = p.x;
       currentPositions[i*3+1] = p.y;
       currentPositions[i*3+2] = p.z;
-      
+
       targetPositions[i*3] = p.x;
       targetPositions[i*3+1] = p.y;
       targetPositions[i*3+2] = p.z;
@@ -282,11 +274,11 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       const currentSettings = settingsRef.current;
       time += dt * currentSettings.speed;
       timeSinceLastShape += dt;
@@ -305,7 +297,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
       if (timeSinceLastShape > 12 || (timeSinceLastShape > 8 && bassNorm > 0.9)) {
         timeSinceLastShape = 0;
         currentShapeIndex = (currentShapeIndex + 1) % shapes.length;
-        
+
         // Shuffle indices so drones cross paths chaotically
         const indices = Array.from({length: droneCount}, (_, i) => i);
         shuffleArray(indices);
@@ -316,7 +308,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
         for(let i=0; i<droneCount; i++) {
           const targetIdx = indices[i];
           const p = nextShape[targetIdx];
-          
+
           targetPositions[i*3] = p.x;
           targetPositions[i*3+1] = p.y;
           targetPositions[i*3+2] = p.z;
@@ -324,7 +316,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
           // Add some random variation to the color
           const colorVariation = (Math.random() - 0.5) * 0.2;
           const finalColor = nextColor.clone().offsetHSL(colorVariation, 0, colorVariation);
-          
+
           targetColors[i*3] = finalColor.r;
           targetColors[i*3+1] = finalColor.g;
           targetColors[i*3+2] = finalColor.b;
@@ -334,13 +326,13 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
       // Update Drones
       const positions = droneGeo.attributes.position.array as Float32Array;
       const colors = droneGeo.attributes.color.array as Float32Array;
-      
+
       // Lerp speed based on music
       const lerpFactor = Math.min(1.0, dt * (1.0 + midNorm * 2.0) * currentSettings.speed);
-      
+
       // Global scale pulse on bass (more aggressive)
       const globalScale = 1.0 + Math.pow(bassNorm, 3) * 0.4 * currentSettings.scale;
-      
+
       // Explosion force for drones flying outward on beats
       const explosionForce = Math.pow(bassNorm, 4) * 40.0 * currentSettings.sensitivity;
       const scatterForce = Math.pow(bassNorm, 5) * 20.0 * currentSettings.sensitivity;
@@ -383,7 +375,7 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
 
         // Brightness pulse (much brighter on beats)
         const brightness = 0.4 + Math.pow(bassNorm, 2) * 1.5 + Math.sin(time * 5 + droneOffsets[i]) * 0.3 * trebleNorm;
-        
+
         colors[i*3] = Math.min(1, currentColors[i*3] * brightness);
         colors[i*3+1] = Math.min(1, currentColors[i*3+1] * brightness);
         colors[i*3+2] = Math.min(1, currentColors[i*3+2] * brightness);
@@ -410,16 +402,14 @@ export default function DisneyDroneShow({ stream, settings }: Props) {
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
-      
+
       // Cleanup
-      groundGeo.dispose();
-      groundMat.dispose();
       starGeo.dispose();
       starMat.dispose();
       droneGeo.dispose();
       droneMat.dispose();
       renderer.dispose();
-      
+
       if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
