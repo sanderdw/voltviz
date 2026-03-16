@@ -1,5 +1,5 @@
 {
-  "name": "GridAmp",
+  "name": "VoltViz",
   "description": "A music visualization app that listens to system audio or microphone.",
   "requestFramePermissions": ["microphone", "camera", "display-capture"]
 }

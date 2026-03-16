@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-GridAmp is a browser-based music visualizer that captures audio from a microphone or system audio and renders it as real-time animations, offering a library of Canvas 2D and WebGL/Three.js visualizer effects selectable at runtime.
+VoltViz is a browser-based music visualizer that captures audio from a microphone or system audio and renders it as real-time animations, offering a library of Canvas 2D and WebGL/Three.js visualizer effects selectable at runtime.
 
 ## 2. Folder Structure
 

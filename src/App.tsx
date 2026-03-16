@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Github } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
+import githubIcon from './images/GitHub_Invertocat_White.svg';
 import Circular from './components/visualizers/Circular';
 import CyberMatrix from './components/visualizers/CyberMatrix';
 import CyberGridCanvas from './components/visualizers/CyberGridCanvas';
@@ -38,6 +39,14 @@ export default function App() {
     scale: 1.0,
   });
 
+  useEffect(() => {
+    // Allow layout to settle, then notify visualizers of the size change
+    const id = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [showControls]);
+
   const startMicrophone = async () => {
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({ 
@@ -67,7 +76,7 @@ export default function App() {
       
       if (displayStream.getAudioTracks().length === 0) {
         displayStream.getTracks().forEach(track => track.stop());
-        throw new Error('No audio track found. Please make sure to check "Share audio" when selecting the screen/tab.');
+        throw new Error('No audio found. Please make sure to check "Share audio" when selecting the screen/tab.');
       }
       
       setStream(displayStream);
@@ -130,7 +139,10 @@ export default function App() {
         {showControls && (
           <header className="p-6 flex justify-between items-center bg-black/20 backdrop-blur-md border-b border-white/10 transition-all duration-300">
             <div className="flex items-center gap-8">
-              <h1 className="text-2xl font-light tracking-widest uppercase">GridAmp<span className="font-bold text-green-400">Music Visualizer</span></h1>
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-light tracking-widest uppercase">VoltViz<span className="font-bold text-green-400">Music Visualizer</span></h1>
+                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">created by sanderdw</p>
+              </div>
               
               {stream && (
                 <div className="relative">
@@ -175,7 +187,7 @@ export default function App() {
                 title="GitHub"
                 aria-label="Open GitHub profile"
               >
-                <Github size={18} />
+                <img src={githubIcon} alt="GitHub" width={20} height={20} />
               </a>
               {!stream ? (
                 <>

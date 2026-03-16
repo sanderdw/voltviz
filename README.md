@@ -1,4 +1,4 @@
-# GridAmp Visualizer
+# VoltViz Music Visualizer
 
 ## Run Locally
 
@@ -14,7 +14,7 @@
 
 Build and run the production container:
 
-`docker build -t gridamp . && docker run --rm -p 8080:80 gridamp`
+`docker build -t voltviz . && docker run --rm -p 8080:80 voltviz`
 
 Then open:
 
