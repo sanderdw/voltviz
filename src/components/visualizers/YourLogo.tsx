@@ -205,7 +205,7 @@ export default function YourLogo({ stream, settings }: Props) {
         });
 
         closedIndices.sort(() => Math.random() - 0.5);
-        const numToPick = Math.max(1, Math.floor(closedIndices.length * 0.25));
+        const numToPick = Math.max(1, Math.floor(closedIndices.length * 0.75));
 
         const newActive = new Map<number, { dir: number, freqBin: number }>();
         closedIndices.slice(0, numToPick).forEach(idx => {
