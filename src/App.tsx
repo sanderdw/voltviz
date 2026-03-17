@@ -24,9 +24,10 @@ import FireworksShow from './components/visualizers/FireworksShow';
 import PerlinSphere from './components/visualizers/PerlinSphere';
 import CRTTerminal from './components/visualizers/CRTTerminal';
 import DataDashboard from './components/visualizers/DataDashboard';
+import YourLogo from './components/visualizers/YourLogo';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
+type VisualizerType = 'circular' | 'yourlogo' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -125,6 +126,7 @@ export default function App() {
       case 'perlin': return <PerlinSphere stream={stream} settings={settings} />;
       case 'crtterminal': return <CRTTerminal stream={stream} settings={settings} />;
       case 'datadashboard': return <DataDashboard stream={stream} settings={settings} />;
+      case 'yourlogo': return <YourLogo stream={stream} settings={settings} />;
       default: return null;
     }
   };
@@ -156,27 +158,28 @@ export default function App() {
                     className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
                   >
                     <option value="grid" className="bg-gray-900">Dutch Grid</option>
+                    <option value="yourlogo" className="bg-gray-900">Your Logo</option>
+                    <option value="perlin" className="bg-gray-900">Glow Sphere</option>
+                    <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
+                    <option value="webgl" className="bg-gray-900">Cosmic Particles</option>
+                    <option value="neon" className="bg-gray-900">Neon Wave</option>
                     <option value="sheet" className="bg-gray-900">Sheet Music</option>
                     <option value="tunnel" className="bg-gray-900">Tunnel</option>
                     <option value="circular" className="bg-gray-900">Circular</option>
                     <option value="cybermatrix" className="bg-gray-900">Cyber Matrix</option>
                     <option value="cybergridcanvas" className="bg-gray-900">Cyber Grid Canvas</option>
                     <option value="bars" className="bg-gray-900">Bars</option>
-                    <option value="neon" className="bg-gray-900">Neon Wave</option>
                     <option value="sphere" className="bg-gray-900">Poly Sphere</option>
                     <option value="skull" className="bg-gray-900">Psychedelic Skull</option>
                     <option value="ghost" className="bg-gray-900">Ghost Rainbow</option>
                     <option value="hextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
                     <option value="fluidsmoke" className="bg-gray-900">Fluid Smoke</option>
-                    <option value="webgl" className="bg-gray-900">Cosmic Particles</option>
                     <option value="3dequalizer" className="bg-gray-900">3D Equalizer</option>
                     <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid</option>
                     <option value="festival" className="bg-gray-900">Festival Stage</option>
                     <option value="megafestival" className="bg-gray-900">Defqon Mainstage</option>
                     <option value="droneshow" className="bg-gray-900">Disney Drone Show</option>
                     <option value="fireworks" className="bg-gray-900">Fireworks Show</option>
-                    <option value="perlin" className="bg-gray-900">Perlin Glow Sphere</option>
-                    <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
                     <option value="datadashboard" className="bg-gray-900">Data Dashboard</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
