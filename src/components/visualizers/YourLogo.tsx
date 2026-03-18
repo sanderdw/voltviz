@@ -258,7 +258,7 @@ export default function YourLogo({ stream, settings }: Props) {
               const speed = 2 + Math.random() * 8 * currentSettings.speed * (treble/255);
 
               const freqVal = dataArray[activeData.freqBin] / 255;
-              const individualZOffset = freqVal * 500 * currentSettings.sensitivity * activeData.dir;
+              const individualZOffset = freqVal * 200 * currentSettings.sensitivity * activeData.dir;
 
               // Random directions for 3D effect
               const vx = (Math.random() - 0.5) * speed * 2;
@@ -336,7 +336,7 @@ export default function YourLogo({ stream, settings }: Props) {
         const activeData = activeCopiesRef.current.get(pathIdx);
         if (isClosed && activeData) {
           const freqVal = dataArray[activeData.freqBin] / 255;
-          const individualZOffset = freqVal * 500 * currentSettings.sensitivity * activeData.dir;
+          const individualZOffset = freqVal * 200 * currentSettings.sensitivity * activeData.dir;
 
           let sumZCopy = 0;
           for (let i = 0; i < path.length; i++) {

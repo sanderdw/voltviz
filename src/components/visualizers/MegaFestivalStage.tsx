@@ -29,7 +29,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.6; // Faster response for hardstyle/EDM
@@ -54,7 +54,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -64,11 +64,11 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     scene.add(stageGroup);
 
     // --- Stage Architecture (Defqon / Tomorrowland style) ---
-    
+
     // 1. The Central Idol (Massive glowing diamond/crystal)
     const idolGeo = new THREE.OctahedronGeometry(30, 0);
-    const idolMat = new THREE.MeshStandardMaterial({ 
-      color: 0x222222, 
+    const idolMat = new THREE.MeshStandardMaterial({
+      color: 0x222222,
       emissive: 0x000000,
       roughness: 0.2,
       metalness: 0.8,
@@ -87,25 +87,25 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     const pillarCount = 12;
     const pillars: THREE.Mesh[] = [];
     const pillarGeo = new THREE.BoxGeometry(4, 100, 4);
-    
+
     for (let i = 0; i < pillarCount; i++) {
       const isLeft = i < pillarCount / 2;
       const index = i % (pillarCount / 2);
-      
+
       const pMat = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x000000 });
       const pillar = new THREE.Mesh(pillarGeo, pMat);
-      
+
       // Curve them outwards and forwards like wings
       const xOffset = (isLeft ? -1 : 1) * (40 + index * 15);
       const zOffset = -20 + index * 10;
       const height = 80 - index * 10;
-      
+
       pillar.scale.y = height / 100;
       pillar.position.set(xOffset, height / 2, zOffset);
-      
+
       // Tilt them slightly outward
       pillar.rotation.z = (isLeft ? 1 : -1) * 0.1 * index;
-      
+
       stageGroup.add(pillar);
       pillars.push(pillar);
     }
@@ -115,14 +115,14 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     const crowdGeo = new THREE.BufferGeometry();
     const crowdPos = new Float32Array(crowdCount * 3);
     const crowdRandom = new Float32Array(crowdCount);
-    
+
     for (let i = 0; i < crowdCount; i++) {
       crowdPos[i * 3] = (Math.random() - 0.5) * 300; // x
       crowdPos[i * 3 + 1] = 0; // y (base)
       crowdPos[i * 3 + 2] = 20 + Math.random() * 200; // z (depth into camera)
       crowdRandom[i] = Math.random();
     }
-    
+
     crowdGeo.setAttribute('position', new THREE.BufferAttribute(crowdPos, 3));
     crowdGeo.setAttribute('aRandom', new THREE.BufferAttribute(crowdRandom, 1));
 
@@ -136,13 +136,13 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
         uniform float uTime;
         uniform float uBass;
         attribute float aRandom;
-        
+
         void main() {
           vec3 pos = position;
           // Make the crowd jump to the bass
           float jump = max(0.0, sin(uTime * 15.0 + aRandom * 6.28)) * uBass * 4.0;
           pos.y += jump + aRandom * 2.0; // Base height + jump
-          
+
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           gl_PointSize = (4.0 + aRandom * 3.0) * (200.0 / -mvPosition.z);
           gl_Position = projectionMatrix * mvPosition;
@@ -161,7 +161,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     stageGroup.add(crowd);
 
     // --- Lasers (Massive Banks) ---
-    const laserCount = 320;
+    const laserCount = 50;
     const laserGeo = new THREE.CylinderGeometry(0.2, 0.8, 1000, 4);
     laserGeo.translate(0, 500, 0);
     laserGeo.rotateX(Math.PI / 2);
@@ -183,7 +183,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
 
     for (let i = 0; i < laserCount; i++) {
       let x, y, z, rx, ry, rz, bank;
-      
+
       if (i < 80) {
         // Center Idol Lasers (shooting out in a starburst)
         x = 0; y = 60; z = -20;
@@ -229,7 +229,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
     });
     const fireMesh = new THREE.InstancedMesh(fireGeo, fireMat, fireCount);
     stageGroup.add(fireMesh);
-    
+
     const fireData: { x: number, z: number, active: number }[] = [];
     for (let i = 0; i < fireCount; i++) {
       fireData.push({
@@ -304,11 +304,11 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       const currentSettings = settingsRef.current;
       time += dt * currentSettings.speed;
       if (beatTimer > 0) beatTimer -= dt;
@@ -343,7 +343,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       idol.rotation.z = Math.sin(time * 0.2) * 0.2;
       const idolScale = 1 + Math.pow(bassNorm, 3) * 0.5 * currentSettings.scale;
       idol.scale.setScalar(idolScale);
-      
+
       const mainHue = (time * 0.1 + currentSettings.hueShift / 360) % 1.0;
       idolInnerMat.color.setHSL(mainHue, 1.0, bassNorm * 0.5);
       idolMat.emissive.setHSL(mainHue, 1.0, bassNorm * 0.8);
@@ -367,13 +367,13 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       // 5. Lasers
       for (let i = 0; i < laserCount; i++) {
         const lData = laserData[i];
-        
+
         dummy.position.copy(lData.pos);
         dummy.rotation.copy(lData.baseRot);
-        
+
         // Aggressive sweeping motion
         const sweep = Math.sin(time * lData.speed * 2.0 + lData.phase) * 1.2 * midNorm * currentSettings.sensitivity;
-        
+
         if (lData.bank === 0) {
           // Center bursts outward
           dummy.rotation.x += sweep * 0.5;
@@ -387,7 +387,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
         // Length pulses with audio
         const laserLength = 0.1 + Math.pow(midNorm, 2) * 3.0 * currentSettings.scale;
         dummy.scale.set(1, 1, laserLength);
-        
+
         dummy.updateMatrix();
         laserMesh.setMatrixAt(i, dummy.matrix);
 
@@ -395,7 +395,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
         let lHue = mainHue;
         if (lData.bank === 1) lHue = (mainHue - 0.1 + 1.0) % 1.0;
         if (lData.bank === 2) lHue = (mainHue + 0.1) % 1.0;
-        
+
         // Flash to white on heavy treble
         const isStrobe = trebleNorm > 0.8 && Math.random() > 0.8;
         if (isStrobe) {
@@ -431,7 +431,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
         dummy.scale.set(1 + f.active, f.active * 1.5 * currentSettings.scale, 1 + f.active);
         dummy.updateMatrix();
         fireMesh.setMatrixAt(i, dummy.matrix);
-        
+
         // Fire color (Yellow to Red to Black)
         color.setHSL(0.05 + f.active * 0.1, 1.0, f.active * 0.6);
         fireMesh.setColorAt(i, color);
@@ -510,7 +510,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
-      
+
       // Cleanup
       idolGeo.dispose();
       idolMat.dispose();
@@ -526,7 +526,7 @@ export default function MegaFestivalStage({ stream, settings }: Props) {
       particleGeo.dispose();
       particleMat.dispose();
       renderer.dispose();
-      
+
       if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
