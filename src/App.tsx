@@ -29,9 +29,10 @@ import Vinyl from './components/visualizers/Vinyl';
 import Background from './components/visualizers/Background';
 import BlurVisualizer from './components/visualizers/BlurVisualizer';
 import GlitchVisualizer from './components/visualizers/GlitchVisualizer';
+import GlitchVisualizer2 from './components/visualizers/GlitchVisualizer2';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'blur' | 'glitch' | 'Vinyl' | 'Background' | 'yourlogo' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
+type VisualizerType = 'circular' | 'blur' | 'glitch' | 'glitch2' | 'Vinyl' | 'Background' | 'yourlogo' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -135,6 +136,7 @@ export default function App() {
       case 'background': return <Background stream={stream} settings={settings} />;
       case 'blur': return <BlurVisualizer stream={stream} settings={settings} />;
       case 'glitch': return <GlitchVisualizer stream={stream} settings={settings} />;
+      case 'glitch2': return <GlitchVisualizer2 stream={stream} settings={settings} />;
       default: return null;
     }
   };
@@ -168,6 +170,7 @@ export default function App() {
                     <option value="grid" className="bg-gray-900">Dutch Grid</option>
                     <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid (WebGL)</option>
                     <option value="glitch" className="bg-gray-900">Glitch</option>
+                    <option value="glitch2" className="bg-gray-900">Glitch Databend</option>
                     <option value="yourlogo" className="bg-gray-900">Your Logo</option>
                     <option value="perlin" className="bg-gray-900">Glow Sphere</option>
                     <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
