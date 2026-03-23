@@ -167,9 +167,14 @@ export default function BlurVisualizer({ stream, settings }: Props) {
       // Base stretch + audio reactive stretch
       const maxStretch = 1 + smoothedIntensity * 25 * currentSettings.scale;
 
-      offCtx2.globalAlpha = 2.5 / numSamples;
+      const pulsePhase = time * 8;
+      const pulseBrightness = 0.5 + smoothedIntensity * 2.0;
       for (let i = 0; i < numSamples; i++) {
-        const scaleY = 1 + (i / numSamples) * maxStretch;
+        const t = i / numSamples;
+        const scaleY = 1 + t * maxStretch;
+        // Sine wave travels through the ray stack, creating a rippling pulse
+        const pulse = 0.5 + 0.5 * Math.sin(pulsePhase - t * Math.PI * 2.5);
+        offCtx2.globalAlpha = (pulseBrightness / numSamples) * pulse;
         offCtx2.save();
         offCtx2.translate(offW / 2, offH / 2);
         offCtx2.scale(1, scaleY);
@@ -181,17 +186,17 @@ export default function BlurVisualizer({ stream, settings }: Props) {
       offCtx2.globalCompositeOperation = 'source-atop';
       offCtx2.globalAlpha = 1.0;
       const hue = (currentSettings.hueShift + time * 50) % 360;
-      offCtx2.fillStyle = `hsla(${hue}, 100%, 60%, 0.8)`;
+      offCtx2.fillStyle = `hsla(${hue}, 60%, 35%, 0.6)`;
       offCtx2.fillRect(0, 0, offW, offH);
 
       // 5. Draw the blurred streaks over the main canvas
       ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = Math.min(1.0, 0.6 + smoothedIntensity);
+      ctx.globalAlpha = Math.min(0.6, 0.3 + smoothedIntensity * 0.5);
       ctx.drawImage(offCanvas2, 0, 0, w, h);
 
       // Optional: Add a second layer of streaks for extra intensity
-      if (smoothedIntensity > 0.3) {
-        ctx.globalAlpha = Math.min(1.0, (smoothedIntensity - 0.3) * 2);
+      if (smoothedIntensity > 0.4) {
+        ctx.globalAlpha = Math.min(0.4, (smoothedIntensity - 0.4) * 1.2);
         ctx.filter = `hue-rotate(90deg)`;
         ctx.drawImage(offCanvas2, 0, 0, w, h);
         ctx.filter = 'none';
