@@ -104,28 +104,87 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
       const average = sum / bufferLength;
       const normalizedIntensity = average / 255;
 
-      // Trigger glitch based on audio intensity and settings
-      const threshold = 0.3 / currentSettings.sensitivity;
+      // Graduated glitch intensity tiers based on audio level
+      const sens = currentSettings.sensitivity;
+      const scale = currentSettings.scale;
+      const thresholdLow = 0.15 / sens;    // subtle distortion
+      const thresholdMid = 0.3 / sens;     // moderate glitch
+      const thresholdHigh = 0.5 / sens;    // heavy glitch
+      const thresholdExtreme = 0.7 / sens; // extreme glitch
 
-      if (normalizedIntensity > threshold && Math.random() > 0.3) {
+      if (normalizedIntensity > thresholdLow) {
         glitchParams.active = true;
-        glitchParams.intensity = normalizedIntensity * currentSettings.scale;
-        glitchParams.timer = Math.floor(Math.random() * 8) + 2; // frames to hold glitch
-        glitchParams.globalShiftX = (Math.random() - 0.5) * 20 * glitchParams.intensity;
-        glitchParams.globalShiftY = (Math.random() - 0.5) * 10 * glitchParams.intensity;
-        glitchParams.rgbSplit = Math.random() > 0.4;
 
-        // Generate slices
-        const numSlices = Math.floor(Math.random() * 20 * glitchParams.intensity) + 5;
-        glitchParams.slices = [];
-        for (let i = 0; i < numSlices; i++) {
-          const sliceHeight = Math.random() * (h * 0.15) + 2;
-          glitchParams.slices.push({
-            y: Math.random() * h,
-            height: sliceHeight,
-            offset: (Math.random() - 0.5) * w * 0.3 * glitchParams.intensity,
-            filter: Math.random() > 0.7 ? `hue-rotate(${Math.random() * 360}deg) saturate(300%)` : 'none'
-          });
+        // Map intensity to a 0-1 range relative to the tier thresholds
+        let tier: number;
+        let triggerChance: number;
+        let rgbChance: number;
+        let maxSlices: number;
+        let shiftScale: number;
+        let sliceOffsetScale: number;
+        let colorChance: number;
+
+        if (normalizedIntensity > thresholdExtreme) {
+          tier = 4;
+          triggerChance = 0.9;
+          rgbChance = 0.8;
+          maxSlices = 25;
+          shiftScale = 20;
+          sliceOffsetScale = 0.3;
+          colorChance = 0.5;
+        } else if (normalizedIntensity > thresholdHigh) {
+          tier = 3;
+          triggerChance = 0.7;
+          rgbChance = 0.5;
+          maxSlices = 15;
+          shiftScale = 12;
+          sliceOffsetScale = 0.2;
+          colorChance = 0.6;
+        } else if (normalizedIntensity > thresholdMid) {
+          tier = 2;
+          triggerChance = 0.5;
+          rgbChance = 0.2;
+          maxSlices = 8;
+          shiftScale = 6;
+          sliceOffsetScale = 0.1;
+          colorChance = 0.8;
+        } else {
+          tier = 1;
+          triggerChance = 0.3;
+          rgbChance = 0;
+          maxSlices = 3;
+          shiftScale = 2;
+          sliceOffsetScale = 0.04;
+          colorChance = 0.95;
+        }
+
+        if (Math.random() < triggerChance) {
+          glitchParams.intensity = normalizedIntensity * scale;
+          glitchParams.timer = Math.floor(Math.random() * (tier + 1)) + 1;
+          glitchParams.globalShiftX = (Math.random() - 0.5) * shiftScale * glitchParams.intensity;
+          glitchParams.globalShiftY = (Math.random() - 0.5) * (shiftScale / 2) * glitchParams.intensity;
+          glitchParams.rgbSplit = Math.random() > (1 - rgbChance);
+
+          // Generate slices scaled to tier
+          const numSlices = Math.floor(Math.random() * maxSlices * glitchParams.intensity) + (tier > 1 ? 2 : 1);
+          glitchParams.slices = [];
+          for (let i = 0; i < numSlices; i++) {
+            const maxHeight = tier === 1 ? h * 0.03 : h * 0.15 * (tier / 4);
+            const sliceHeight = Math.random() * maxHeight + 1;
+            glitchParams.slices.push({
+              y: Math.random() * h,
+              height: sliceHeight,
+              offset: (Math.random() - 0.5) * w * sliceOffsetScale * glitchParams.intensity,
+              filter: Math.random() > colorChance ? `hue-rotate(${Math.random() * 360}deg) saturate(${150 + tier * 50}%)` : 'none'
+            });
+          }
+        } else if (glitchParams.timer > 0) {
+          glitchParams.timer--;
+        } else {
+          glitchParams.active = false;
+          glitchParams.globalShiftX = 0;
+          glitchParams.globalShiftY = 0;
+          glitchParams.rgbSplit = false;
         }
       } else if (glitchParams.timer > 0) {
         glitchParams.timer--;
@@ -219,15 +278,18 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
         ctx.fillRect(0, y, w, 1);
       }
 
-      // 4. Draw noise/static if glitching heavily
-      if (glitchParams.active && glitchParams.intensity > 0.5) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        for (let i = 0; i < 30 * glitchParams.intensity; i++) {
+      // 4. Draw noise/static scaled to glitch intensity
+      if (glitchParams.active && glitchParams.intensity > 0.15) {
+        const noiseAlpha = Math.min(0.8, glitchParams.intensity * 0.8);
+        const noiseCount = Math.floor(glitchParams.intensity * 40);
+        const noiseMaxWidth = 5 + glitchParams.intensity * 15;
+        ctx.fillStyle = `rgba(255, 255, 255, ${noiseAlpha})`;
+        for (let i = 0; i < noiseCount; i++) {
           ctx.fillRect(
             Math.random() * w,
             Math.random() * h,
-            Math.random() * 20 + 5,
-            Math.random() * 4 + 1
+            Math.random() * noiseMaxWidth + 2,
+            Math.random() * 3 + 1
           );
         }
       }
