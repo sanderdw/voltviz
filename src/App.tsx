@@ -166,6 +166,8 @@ export default function App() {
                     className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
                   >
                     <option value="grid" className="bg-gray-900">Dutch Grid</option>
+                    <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid (WebGL)</option>
+                    <option value="glitch" className="bg-gray-900">Glitch</option>
                     <option value="yourlogo" className="bg-gray-900">Your Logo</option>
                     <option value="perlin" className="bg-gray-900">Glow Sphere</option>
                     <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
@@ -183,7 +185,6 @@ export default function App() {
                     <option value="hextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
                     <option value="fluidsmoke" className="bg-gray-900">Fluid Smoke</option>
                     <option value="3dequalizer" className="bg-gray-900">3D Equalizer</option>
-                    <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid</option>
                     <option value="festival" className="bg-gray-900">Festival Stage</option>
                     <option value="megafestival" className="bg-gray-900">Defqon Mainstage</option>
                     <option value="droneshow" className="bg-gray-900">Disney Drone Show</option>
@@ -192,7 +193,7 @@ export default function App() {
                     <option value="vinyl" className="bg-gray-900">Vinyl</option>
                     <option value="background" className="bg-gray-900">Background</option>
                     <option value="blur" className="bg-gray-900">Blur</option>
-                    <option value="glitch" className="bg-gray-900">Glitch</option>
+
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>
