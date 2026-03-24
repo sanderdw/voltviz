@@ -157,26 +157,26 @@ The workflow triggers on:
 ### Image Tags
 
 Images are automatically tagged as:
-- `ghcr.io/sanderdw/sanwil-vis2:latest` (on main branch)
-- `ghcr.io/sanderdw/sanwil-vis2:v1.0.0` (on version tags)
-- `ghcr.io/sanderdw/sanwil-vis2:main` (branch name)
-- `ghcr.io/sanderdw/sanwil-vis2:sha-abc123def` (commit SHA)
+- `ghcr.io/sanderdw/voltviz:latest` (on main branch)
+- `ghcr.io/sanderdw/voltviz:v1.0.0` (on version tags)
+- `ghcr.io/sanderdw/voltviz:main` (branch name)
+- `ghcr.io/sanderdw/voltviz:sha-abc123def` (commit SHA)
 
 ### Pull Docker Image
 
 ```bash
-docker pull ghcr.io/sanderdw/sanwil-vis2:latest
-docker run -p 8080:80 ghcr.io/sanderdw/sanwil-vis2:latest
+docker pull ghcr.io/sanderdw/voltviz:latest
+docker run -p 8080:80 ghcr.io/sanderdw/voltviz:latest
 ```
 
 ### Manual Build & Push
 
 ```bash
 # Build locally
-docker build -t ghcr.io/sanderdw/sanwil-vis2:latest .
+docker build -t ghcr.io/sanderdw/voltviz:latest .
 
 # Push to registry (requires authentication)
-docker push ghcr.io/sanderdw/sanwil-vis2:latest
+docker push ghcr.io/sanderdw/voltviz:latest
 ```
 
 For authentication, follow the [GitHub Container Registry documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
