@@ -1,4 +1,6 @@
-# ⚡ VoltViz
+# VoltViz
+![Voltviz](images/banner.png)
+
 
 > **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio or microphone and watch your music come alive.
 
