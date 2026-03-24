@@ -14,6 +14,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  IMAGE_DESCRIPTION: Real-time music visualizer web app with multiple interactive scenes
 
 jobs:
   build-and-push:
@@ -62,7 +63,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OCI_DESCRIPTION=${{ env.IMAGE_DESCRIPTION }}
           annotations: |
-            org.opencontainers.image.description=Real-time music visualizer web app with multiple interactive scenes
+            org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
