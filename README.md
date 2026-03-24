@@ -4,7 +4,7 @@
 
 > **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio or microphone and watch your music come alive.
 
-![VoltViz](https://img.shields.io/badge/React-19.0-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-6.2-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
+![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
 ---
 
@@ -82,12 +82,12 @@ http://localhost:8080
 ## 🛠 Technology Stack
 
 **Frontend:**
-- **React** 19.0 - UI framework
-- **TypeScript** 5.8 - Type-safe development
-- **Vite** 6.2 - Next-gen build tool
+- **React** 19.2 - UI framework
+- **TypeScript** 6.0 - Type-safe development
+- **Vite** 8.0 - Next-gen build tool
 - **Three.js** 0.183 - 3D graphics
 - **D3.js** 3.1 - Data visualization
-- **Tailwind CSS** 4.1 - Utility-first styling
+- **Tailwind CSS** 4.2 - Utility-first styling
 - **Lucide React** - Icon library
 
 **Infrastructure:**
