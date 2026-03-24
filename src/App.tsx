@@ -156,6 +156,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
+      {/* Mobile hint */}
+      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-white/40 tracking-wide">
+        <MonitorUp size={12} />
+        <span>Best experienced on a desktop browser</span>
+      </div>
+
       {/* Atmospheric background */}
       {!stream && (
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
@@ -177,7 +183,11 @@ export default function App() {
                 <div className="relative">
                   <select
                     value={activeVisualizer}
-                    onChange={(e) => setActiveVisualizer(e.target.value as VisualizerType)}
+                    onChange={(e) => {
+                      const value = e.target.value as VisualizerType;
+                      setActiveVisualizer(value);
+                      (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Select', value]);
+                    }}
                     className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
                   >
                     <option value="grid" className="bg-gray-900">Dutch Grid</option>
