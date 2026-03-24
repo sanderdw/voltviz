@@ -1,38 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
-import Circular from './components/visualizers/Circular';
-import CyberMatrix from './components/visualizers/CyberMatrix';
-import CyberGridCanvas from './components/visualizers/CyberGridCanvas';
-import SheetMusic from './components/visualizers/SheetMusic';
-import Bars from './components/visualizers/Bars';
-import Tunnel from './components/visualizers/Tunnel';
-import MusicGrid from './components/visualizers/MusicGrid';
-import NeonWave from './components/visualizers/NeonWave';
-import PolySphere from './components/visualizers/PolySphere';
-import PsychedelicSkull from './components/visualizers/PsychedelicSkull';
-import GhostRainbow from './components/visualizers/GhostRainbow';
-import NeonHexTunnel from './components/visualizers/NeonHexTunnel';
-import FluidSmoke from './components/visualizers/FluidSmoke';
-import WebGLParticles from './components/visualizers/WebGLParticles';
-import ThreeDEqualizer from './components/visualizers/ThreeDEqualizer';
-import WebGLMusicGrid from './components/visualizers/WebGLMusicGrid';
-import FestivalStage from './components/visualizers/FestivalStage';
-import MegaFestivalStage from './components/visualizers/MegaFestivalStage';
-import DisneyDroneShow from './components/visualizers/DisneyDroneShow';
-import FireworksShow from './components/visualizers/FireworksShow';
-import PerlinSphere from './components/visualizers/PerlinSphere';
-import CRTTerminal from './components/visualizers/CRTTerminal';
-import DataDashboard from './components/visualizers/DataDashboard';
-import YourLogo from './components/visualizers/YourLogo';
-import Vinyl from './components/visualizers/Vinyl';
-import Background from './components/visualizers/Background';
-import BlurVisualizer from './components/visualizers/BlurVisualizer';
-import GlitchVisualizer from './components/visualizers/GlitchVisualizer';
-import GlitchVisualizer2 from './components/visualizers/GlitchVisualizer2';
 import { VisualizerSettings } from './types';
 
-type VisualizerType = 'circular' | 'blur' | 'glitch' | 'glitch2' | 'Vinyl' | 'Background' | 'yourlogo' | 'cybermatrix' | 'cybergridcanvas' | 'sheet' | 'bars' | 'tunnel' | 'grid' | 'neon' | 'sphere' | 'skull' | 'ghost' | 'hextunnel' | 'fluidsmoke' | 'webgl' | 'webglgrid' | 'webglmusicgrid' | 'festival' | 'megafestival' | 'droneshow' | 'fireworks' | 'cyberpunk' | 'cyberpunkstreet' | 'globe' | 'perlin' | 'crtterminal' | 'datadashboard';
+type VisualizerType =
+  | 'circular'
+  | 'blur'
+  | 'glitch'
+  | 'glitch2'
+  | 'yourlogo'
+  | 'cybermatrix'
+  | 'cybergridcanvas'
+  | 'sheet'
+  | 'bars'
+  | 'tunnel'
+  | 'grid'
+  | 'neon'
+  | 'sphere'
+  | 'skull'
+  | 'ghost'
+  | 'hextunnel'
+  | 'fluidsmoke'
+  | 'webgl'
+  | 'webglmusicgrid'
+  | 'festival'
+  | 'megafestival'
+  | 'droneshow'
+  | 'fireworks'
+  | 'perlin'
+  | 'crtterminal'
+  | 'datadashboard'
+  | 'vinyl'
+  | 'background'
+  | '3dequalizer';
+
+type VisualizerProps = {
+  stream: MediaStream;
+  settings: VisualizerSettings;
+};
+
+const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
+  circular: lazy(() => import('./components/visualizers/Circular')),
+  blur: lazy(() => import('./components/visualizers/BlurVisualizer')),
+  glitch: lazy(() => import('./components/visualizers/GlitchVisualizer')),
+  glitch2: lazy(() => import('./components/visualizers/GlitchVisualizer2')),
+  yourlogo: lazy(() => import('./components/visualizers/YourLogo')),
+  cybermatrix: lazy(() => import('./components/visualizers/CyberMatrix')),
+  cybergridcanvas: lazy(() => import('./components/visualizers/CyberGridCanvas')),
+  sheet: lazy(() => import('./components/visualizers/SheetMusic')),
+  bars: lazy(() => import('./components/visualizers/Bars')),
+  tunnel: lazy(() => import('./components/visualizers/Tunnel')),
+  grid: lazy(() => import('./components/visualizers/MusicGrid')),
+  neon: lazy(() => import('./components/visualizers/NeonWave')),
+  sphere: lazy(() => import('./components/visualizers/PolySphere')),
+  skull: lazy(() => import('./components/visualizers/PsychedelicSkull')),
+  ghost: lazy(() => import('./components/visualizers/GhostRainbow')),
+  hextunnel: lazy(() => import('./components/visualizers/NeonHexTunnel')),
+  fluidsmoke: lazy(() => import('./components/visualizers/FluidSmoke')),
+  webgl: lazy(() => import('./components/visualizers/WebGLParticles')),
+  webglmusicgrid: lazy(() => import('./components/visualizers/WebGLMusicGrid')),
+  festival: lazy(() => import('./components/visualizers/FestivalStage')),
+  megafestival: lazy(() => import('./components/visualizers/MegaFestivalStage')),
+  droneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
+  fireworks: lazy(() => import('./components/visualizers/FireworksShow')),
+  perlin: lazy(() => import('./components/visualizers/PerlinSphere')),
+  crtterminal: lazy(() => import('./components/visualizers/CRTTerminal')),
+  datadashboard: lazy(() => import('./components/visualizers/DataDashboard')),
+  vinyl: lazy(() => import('./components/visualizers/Vinyl')),
+  background: lazy(() => import('./components/visualizers/Background')),
+  '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
+};
 
 export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -107,38 +144,14 @@ export default function App() {
 
   const renderVisualizer = () => {
     if (!stream) return null;
-    switch (activeVisualizer) {
-      case 'circular': return <Circular stream={stream} settings={settings} />;
-      case 'cybermatrix': return <CyberMatrix stream={stream} settings={settings} />;
-      case 'cybergridcanvas': return <CyberGridCanvas stream={stream} settings={settings} />;
-      case 'sheet': return <SheetMusic stream={stream} settings={settings} />;
-      case 'bars': return <Bars stream={stream} settings={settings} />;
-      case 'tunnel': return <Tunnel stream={stream} settings={settings} />;
-      case 'grid': return <MusicGrid stream={stream} settings={settings} />;
-      case 'neon': return <NeonWave stream={stream} settings={settings} />;
-      case 'sphere': return <PolySphere stream={stream} settings={settings} />;
-      case 'skull': return <PsychedelicSkull stream={stream} settings={settings} />;
-      case 'ghost': return <GhostRainbow stream={stream} settings={settings} />;
-      case 'hextunnel': return <NeonHexTunnel stream={stream} settings={settings} />;
-      case 'fluidsmoke': return <FluidSmoke stream={stream} settings={settings} />;
-      case 'webgl': return <WebGLParticles stream={stream} settings={settings} />;
-      case '3dequalizer': return <ThreeDEqualizer stream={stream} settings={settings} />;
-      case 'webglmusicgrid': return <WebGLMusicGrid stream={stream} settings={settings} />;
-      case 'festival': return <FestivalStage stream={stream} settings={settings} />;
-      case 'megafestival': return <MegaFestivalStage stream={stream} settings={settings} />;
-      case 'droneshow': return <DisneyDroneShow stream={stream} settings={settings} />;
-      case 'fireworks': return <FireworksShow stream={stream} settings={settings} />;
-      case 'perlin': return <PerlinSphere stream={stream} settings={settings} />;
-      case 'crtterminal': return <CRTTerminal stream={stream} settings={settings} />;
-      case 'datadashboard': return <DataDashboard stream={stream} settings={settings} />;
-      case 'yourlogo': return <YourLogo stream={stream} settings={settings} />;
-      case 'vinyl': return <Vinyl stream={stream} settings={settings} />;
-      case 'background': return <Background stream={stream} settings={settings} />;
-      case 'blur': return <BlurVisualizer stream={stream} settings={settings} />;
-      case 'glitch': return <GlitchVisualizer stream={stream} settings={settings} />;
-      case 'glitch2': return <GlitchVisualizer2 stream={stream} settings={settings} />;
-      default: return null;
-    }
+    const Visualizer = visualizerComponents[activeVisualizer];
+    if (!Visualizer) return null;
+
+    return (
+      <Suspense fallback={<div className="w-full h-full" />}>
+        <Visualizer stream={stream} settings={settings} />
+      </Suspense>
+    );
   };
 
   return (
