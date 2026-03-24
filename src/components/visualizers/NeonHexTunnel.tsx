@@ -9,10 +9,10 @@ interface Props {
 export default function NeonHexTunnel({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -53,7 +53,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
     let time = 0;
     const numHexagons = 20;
     const hexagons: { z: number }[] = [];
-    
+
     for (let i = 0; i < numHexagons; i++) {
       hexagons.push({
         z: (i / numHexagons) * 2000
@@ -68,7 +68,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
       time += 2 * currentSettings.speed;
 
       analyser.getByteFrequencyData(dataArray);
-      
+
       const bass = dataArray.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
       const mid = dataArray.slice(10, 30).reduce((a, b) => a + b, 0) / 20;
 
@@ -91,7 +91,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
           hex.z += 2000;
         }
       }
-      
+
       // Sort hexagons by Z (furthest first)
       hexagons.sort((a, b) => b.z - a.z);
 
@@ -120,13 +120,13 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
       for (let i = 0; i < hexagons.length; i++) {
         const hex = hexagons[i];
         const { verts, scale } = getHexVertices(hex.z, 1200);
-        
+
         // Alternate colors between cyan and magenta
         const isCyan = i % 2 === 0;
         const hue = isCyan ? (180 + currentSettings.hueShift) : (300 + currentSettings.hueShift);
-        
+
         // Fade out in distance
-        const alpha = Math.min(1, Math.max(0, 1 - (hex.z / 2000))); 
+        const alpha = Math.min(1, Math.max(0, 1 - (hex.z / 2000)));
         const color = `hsla(${hue % 360}, 100%, 60%, ${alpha})`;
         const glow = 20 * scale * currentSettings.sensitivity;
 
@@ -137,7 +137,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
           ctx.lineTo(verts[j].x, verts[j].y);
         }
         ctx.closePath();
-        
+
         ctx.strokeStyle = color;
         ctx.lineWidth = Math.max(1, 8 * scale);
         ctx.shadowBlur = glow;
@@ -148,7 +148,7 @@ export default function NeonHexTunnel({ stream, settings }: Props) {
         if (i < hexagons.length - 1) {
           const nextHex = hexagons[i + 1];
           const nextData = getHexVertices(nextHex.z, 1200);
-          
+
           ctx.beginPath();
           for (let j = 0; j < 6; j++) {
             ctx.moveTo(verts[j].x, verts[j].y);

@@ -9,10 +9,10 @@ interface Props {
 export default function SheetMusic({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function SheetMusic({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -62,7 +62,7 @@ export default function SheetMusic({ stream, settings }: Props) {
 
     const project = (x: number, y: number, z: number, w: number, horizonY: number) => {
       const fov = 600;
-      if (z < -fov + 10) return null; 
+      if (z < -fov + 10) return null;
       const scale = fov / (fov + z);
       return {
         x: x * scale + w / 2,
@@ -105,7 +105,7 @@ export default function SheetMusic({ stream, settings }: Props) {
       // Draw staves
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.lineWidth = 2 * currentSettings.scale;
-      
+
       const drawLine = (x: number) => {
         ctx.beginPath();
         for (let z = 0; z <= maxZ; z += 100) {
@@ -195,11 +195,11 @@ export default function SheetMusic({ stream, settings }: Props) {
 
           if (value * currentSettings.sensitivity * bandBoost > gate + Math.random() * 42) {
             const baseHue = band === 'bass' ? 18 : band === 'mid' ? 142 : 218;
-            
+
             const id = noteIdCounter++;
             const key = `${staff}-${lineIndex}`;
             const lastId = lastNoteOnLine[key];
-            
+
             let arcTo = undefined;
             if (lastId !== undefined && Math.random() > 0.2) {
                const lastNote = notes.find(n => n.id === lastId);
@@ -224,13 +224,13 @@ export default function SheetMusic({ stream, settings }: Props) {
             const x = note.staff === 'left' ? leftStaffX[note.lineIndex] : rightStaffX[note.lineIndex];
             const p1 = project(x * currentSettings.scale, groundY * currentSettings.scale, note.z, w, horizonY);
             const p2 = project(x * currentSettings.scale, groundY * currentSettings.scale, target.z, w, horizonY);
-            
+
             if (p1 && p2) {
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               const midZ = (note.z + target.z) / 2;
               const arcHeight = Math.min(200, Math.abs(note.z - target.z) * 0.5);
-              const midP = project(x * currentSettings.scale, (groundY - arcHeight) * currentSettings.scale, midZ, w, horizonY); 
+              const midP = project(x * currentSettings.scale, (groundY - arcHeight) * currentSettings.scale, midZ, w, horizonY);
               if (midP) {
                 const color = `hsl(${(note.baseHue + currentSettings.hueShift) % 360}, 100%, 65%)`;
                 ctx.quadraticCurveTo(midP.x, midP.y, p2.x, p2.y);
@@ -239,7 +239,7 @@ export default function SheetMusic({ stream, settings }: Props) {
                 ctx.shadowBlur = 15 * currentSettings.scale;
                 ctx.shadowColor = color;
                 ctx.stroke();
-                ctx.shadowBlur = 0; 
+                ctx.shadowBlur = 0;
               }
             }
           }
@@ -258,19 +258,19 @@ export default function SheetMusic({ stream, settings }: Props) {
 
         const x = note.staff === 'left' ? leftStaffX[note.lineIndex] : rightStaffX[note.lineIndex];
   const p = project(x * currentSettings.scale, groundY * currentSettings.scale, note.z, w, horizonY);
-        
+
         if (p) {
           const radiusX = 24 * p.scale * currentSettings.scale;
-          const radiusY = 10 * p.scale * currentSettings.scale; 
+          const radiusY = 10 * p.scale * currentSettings.scale;
           const color = `hsl(${(note.baseHue + currentSettings.hueShift) % 360}, 100%, 65%)`;
-          
+
           ctx.beginPath();
           ctx.ellipse(p.x, p.y, radiusX, radiusY, 0, 0, Math.PI * 2);
           ctx.fillStyle = color;
           ctx.shadowBlur = 25 * p.scale * currentSettings.scale;
           ctx.shadowColor = color;
           ctx.fill();
-          
+
           ctx.beginPath();
           ctx.ellipse(p.x, p.y, radiusX * 0.5, radiusY * 0.5, 0, 0, Math.PI * 2);
           ctx.fillStyle = '#ffffff';

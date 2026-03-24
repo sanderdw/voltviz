@@ -9,10 +9,10 @@ interface VisualizerProps {
 export default function Circular({ stream, settings }: VisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function Circular({ stream, settings }: VisualizerProps) {
     // Setup Audio
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.85;
@@ -90,7 +90,7 @@ export default function Circular({ stream, settings }: VisualizerProps) {
 
       ctx.save();
       ctx.translate(centerX, centerY);
-      
+
       // Rotate slowly
       ctx.rotate(Date.now() * 0.0005 * currentSettings.speed);
 
@@ -99,21 +99,21 @@ export default function Circular({ stream, settings }: VisualizerProps) {
         const dataIndex = Math.floor(i * (bufferLength * 0.5) / bars);
         const value = dataArray[dataIndex];
         const barHeight = (value / 255) * (Math.min(width, height) * 0.3) * currentSettings.sensitivity * currentSettings.scale;
-        
+
         const angle = i * step;
-        
+
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
-        
+
         const xEnd = Math.cos(angle) * (radius + barHeight);
         const yEnd = Math.sin(angle) * (radius + barHeight);
-        
+
         // Color based on frequency and volume
         const hue = ((i / bars) * 360 + (Date.now() * 0.05 * currentSettings.speed) + currentSettings.hueShift) % 360;
         ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${0.5 + Math.min(1, (value/255)*0.5*currentSettings.sensitivity)})`;
         ctx.lineWidth = 3 * currentSettings.scale;
         ctx.lineCap = 'round';
-        
+
         ctx.beginPath();
         ctx.moveTo(x, y);
         ctx.lineTo(xEnd, yEnd);
@@ -139,7 +139,7 @@ export default function Circular({ stream, settings }: VisualizerProps) {
       ctx.beginPath();
       ctx.lineWidth = 2 * currentSettings.scale;
       ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 + Math.min(1, (avgVolume/255)*0.6*currentSettings.sensitivity)})`;
-      
+
       const sliceWidth = (radius * 1.5) / bufferLength;
       let xWave = centerX - (radius * 0.75);
 
@@ -163,13 +163,13 @@ export default function Circular({ stream, settings }: VisualizerProps) {
         p.x += p.vx * currentSettings.speed;
         p.y += p.vy * currentSettings.speed;
         p.life += currentSettings.speed;
-        
+
         // Add some drag
         p.vx *= 0.98;
         p.vy *= 0.98;
 
         const alpha = Math.max(0, 1 - (p.life / p.maxLife));
-        
+
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color.replace('1)', `${alpha})`);
@@ -195,8 +195,8 @@ export default function Circular({ stream, settings }: VisualizerProps) {
 
   return (
     <div ref={containerRef} className="w-full h-full">
-      <canvas 
-        ref={canvasRef} 
+      <canvas
+        ref={canvasRef}
         className="w-full h-full block"
       />
     </div>

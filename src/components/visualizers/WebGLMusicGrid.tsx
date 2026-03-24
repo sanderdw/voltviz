@@ -67,10 +67,10 @@ export default function ThreeDEqualizer({ stream, settings }: Props) {
   const intensityLabelRef = useRef<HTMLSpanElement>(null);
   const intensityBarsRef = useRef<HTMLDivElement>(null);
 
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   // Network state

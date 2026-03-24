@@ -9,10 +9,10 @@ interface Props {
 export default function PsychedelicSkull({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   // Floating blobs for the background
@@ -31,7 +31,7 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
     analyser.smoothingTimeConstant = 0.8;
@@ -91,7 +91,7 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
       ctx.lineTo(-40, -150);
       ctx.lineTo(-15, -95);
       ctx.fill();
-      
+
       ctx.beginPath();
       ctx.moveTo(85, -70);
       ctx.lineTo(40, -150);
@@ -119,7 +119,7 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
       ctx.beginPath();
       ctx.arc(0, -10, 75, 0, Math.PI * 2);
       ctx.fill();
-      
+
       // Cheekbones
       ctx.beginPath();
       ctx.moveTo(-70, 20);
@@ -183,7 +183,7 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
       ctx.moveTo(-35, 70);
       ctx.quadraticCurveTo(0, 80, 35, 70);
       ctx.stroke();
-      
+
       // Vertical teeth lines
       for(let i = -25; i <= 25; i += 12) {
         ctx.beginPath();
@@ -224,22 +224,22 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
       for (let i = 0; i < numBands; i++) {
         ctx.beginPath();
         ctx.moveTo(0, h);
-        
+
         const yBase = (i / numBands) * h;
-        
+
         for (let x = 0; x <= w; x += 20) {
           const noise1 = Math.sin(x * 0.005 + time + i * 0.5) * 60;
           const noise2 = Math.cos(x * 0.008 - time * 1.2 + i * 0.3) * 40;
-          
+
           // Audio distortion from waveform
           const dataIndex = Math.floor((x / w) * bufferLength);
           const audioDistort = (timeDataArray[dataIndex] / 128 - 1) * 80 * currentSettings.sensitivity;
-          
+
           ctx.lineTo(x, yBase + noise1 + noise2 + audioDistort);
         }
         ctx.lineTo(w, h);
         ctx.lineTo(0, h);
-        
+
         if (i % 3 === 0) {
           ctx.fillStyle = `hsla(${limeHue}, 100%, 50%, 0.6)`;
         } else if (i % 3 === 1) {
@@ -257,10 +257,10 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
           blob.y = 1.1;
           blob.x = Math.random();
         }
-        
+
         const bx = blob.x * w + Math.sin(time * blob.speed) * 30;
         const by = blob.y * h;
-        
+
         ctx.fillStyle = blob.isLime ? `hsla(${limeHue}, 100%, 50%, 0.8)` : `hsla(${yellowHue}, 100%, 50%, 0.8)`;
         ctx.beginPath();
         // Distorted blob shape
@@ -274,7 +274,7 @@ export default function PsychedelicSkull({ stream, settings }: Props) {
       gradient.addColorStop(0, `hsla(${yellowHue}, 100%, 60%, 0.8)`);
       gradient.addColorStop(0.5, `hsla(${limeHue}, 100%, 50%, 0.4)`);
       gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      
+
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, w, h);
 

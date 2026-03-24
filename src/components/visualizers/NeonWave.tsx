@@ -21,10 +21,10 @@ interface Shape {
 export default function NeonWave({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function NeonWave({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.85;
@@ -87,10 +87,10 @@ export default function NeonWave({ stream, settings }: Props) {
       const x = shape.x * canvas.width;
       const y = shape.y * canvas.height;
       const currentSize = (shape.size + (bass * shape.pulseFactor * 0.5)) * scale;
-      
+
       ctx.translate(x, y);
       ctx.rotate(shape.rotation);
-      
+
       ctx.beginPath();
       if (shape.type === 'circle') {
         ctx.arc(0, 0, currentSize, 0, Math.PI * 2);
@@ -119,7 +119,7 @@ export default function NeonWave({ stream, settings }: Props) {
 
       ctx.shadowBlur = 10 * scale;
       ctx.shadowColor = shape.color;
-      
+
       if (shape.isFilled && shape.type !== 'cross' && shape.type !== 'squiggle') {
         ctx.fillStyle = shape.color;
         ctx.globalAlpha = 0.3;
@@ -130,7 +130,7 @@ export default function NeonWave({ stream, settings }: Props) {
         ctx.globalAlpha = 0.6;
         ctx.stroke();
       }
-      
+
       ctx.restore();
     };
 
@@ -225,7 +225,7 @@ export default function NeonWave({ stream, settings }: Props) {
         const value = dataArray[i * step];
         const percent = value / 255;
         const barHeight = percent * (h / 4) * currentSettings.sensitivity;
-        
+
         const barX = i * (barWidth + barSpacing) + barSpacing / 2;
         const barY = h - barHeight - 40; // 40px padding from bottom
 
@@ -262,10 +262,10 @@ export default function NeonWave({ stream, settings }: Props) {
       ctx.fillStyle = `hsla(${180 + currentSettings.hueShift}, 100%, 70%, 0.8)`;
       ctx.font = '12px "JetBrains Mono", monospace';
       ctx.fillText('0.Z4-', 10, h - 10);
-      
+
       const timeStr = new Date(Date.now()).toISOString().substr(14, 5); // mm:ss
       ctx.fillText(`-0:${timeStr}`, w - 60, h - 10);
-      
+
       // Reset shadow for next frame
       ctx.shadowBlur = 0;
     };

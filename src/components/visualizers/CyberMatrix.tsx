@@ -13,10 +13,10 @@ interface Props {
 
 export default function CyberMatrix({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -50,7 +50,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -58,14 +58,14 @@ export default function CyberMatrix({ stream, settings }: Props) {
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x000000, 0.03);
-    
+
     const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
     camera.position.set(0, 0, 30);
 
     // --- Post Processing ---
     const renderScene = new RenderPass(scene, camera);
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(w, h), 1.5, 0.4, 0.1);
-    
+
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -100,7 +100,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
       // Color based on position (cyan left/top, red right/bottom)
       const mixRatio = Math.max(0, Math.min(1, (x - y) / size + 0.5));
       const c = new THREE.Color().lerpColors(colorCyan, colorRed, mixRatio);
-      
+
       particleColors[i * 3] = c.r;
       particleColors[i * 3 + 1] = c.g;
       particleColors[i * 3 + 2] = c.b;
@@ -124,15 +124,15 @@ export default function CyberMatrix({ stream, settings }: Props) {
         varying vec3 vColor;
         uniform float uTime;
         uniform float uAudio;
-        
+
         void main() {
           vColor = color;
           vec3 pos = position;
-          
+
           // Slight jitter based on audio
           pos.x += sin(uTime * 2.0 + pos.y) * 0.2 * uAudio;
           pos.y += cos(uTime * 2.0 + pos.x) * 0.2 * uAudio;
-          
+
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + uAudio * 1.5);
           gl_Position = projectionMatrix * mvPosition;
@@ -141,7 +141,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
       fragmentShader: `
         varying vec3 vColor;
         uniform float uHueShift;
-        
+
         vec3 hueShift(vec3 color, float hue) {
             const vec3 k = vec3(0.57735, 0.57735, 0.57735);
             float cosAngle = cos(hue);
@@ -151,7 +151,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
         void main() {
           float dist = length(gl_PointCoord - vec2(0.5));
           if (dist > 0.5) discard;
-          
+
           vec3 shiftedColor = hueShift(vColor, uHueShift);
           float alpha = smoothstep(0.5, 0.1, dist);
           gl_FragColor = vec4(shiftedColor, alpha);
@@ -229,7 +229,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
         varying vec3 vColor;
         uniform float uHueShift;
         uniform float uOpacity;
-        
+
         vec3 hueShift(vec3 color, float hue) {
             const vec3 k = vec3(0.57735, 0.57735, 0.57735);
             float cosAngle = cos(hue);
@@ -264,21 +264,21 @@ export default function CyberMatrix({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const currentSettings = settingsRef.current;
       analyser.getByteFrequencyData(dataArray);
-      
+
       const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10 / 255;
       const mid = dataArray.slice(10, 100).reduce((a, b) => a + b, 0) / 90 / 255;
       const treble = dataArray.slice(100, 200).reduce((a, b) => a + b, 0) / 100 / 255;
-      
+
       const elapsedTime = clock.getElapsedTime() * currentSettings.speed;
 
       // Update uniforms
       particleMat.uniforms.uTime.value = elapsedTime;
       particleMat.uniforms.uAudio.value = bass * currentSettings.sensitivity;
       particleMat.uniforms.uHueShift.value = (currentSettings.hueShift * Math.PI) / 180;
-      
+
       lineMat.uniforms.uHueShift.value = (currentSettings.hueShift * Math.PI) / 180;
       lineMat.uniforms.uOpacity.value = 0.1 + treble * 0.4 * currentSettings.sensitivity;
 
@@ -293,10 +293,10 @@ export default function CyberMatrix({ stream, settings }: Props) {
 
       // Bloom intensity based on bass
       bloomPass.strength = 1.0 + bass * 2.5 * currentSettings.sensitivity;
-      
+
       // Scale based on settings
       scene.scale.setScalar(currentSettings.scale);
-      
+
       composer.render();
     };
 
@@ -318,7 +318,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (sourceRef.current) sourceRef.current.disconnect();
       if (audioCtxRef.current) audioCtxRef.current.close();
-      
+
       particleGeo.dispose();
       particleMat.dispose();
       lineGeo.dispose();

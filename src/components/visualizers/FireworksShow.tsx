@@ -26,10 +26,10 @@ function createGlowTexture() {
 
 export default function FireworksShow({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function FireworksShow({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.7;
@@ -72,7 +72,7 @@ export default function FireworksShow({ stream, settings }: Props) {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -120,7 +120,7 @@ export default function FireworksShow({ stream, settings }: Props) {
       lifetimes[i] = life;
       types[i] = type;
       sizes[i] = size;
-      
+
       pIndex = (pIndex + 1) % MAX_PARTICLES;
     }
 
@@ -130,19 +130,19 @@ export default function FireworksShow({ stream, settings }: Props) {
         const v = Math.random();
         const theta = u * 2.0 * Math.PI;
         const phi = Math.acos(2.0 * v - 1.0);
-        
+
         // Massive speed increase for larger explosions
         const speed = (Math.random() * 120 + 40) * (isHuge ? 2.5 : 1.5);
-        
+
         const vx = speed * Math.sin(phi) * Math.cos(theta);
         const vy = speed * Math.sin(phi) * Math.sin(theta);
         const vz = speed * Math.cos(phi);
-        
+
         // Slight color variation
         const cr = Math.min(1, r + (Math.random()-0.5)*0.3);
         const cg = Math.min(1, g + (Math.random()-0.5)*0.3);
         const cb = Math.min(1, b + (Math.random()-0.5)*0.3);
-        
+
         // Longer lifetime so they can fly off screen
         spawnParticle(x, y, z, vx, vy, vz, cr, cg, cb, 3.0 + Math.random() * 3.0, 2, isHuge ? 12.0 : 6.0);
       }
@@ -200,11 +200,11 @@ export default function FireworksShow({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const now = performance.now();
       const dt = Math.min((now - lastTime) / 1000, 0.1); // Cap dt to prevent huge jumps
       lastTime = now;
-      
+
       const currentSettings = settingsRef.current;
       if (beatTimer > 0) beatTimer -= dt;
       autoSpawnTimer -= dt;
@@ -223,28 +223,28 @@ export default function FireworksShow({ stream, settings }: Props) {
       // Spawn on heavy bass beats
       if (bassNorm > 0.8 * (1.5 - currentSettings.sensitivity) && beatTimer <= 0) {
         beatTimer = 0.4; // Cooldown
-        
+
         const numRockets = Math.random() > 0.6 ? 3 : 1;
         const isHuge = bassNorm > 0.95;
-        
+
         for(let i=0; i<numRockets; i++) {
           const startX = (Math.random() - 0.5) * 160;
           const startZ = (Math.random() - 0.5) * 80 - 40;
           const targetY = 60 + Math.random() * 80;
-          
+
           // Calculate vy to reach targetY (v^2 = u^2 + 2as -> u = sqrt(-2as))
           const gravity = -40;
           const vy = Math.sqrt(-2 * gravity * targetY);
           const vx = (Math.random() - 0.5) * 15;
           const vz = (Math.random() - 0.5) * 15;
-          
+
           // Color based on settings hue + random variation
           const hue = (currentSettings.hueShift / 360 + Math.random() * 0.2) % 1.0;
           const color = new THREE.Color().setHSL(hue, 1.0, 0.6);
-          
+
           // life = time to reach apex = vy / |g|
           const life = vy / Math.abs(gravity);
-          
+
           spawnParticle(startX, 0, startZ, vx, vy, vz, color.r, color.g, color.b, life, 1, isHuge ? 8.0 : 5.0);
         }
       }
@@ -271,9 +271,9 @@ export default function FireworksShow({ stream, settings }: Props) {
       for (let i = 0; i < MAX_PARTICLES; i++) {
         if (lifetimes[i] > 0) {
           lifetimes[i] -= dt * timeScale;
-          
+
           if (lifetimes[i] <= 0) {
-            if (types[i] === 1) { 
+            if (types[i] === 1) {
               // Rocket died -> explode
               const isHuge = sizes[i] > 6.0;
               // Increase particle count for denser explosions
@@ -290,25 +290,25 @@ export default function FireworksShow({ stream, settings }: Props) {
           positions[i*3+1] += velocities[i*3+1] * dt * timeScale;
           positions[i*3+2] += velocities[i*3+2] * dt * timeScale;
 
-          if (types[i] === 1) { 
+          if (types[i] === 1) {
             // Rocket
             velocities[i*3+1] -= 40 * dt * timeScale; // Gravity
-            
+
             // Spawn trail
             if (Math.random() < 0.4) {
                spawnParticle(positions[i*3], positions[i*3+1], positions[i*3+2], velocities[i*3]*0.1, velocities[i*3+1]*0.1, velocities[i*3+2]*0.1, 1, 0.8, 0.5, 0.4 + Math.random()*0.3, 3, 2.0);
             }
-          } else if (types[i] === 2) { 
+          } else if (types[i] === 2) {
             // Explosion Particle
             velocities[i*3+1] -= 15 * dt * timeScale; // Slightly less gravity so they fly further out
             velocities[i*3] *= 0.99; // Much less air drag so they keep flying
             velocities[i*3+2] *= 0.99;
-            
+
             // Fade out much slower
             colors[i*3] *= 0.99;
             colors[i*3+1] *= 0.99;
             colors[i*3+2] *= 0.99;
-            
+
             // Flash white on heavy treble (crackle effect)
             if (trebleNorm > 0.8 && Math.random() > 0.95) {
               colAttr[i*3] = 1; colAttr[i*3+1] = 1; colAttr[i*3+2] = 1;
@@ -319,7 +319,7 @@ export default function FireworksShow({ stream, settings }: Props) {
               colAttr[i*3+2] = colors[i*3+2];
               sizeAttr[i] = sizes[i];
             }
-          } else if (types[i] === 3) { 
+          } else if (types[i] === 3) {
             // Trail Particle
             colors[i*3] *= 0.9;
             colors[i*3+1] *= 0.9;
@@ -356,7 +356,7 @@ export default function FireworksShow({ stream, settings }: Props) {
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
-      
+
       // Cleanup
       groundGeo.dispose();
       groundMat.dispose();
@@ -365,7 +365,7 @@ export default function FireworksShow({ stream, settings }: Props) {
       particleGeo.dispose();
       particleMat.dispose();
       renderer.dispose();
-      
+
       if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }

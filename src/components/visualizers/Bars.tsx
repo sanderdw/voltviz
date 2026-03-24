@@ -9,10 +9,10 @@ interface Props {
 export default function Bars({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function Bars({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.85;
@@ -69,21 +69,21 @@ export default function Bars({ stream, settings }: Props) {
         const value = dataArray[i];
         const percent = Math.min(1, (value / 255) * currentSettings.sensitivity);
         const barHeight = percent * h * 0.8 * currentSettings.scale;
-        
+
         const hue = ((i / bufferLength) * 360 + (Date.now() * 0.05 * currentSettings.speed) + currentSettings.hueShift) % 360;
-        
+
         // Create gradient for each bar
         const gradient = ctx.createLinearGradient(0, h, 0, h - barHeight);
         gradient.addColorStop(0, `hsla(${hue}, 100%, 20%, 1)`);
         gradient.addColorStop(1, `hsla(${hue}, 100%, 60%, 1)`);
-        
+
         ctx.fillStyle = gradient;
-        
+
         // Draw bar with rounded top
         ctx.beginPath();
         ctx.roundRect(x, h - barHeight, barWidth, barHeight, [barWidth/2, barWidth/2, 0, 0]);
         ctx.fill();
-        
+
         // Add a bright cap
         if (barHeight > 5 * currentSettings.scale) {
           ctx.fillStyle = `hsla(${hue}, 100%, 80%, 1)`;

@@ -24,10 +24,10 @@ interface Particle {
 export default function FluidSmoke({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   const particlesRef = useRef<Particle[]>([]);
@@ -46,7 +46,7 @@ export default function FluidSmoke({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -104,7 +104,7 @@ export default function FluidSmoke({ stream, settings }: Props) {
       time += 1 * currentSettings.speed;
 
       analyser.getByteFrequencyData(dataArray);
-      
+
       const bass = dataArray.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
       const mid = dataArray.slice(10, 30).reduce((a, b) => a + b, 0) / 20;
       const treble = dataArray.slice(40, 80).reduce((a, b) => a + b, 0) / 40;
@@ -148,7 +148,7 @@ export default function FluidSmoke({ stream, settings }: Props) {
 
       for (let i = particlesRef.current.length - 1; i >= 0; i--) {
         const p = particlesRef.current[i];
-        
+
         // Update physics
         p.x += p.vx + Math.sin(time * p.wobbleSpeed + p.wobbleOffset) * 2 * currentSettings.speed;
         p.y += p.vy;
@@ -174,7 +174,7 @@ export default function FluidSmoke({ stream, settings }: Props) {
           p.x - p.radius * 0.2, p.y - p.radius * 0.2, 0, // Highlight offset
           p.x, p.y, p.radius
         );
-        
+
         // Easing for opacity to make it fade out smoothly
         const opacity = Math.pow(p.life, 1.5) * 0.8;
 

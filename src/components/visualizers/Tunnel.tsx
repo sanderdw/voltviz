@@ -9,10 +9,10 @@ interface Props {
 export default function Tunnel({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function Tunnel({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -106,7 +106,7 @@ export default function Tunnel({ stream, settings }: Props) {
 
       const speedMult = currentSettings.speed * (1 + (bass / 255) * 2.0);
       const currentRadius = baseRadius * currentSettings.scale * (1 + (bass / 255) * 0.4 * currentSettings.sensitivity);
-      
+
       // Camera movement
       const camAngle = time * 0.8;
       const camX = Math.sin(time * 1.2) * 150 * currentSettings.scale * (1 + (mid / 255));
@@ -123,7 +123,7 @@ export default function Tunnel({ stream, settings }: Props) {
 
         const px = Math.cos(p.angle + camAngle) * p.radius * currentSettings.scale - camX;
         const py = Math.sin(p.angle + camAngle) * p.radius * currentSettings.scale - camY;
-        
+
         const proj = project(px, py, p.z, w, h);
         if (proj) {
           const intensity = Math.max(0, 1 - p.z / maxZ);
@@ -154,12 +154,12 @@ export default function Tunnel({ stream, settings }: Props) {
 
         const ringRadius = currentRadius * (1 + intensity * 0.3);
         const distanceFade = Math.max(0, Math.min(1, 1 - (ring.z / maxZ)));
-        
+
         // Color shifting
         const baseHue = (time * 100 + ring.z * 0.05) % 360;
         const hue = (baseHue + currentSettings.hueShift) % 360;
         const alpha = distanceFade * (0.2 + intensity * 0.8);
-        
+
         ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
         ctx.lineWidth = Math.max(1, (2 + intensity * 8) * (fov / ring.z));
         ctx.shadowBlur = (15 + intensity * 30) * (fov / ring.z);
@@ -167,7 +167,7 @@ export default function Tunnel({ stream, settings }: Props) {
 
         const points = [];
         const twist = ring.z * 0.002 * Math.sin(time * 0.5);
-        
+
         for (let s = 0; s < sides; s++) {
           const angle = (s / sides) * Math.PI * 2 + camAngle + twist;
           const x = Math.cos(angle) * ringRadius - camX;
@@ -195,7 +195,7 @@ export default function Tunnel({ stream, settings }: Props) {
               const prevIntensity = ((dataArray[prevFreqIndex] || 0) / 255) * currentSettings.sensitivity;
               const prevRingRadius = currentRadius * (1 + prevIntensity * 0.3);
               const prevTwist = prevRing.z * 0.002 * Math.sin(time * 0.5);
-              
+
               ctx.beginPath();
               for (let s = 0; s < sides; s++) {
                 const angle2 = (s / sides) * Math.PI * 2 + camAngle + prevTwist;

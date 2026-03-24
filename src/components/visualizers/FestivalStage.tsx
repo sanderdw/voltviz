@@ -9,10 +9,10 @@ interface Props {
 
 export default function FestivalStage({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function FestivalStage({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.7;
@@ -53,7 +53,7 @@ export default function FestivalStage({ stream, settings }: Props) {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -75,7 +75,7 @@ export default function FestivalStage({ stream, settings }: Props) {
     const audienceGeo = new THREE.SphereGeometry(0.8, 8, 8);
     const audienceMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const audienceMesh = new THREE.InstancedMesh(audienceGeo, audienceMat, 2000);
-    
+
     const audDummy = new THREE.Object3D();
     for(let i=0; i<2000; i++) {
       audDummy.position.set((Math.random()-0.5)*200, 0.8 + Math.random()*0.5, 30 + Math.random()*150);
@@ -109,7 +109,7 @@ export default function FestivalStage({ stream, settings }: Props) {
     stageGroup.add(laserMesh);
 
     const laserData: { pos: THREE.Vector3, baseRot: THREE.Euler, speed: number, phase: number, color: THREE.Color, bank: number }[] = [];
-    
+
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
 
@@ -118,7 +118,7 @@ export default function FestivalStage({ stream, settings }: Props) {
       let x, y, z;
       let rx, ry, rz;
       let bank;
-      
+
       if (i < 50) {
         // Left bank (bottom)
         x = -40 - Math.random() * 20; y = 5 + Math.random() * 15; z = -10;
@@ -158,7 +158,7 @@ export default function FestivalStage({ stream, settings }: Props) {
     const particlePositions = new Float32Array(maxParticles * 3);
     const particleColors = new Float32Array(maxParticles * 3);
     const particleSizes = new Float32Array(maxParticles);
-    
+
     particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
     particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
     particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
@@ -206,7 +206,7 @@ export default function FestivalStage({ stream, settings }: Props) {
       stageGroup.add(light);
       strobes.push(light);
     }
-    
+
     scene.add(new THREE.AmbientLight(0x111122, 0.5));
 
     const resize = () => {
@@ -226,11 +226,11 @@ export default function FestivalStage({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       const currentSettings = settingsRef.current;
       time += dt * currentSettings.speed;
       if (beatCooldown > 0) beatCooldown -= dt;
@@ -271,13 +271,13 @@ export default function FestivalStage({ stream, settings }: Props) {
       // Update Lasers
       for (let i = 0; i < laserCount; i++) {
         const lData = laserData[i];
-        
+
         // Movement sweep
         const sweep = Math.sin(time * lData.speed + lData.phase) * 0.8 * midNorm * currentSettings.sensitivity;
-        
+
         dummy.position.copy(lData.pos);
         dummy.rotation.copy(lData.baseRot);
-        
+
         if (lData.bank === 0) dummy.rotation.y += sweep;
         else if (lData.bank === 1) dummy.rotation.y -= sweep;
         else dummy.rotation.x += sweep;
@@ -285,7 +285,7 @@ export default function FestivalStage({ stream, settings }: Props) {
         // Scale based on audio (lasers shoot out on beat)
         const laserLength = 0.1 + midNorm * 2.0 * currentSettings.scale;
         dummy.scale.set(1, 1, laserLength);
-        
+
         dummy.updateMatrix();
         laserMesh.setMatrixAt(i, dummy.matrix);
 
@@ -294,9 +294,9 @@ export default function FestivalStage({ stream, settings }: Props) {
         if (lData.bank === 0) lHue = 120 / 360; // Green
         else if (lData.bank === 1) lHue = 240 / 360; // Blue
         else lHue = (Math.random() > 0.5 ? 120 : 240) / 360; // Mix
-        
+
         lHue = (lHue + currentSettings.hueShift / 360) % 1.0;
-        
+
         const lLightness = 0.1 + Math.pow(midNorm, 2) * 0.8;
         color.setHSL(lHue, 1.0, lLightness);
         laserMesh.setColorAt(i, color);
@@ -307,18 +307,18 @@ export default function FestivalStage({ stream, settings }: Props) {
       // Spawn Pyro/Fireworks on Bass
       if (bassNorm > 0.8 * (1.5 - currentSettings.sensitivity) && beatCooldown <= 0) {
         beatCooldown = 0.2; // Prevent spawning every frame
-        
+
         const numSparks = 100 + Math.random() * 150;
         const spawnPoints = [-30, -15, 0, 15, 30];
         const originX = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
-        
+
         for (let i = 0; i < numSparks; i++) {
           if (particles.length >= maxParticles) break;
-          
+
           const angleX = (Math.random() - 0.5) * 0.6; // Mostly up
           const angleZ = (Math.random() - 0.5) * 0.6;
           const speed = 50 + Math.random() * 70;
-          
+
           particles.push({
             pos: new THREE.Vector3(originX + (Math.random()-0.5)*3, 5, -5 + (Math.random()-0.5)*3),
             vel: new THREE.Vector3(angleX * speed, speed, angleZ * speed),
@@ -335,36 +335,36 @@ export default function FestivalStage({ stream, settings }: Props) {
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life += dt;
-        
+
         if (p.life >= p.maxLife) {
           particles.splice(i, 1);
           continue;
         }
-        
+
         // Gravity
         p.vel.y -= 50 * dt;
         // Drag
         p.vel.multiplyScalar(0.98);
-        
+
         p.pos.addScaledVector(p.vel, dt);
-        
+
         particlePositions[pCount * 3] = p.pos.x;
         particlePositions[pCount * 3 + 1] = p.pos.y;
         particlePositions[pCount * 3 + 2] = p.pos.z;
-        
+
         const lifeRatio = p.life / p.maxLife;
         // Fade out
         const alpha = 1.0 - Math.pow(lifeRatio, 2);
-        
+
         particleColors[pCount * 3] = p.color.r * alpha;
         particleColors[pCount * 3 + 1] = p.color.g * alpha;
         particleColors[pCount * 3 + 2] = p.color.b * alpha;
-        
+
         particleSizes[pCount] = p.size * (1.0 - lifeRatio * 0.5) * currentSettings.scale;
-        
+
         pCount++;
       }
-      
+
       particleGeo.setDrawRange(0, pCount);
       particleGeo.attributes.position.needsUpdate = true;
       particleGeo.attributes.color.needsUpdate = true;
@@ -382,7 +382,7 @@ export default function FestivalStage({ stream, settings }: Props) {
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
-      
+
       // Cleanup
       groundGeo.dispose();
       groundMat.dispose();
@@ -395,7 +395,7 @@ export default function FestivalStage({ stream, settings }: Props) {
       particleGeo.dispose();
       particleShaderMat.dispose();
       renderer.dispose();
-      
+
       if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }

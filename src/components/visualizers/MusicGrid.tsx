@@ -44,10 +44,10 @@ interface Spark {
 export default function MusicGrid({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   // Network state
@@ -57,7 +57,7 @@ export default function MusicGrid({ stream, settings }: Props) {
   const particlesRef = useRef<Particle[]>([]);
   const sparksRef = useRef<Spark[]>([]);
   const projectionRef = useRef<any>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -171,7 +171,7 @@ export default function MusicGrid({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -190,12 +190,12 @@ export default function MusicGrid({ stream, settings }: Props) {
         const h = containerRef.current.clientHeight;
         canvasRef.current.width = w;
         canvasRef.current.height = h;
-        
+
         if (mapDataRef.current) {
           const padding = 60;
           const drawAreaW = w - padding * 2;
           const drawAreaH = h - padding * 2;
-          
+
           const proj = geoMercator().fitSize([drawAreaW, drawAreaH], mapDataRef.current);
           proj.translate([proj.translate()[0] + padding, proj.translate()[1] + padding]);
           projectionRef.current = proj;
@@ -257,14 +257,14 @@ export default function MusicGrid({ stream, settings }: Props) {
       edgesRef.current.forEach(edge => {
         const n1 = getScreenPos(nodesRef.current[edge.from]);
         const n2 = getScreenPos(nodesRef.current[edge.to]);
-        
+
         ctx.beginPath();
         ctx.moveTo(n1.x, n1.y);
         ctx.lineTo(n2.x, n2.y);
-        
+
         const baseHue = edge.isHighVoltage ? 170 : 30; // Teal or Orange
         const hue = (baseHue + currentSettings.hueShift) % 360;
-        
+
         ctx.strokeStyle = `hsla(${hue}, 80%, 40%, 0.4)`;
         ctx.lineWidth = (edge.isHighVoltage ? 2 : 1) * currentSettings.scale;
         ctx.stroke();
@@ -329,7 +329,7 @@ export default function MusicGrid({ stream, settings }: Props) {
           const angle = Math.random() * Math.PI * 2;
           const speed = 8 + Math.random() * 15 * currentSettings.speed;
           const hue = (Math.random() > 0.5 ? 40 : 150) + currentSettings.hueShift + (Math.random() * 30 - 15);
-          
+
           sparksRef.current.push({
             x: pos.x,
             y: pos.y,
@@ -346,19 +346,19 @@ export default function MusicGrid({ stream, settings }: Props) {
       for (let i = particlesRef.current.length - 1; i >= 0; i--) {
         const p = particlesRef.current[i];
         p.progress += p.speed * p.direction;
-        
+
         if (p.progress < 0 || p.progress > 1) {
           particlesRef.current.splice(i, 1);
           continue;
         }
-        
+
         const edge = edgesRef.current[p.edgeIndex];
         const n1 = getScreenPos(nodesRef.current[edge.from]);
         const n2 = getScreenPos(nodesRef.current[edge.to]);
-        
+
         const x = n1.x + (n2.x - n1.x) * p.progress;
         const y = n1.y + (n2.y - n1.y) * p.progress;
-        
+
         ctx.beginPath();
         ctx.arc(x, y, (p.type === 'return' ? 3 : 2) * currentSettings.scale, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
@@ -372,16 +372,16 @@ export default function MusicGrid({ stream, settings }: Props) {
       ctx.lineCap = 'round';
       for (let i = sparksRef.current.length - 1; i >= 0; i--) {
         const spark = sparksRef.current[i];
-        
+
         spark.x += spark.vx * currentSettings.scale;
         spark.y += spark.vy * currentSettings.scale;
         spark.life -= 0.005; // Fade out slowly so they can fly off screen
-        
+
         if (spark.life <= 0 || spark.x < 0 || spark.x > w || spark.y < 0 || spark.y > h) {
           sparksRef.current.splice(i, 1);
           continue;
         }
-        
+
         ctx.beginPath();
         ctx.moveTo(spark.x, spark.y);
         ctx.lineTo(spark.x - spark.vx * 2 * currentSettings.scale, spark.y - spark.vy * 2 * currentSettings.scale);
@@ -398,14 +398,14 @@ export default function MusicGrid({ stream, settings }: Props) {
         const pos = getScreenPos(node);
         const freqIndex = Math.floor((node.id / nodesRef.current.length) * (bufferLength * 0.5));
         const val = dataArray[freqIndex] / 255;
-        
+
         node.energy = node.energy * 0.8 + val * 0.2;
-        
+
         const radius = (node.isMajor ? 4 + node.energy * 6 * currentSettings.sensitivity : 2 + node.energy * 3 * currentSettings.sensitivity) * currentSettings.scale;
-        
+
         const baseHue = node.isMajor ? 170 : 30;
         const hue = (baseHue + currentSettings.hueShift) % 360;
-        
+
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${hue}, 80%, 60%, 1)`;
@@ -429,16 +429,16 @@ export default function MusicGrid({ stream, settings }: Props) {
       ctx.strokeRect(20, 20, 240, 110);
 
       ctx.font = '14px "JetBrains Mono", monospace';
-      
+
       ctx.fillStyle = '#fb923c';
       ctx.fillText(`CONSUMPTION:  ${consumptionMW.toString().padStart(5, ' ')} MW`, 35, 45);
-      
+
       ctx.fillStyle = '#4ade80';
       ctx.fillText(`RETURN:       ${returnMW.toString().padStart(5, ' ')} MW`, 35, 75);
 
       ctx.fillStyle = '#60a5fa';
       ctx.fillText(`DISTRIBUTION: ${distributionMW.toString().padStart(5, ' ')} MW`, 35, 105);
-      
+
       // Title
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '12px "Inter", sans-serif';

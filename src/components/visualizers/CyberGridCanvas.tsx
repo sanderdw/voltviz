@@ -23,10 +23,10 @@ interface Element {
 export default function CyberGridCanvas({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function CyberGridCanvas({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -180,11 +180,11 @@ export default function CyberGridCanvas({ stream, settings }: Props) {
             else if (r > 0.60) type = 'lineV';
 
             spawnElement(
-              type, 
-              hue, 
-              targetX + (Math.random() - 0.5) * 150, 
-              targetY + (Math.random() - 0.5) * 150, 
-              val, 
+              type,
+              hue,
+              targetX + (Math.random() - 0.5) * 150,
+              targetY + (Math.random() - 0.5) * 150,
+              val,
               size
             );
           }
@@ -200,7 +200,7 @@ export default function CyberGridCanvas({ stream, settings }: Props) {
       for (let i = elements.length - 1; i >= 0; i--) {
         const el = elements[i];
         el.alpha -= el.decay * currentSettings.speed;
-        
+
         if (el.alpha <= 0) {
           elements.splice(i, 1);
           continue;

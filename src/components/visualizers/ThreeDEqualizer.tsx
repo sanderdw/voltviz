@@ -9,10 +9,10 @@ interface Props {
 
 export default function WebGLGrid({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function WebGLGrid({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -53,7 +53,7 @@ export default function WebGLGrid({ stream, settings }: Props) {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     // Clear any existing canvases (React StrictMode workaround)
     while (container.firstChild) {
       container.removeChild(container.firstChild);
@@ -75,10 +75,10 @@ export default function WebGLGrid({ stream, settings }: Props) {
     // Instanced Mesh for the Grid
     const gridSize = 50; // 50x50 = 2500 cubes
     const count = gridSize * gridSize;
-    
+
     // Cube geometry with pivot at the bottom
     const geometry = new THREE.BoxGeometry(0.8, 1, 0.8);
-    geometry.translate(0, 0.5, 0); 
+    geometry.translate(0, 0.5, 0);
 
     const material = new THREE.MeshStandardMaterial({
       color: 0xffffff,
@@ -111,11 +111,11 @@ export default function WebGLGrid({ stream, settings }: Props) {
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       const currentSettings = settingsRef.current;
       time += dt * currentSettings.speed;
 
@@ -126,39 +126,39 @@ export default function WebGLGrid({ stream, settings }: Props) {
       for (let x = 0; x < gridSize; x++) {
         for (let z = 0; z < gridSize; z++) {
           const i = x * gridSize + z;
-          
+
           const dx = x - centerX;
           const dz = z - centerZ;
           const dist = Math.sqrt(dx * dx + dz * dz);
-          
+
           // Map distance from center to audio frequency bin
           // Center = bass (low bins), Edges = treble (high bins)
           const maxDist = Math.sqrt(centerX * centerX + centerZ * centerZ);
           const binIndex = Math.floor((dist / maxDist) * (bufferLength * 0.6)); // Use lower 60% of frequencies
           const safeIndex = Math.min(Math.max(binIndex, 0), bufferLength - 1);
-          
+
           const audioVal = dataArray[safeIndex] / 255.0;
-          
+
           // Add a wave effect combined with audio
           const wave = Math.sin(dist * 0.5 - time * 2) * 0.5 + 0.5;
-          
+
           const height = 0.2 + (audioVal * 15.0 + wave * 2.0) * currentSettings.sensitivity * currentSettings.scale;
-          
+
           dummy.position.set(dx, 0, dz);
           dummy.scale.set(1, height, 1);
           dummy.updateMatrix();
           instancedMesh.setMatrixAt(i, dummy.matrix);
-          
+
           // Color based on distance, time, and audio intensity
           const hue = (dist * 0.03 - time * 0.1 + currentSettings.hueShift / 360) % 1.0;
           const saturation = 0.8;
           const lightness = 0.1 + audioVal * 0.6 + wave * 0.1;
-          
+
           color.setHSL(hue < 0 ? hue + 1 : hue, saturation, lightness);
           instancedMesh.setColorAt(i, color);
         }
       }
-      
+
       instancedMesh.instanceMatrix.needsUpdate = true;
       if (instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
 
@@ -181,7 +181,7 @@ export default function WebGLGrid({ stream, settings }: Props) {
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
-      
+
       geometry.dispose();
       material.dispose();
       renderer.dispose();

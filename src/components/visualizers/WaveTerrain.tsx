@@ -9,10 +9,10 @@ interface Props {
 export default function WaveTerrain({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   // Stars for the background
@@ -31,7 +31,7 @@ export default function WaveTerrain({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -91,7 +91,7 @@ export default function WaveTerrain({ stream, settings }: Props) {
       // Update terrain
       const speed = 4 * currentSettings.speed;
       zOffset += speed;
-      
+
       if (zOffset >= cellSize) {
         zOffset -= cellSize;
         // Shift rows
@@ -100,14 +100,14 @@ export default function WaveTerrain({ stream, settings }: Props) {
             heights[y][x] = heights[y + 1][x];
           }
         }
-        
+
         // Generate new row
         const newRow = new Array(cols).fill(0);
         for (let x = 0; x < cols; x++) {
           const dist = Math.abs(x - cols/2) / (cols/2);
           const freqIndex = Math.floor(dist * 40); // Map distance to frequency bins
           const val = dataArray[freqIndex] / 255;
-          
+
           // Add some base height variation (perlin-like noise)
           const noise = Math.sin(x * 0.5 + Date.now() * 0.002) * 30;
           newRow[x] = val * 500 * currentSettings.sensitivity + noise;
@@ -162,10 +162,10 @@ export default function WaveTerrain({ stream, settings }: Props) {
         ctx.lineTo(p2.x, p2.y);
         ctx.lineTo(p3.x, p3.y);
         ctx.closePath();
-        
+
         ctx.fillStyle = fillColor;
         ctx.fill();
-        
+
         ctx.strokeStyle = strokeColor;
         ctx.stroke();
       };
@@ -189,17 +189,17 @@ export default function WaveTerrain({ stream, settings }: Props) {
           const p10 = getProj(x + 1, y);
           const p01 = getProj(x, y + 1);
           const p11 = getProj(x + 1, y + 1);
-          
+
           if (p00 && p10 && p01 && p11) {
             const dist = Math.abs((x + 0.5) - cols/2) / (cols/2);
             // Center is magenta (300), edges are cyan (180)
-            const baseHue = 300 - dist * 120; 
+            const baseHue = 300 - dist * 120;
             const hue = (baseHue + currentSettings.hueShift) % 360;
-            
+
             // Fade out in the distance
             const zDist = y / rows;
             const alpha = 1 - Math.pow(zDist, 2);
-            
+
             const strokeColor = `hsla(${hue}, 100%, 60%, ${alpha})`;
             const fillColor = '#020205'; // Match background to hide lines behind
 

@@ -9,10 +9,10 @@ interface Props {
 export default function PolySphere({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function PolySphere({ stream, settings }: Props) {
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
@@ -72,11 +72,11 @@ export default function PolySphere({ stream, settings }: Props) {
     function subdivide(verts: number[][], facs: number[][]) {
       const newFaces: number[][] = [];
       const edgeMap = new Map<string, number>();
-      
+
       function getMidpoint(v1: number, v2: number) {
         const key = v1 < v2 ? `${v1}-${v2}` : `${v2}-${v1}`;
         if (edgeMap.has(key)) return edgeMap.get(key)!;
-        
+
         const p1 = verts[v1];
         const p2 = verts[v2];
         const mid = [
@@ -90,16 +90,16 @@ export default function PolySphere({ stream, settings }: Props) {
         edgeMap.set(key, index);
         return index;
       }
-      
+
       for (const face of facs) {
         const v0 = face[0];
         const v1 = face[1];
         const v2 = face[2];
-        
+
         const a = getMidpoint(v0, v1);
         const b = getMidpoint(v1, v2);
         const c = getMidpoint(v2, v0);
-        
+
         newFaces.push([v0, a, c]);
         newFaces.push([v1, b, a]);
         newFaces.push([v2, c, b]);
@@ -256,7 +256,7 @@ export default function PolySphere({ stream, settings }: Props) {
 
         const hue = face.prop.colorType === 'cyan' ? 180 : 300;
         const finalHue = (hue + currentSettings.hueShift) % 360;
-        
+
         const alpha = isFront ? 0.8 : 0.15;
 
         if (face.prop.isFilled && isFront) {
@@ -266,7 +266,7 @@ export default function PolySphere({ stream, settings }: Props) {
 
         ctx.strokeStyle = `hsla(${finalHue}, 100%, 60%, ${alpha})`;
         ctx.lineWidth = (isFront ? 1.5 : 0.5) * currentSettings.scale;
-        
+
         if (isFront && face.prop.isFilled) {
           ctx.shadowBlur = 15 * currentSettings.scale;
           ctx.shadowColor = `hsla(${finalHue}, 100%, 50%, 1)`;

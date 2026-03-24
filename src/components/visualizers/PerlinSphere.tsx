@@ -18,19 +18,19 @@ const vertexShader = `
   vec3 mod289(vec3 x) {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
   }
-  
+
   vec4 mod289(vec4 x) {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
   }
-  
+
   vec4 permute(vec4 x) {
     return mod289(((x*34.0)+10.0)*x);
   }
-  
+
   vec4 taylorInvSqrt(vec4 r) {
     return 1.79284291400159 - 0.85373472095314 * r;
   }
-  
+
   vec3 fade(vec3 t) {
     return t*t*t*(t*(t*6.0-15.0)+10.0);
   }
@@ -99,7 +99,7 @@ const vertexShader = `
     vec3 fade_xyz = fade(Pf0);
     vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
     vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
-    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
     return 2.2 * n_xyz;
   }
 
@@ -122,10 +122,10 @@ const fragmentShader = `
 
 export default function PerlinSphere({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext>();
-  const analyserRef = useRef<AnalyserNode>();
-  const sourceRef = useRef<MediaStreamAudioSourceNode>();
+  const animationRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export default function PerlinSphere({ stream, settings }: Props) {
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
-    
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
@@ -159,7 +159,7 @@ export default function PerlinSphere({ stream, settings }: Props) {
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -173,7 +173,7 @@ export default function PerlinSphere({ stream, settings }: Props) {
     // --- Post Processing ---
     const renderScene = new RenderPass(scene, camera);
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(w, h), 0.5, 0.8, 0.1);
-    
+
     const bloomComposer = new EffectComposer(renderer);
     bloomComposer.addPass(renderScene);
     bloomComposer.addPass(bloomPass);
@@ -216,12 +216,12 @@ export default function PerlinSphere({ stream, settings }: Props) {
     const color = new THREE.Color();
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      
+
       const currentSettings = settingsRef.current;
       analyser.getByteFrequencyData(dataArray);
-      
+
       const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-      
+
       camera.position.x += (mouseX - camera.position.x) * 0.05;
       camera.position.y += (-mouseY - camera.position.y) * 0.05;
       camera.lookAt(scene.position);
@@ -230,14 +230,14 @@ export default function PerlinSphere({ stream, settings }: Props) {
       const elapsed = timer.getElapsed();
       uniforms.u_time.value = elapsed * currentSettings.speed;
       uniforms.u_frequency.value = average * currentSettings.scale;
-      
+
       // Color shift logic
       const hue = (currentSettings.hueShift / 360 + elapsed * 0.02) % 1.0;
       color.setHSL(hue, 0.7, 0.6);
       uniforms.u_red.value = color.r;
       uniforms.u_green.value = color.g;
       uniforms.u_blue.value = color.b;
-      
+
       bloomComposer.render();
     };
 
@@ -259,7 +259,7 @@ export default function PerlinSphere({ stream, settings }: Props) {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (sourceRef.current) sourceRef.current.disconnect();
       if (audioCtxRef.current) audioCtxRef.current.close();
-      
+
       geo.dispose();
       mat.dispose();
       renderer.dispose();
