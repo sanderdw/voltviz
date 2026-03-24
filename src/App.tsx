@@ -72,6 +72,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
 };
 
 export default function App() {
+  const appVersion = __APP_VERSION__;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('grid');
@@ -401,6 +402,10 @@ export default function App() {
                 Reset to Defaults
               </button>
             </div>
+          </div>
+
+          <div className="absolute bottom-3 left-4 text-[10px] tracking-[0.18em] uppercase text-white/25 pointer-events-none select-none z-40">
+            v{appVersion}
           </div>
         </main>
       </div>
