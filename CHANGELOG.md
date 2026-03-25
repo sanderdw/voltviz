@@ -5,11 +5,10 @@ All notable changes to the VoltViz project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.10.0] - 2026-03-25
 
 ### Added
 - Added a new Flame visualizer with an audio-reactive shader effect using Three.js.
-- Added **LED Panel** visualizer (`LEDPanel.tsx`): full-screen grid of LED-style dots whose per-column brightness reacts to audio frequency data, with a white glow bloom on lit dots.
 
 ### Changed
 - Registered the Flame visualizer in the visualizer selector and render mapping in `src/App.tsx`.
