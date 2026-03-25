@@ -2,7 +2,7 @@
 name: adding-visualizer
 description: Adds or updates VoltViz visualizers using established audio/render patterns, keeping App.tsx registration and project conventions consistent
 target: vscode
-tools: ["read", "search", "edit", "execute"]
+tools: [vscode, execute, read, edit, search, web, todo]
 ---
 
 # Adding Visualizer Agent
