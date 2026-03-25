@@ -246,7 +246,8 @@ export default function FlameVisualizer({ stream, settings }: Props) {
       uniforms,
     });
 
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
     // ── Resize ────────────────────────────────────────────────────────────
@@ -301,6 +302,7 @@ export default function FlameVisualizer({ stream, settings }: Props) {
       renderer.dispose();
       noiseTexture.dispose();
       material.dispose();
+      geometry.dispose();
     };
   }, [stream]);
 
