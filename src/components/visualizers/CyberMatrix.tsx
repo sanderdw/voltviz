@@ -271,10 +271,13 @@ export default function CyberMatrix({ stream, settings }: Props) {
       const currentSettings = settingsRef.current;
       analyser.getByteFrequencyData(dataArray);
 
-      const bass = dataArray.slice(0, 5).reduce((a, b) => a + b, 0) / 10 / 255;
-      const mid = dataArray.slice(5, 100).reduce((a, b) => a + b, 0) / 90 / 255;
-      const treble = dataArray.slice(100, 200).reduce((a, b) => a + b, 0) / 100 / 255;
+      const bassBins = dataArray.slice(0, 5);
+      const midBins = dataArray.slice(5, 100);
+      const trebleBins = dataArray.slice(100, 200);
 
+      const bass = bassBins.reduce((a, b) => a + b, 0) / (bassBins.length * 255);
+      const mid = midBins.reduce((a, b) => a + b, 0) / (midBins.length * 255);
+      const treble = trebleBins.reduce((a, b) => a + b, 0) / (trebleBins.length * 255);
       const elapsedTime = clock.getElapsedTime() * currentSettings.speed;
 
       // Update uniforms
