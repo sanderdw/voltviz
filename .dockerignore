@@ -5,3 +5,4 @@ dist
 Dockerfile
 README.md
 *.log
+example_code
