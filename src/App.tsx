@@ -32,7 +32,8 @@ type VisualizerType =
   | 'datadashboard'
   | 'vinyl'
   | 'background'
-  | '3dequalizer';
+  | '3dequalizer'
+  | 'flame';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -69,6 +70,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   vinyl: lazy(() => import('./components/visualizers/Vinyl')),
   background: lazy(() => import('./components/visualizers/Background')),
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
+  flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
 };
 
 export default function App() {
@@ -84,6 +86,10 @@ export default function App() {
     hueShift: 0,
     scale: 1.0,
   });
+
+  useEffect(() => {
+    (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
+  }, []);
 
   useEffect(() => {
     // Allow layout to settle, then notify visualizers of the size change
@@ -220,7 +226,7 @@ export default function App() {
                     <option value="vinyl" className="bg-gray-900">Vinyl</option>
                     <option value="background" className="bg-gray-900">Background</option>
                     <option value="blur" className="bg-gray-900">Blur</option>
-
+                    <option value="flame" className="bg-gray-900">Flame</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>

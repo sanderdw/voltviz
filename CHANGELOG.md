@@ -5,6 +5,17 @@ All notable changes to the VoltViz project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-03-25
+
+### Added
+- Added a new Flame visualizer with an audio-reactive shader effect using Three.js.
+
+### Changed
+- Registered the Flame visualizer in the visualizer selector and render mapping in `src/App.tsx`.
+- Bumped project version in `package.json` from `0.9.0` to `0.10.0`.
+- Reduced CyberMatrix default brightness: lowered bloom strength, particle audio reactivity, and line opacity multipliers so the visualizer no longer requires low sensitivity to look good.
+- Added more swing to CyberMatrix: sinusoidal camera orbit, pendulum scene sway, and increased rotation amplitude for a more dynamic feel.
+
 ## [0.9.0] - 2026-03-24
 
 ### Added

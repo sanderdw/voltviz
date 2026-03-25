@@ -2,7 +2,7 @@
 name: adding-visualizer
 description: Adds or updates VoltViz visualizers using established audio/render patterns, keeping App.tsx registration and project conventions consistent
 target: vscode
-tools: ["read", "search", "edit", "execute"]
+tools: [vscode, execute, read, edit, search, web, todo]
 ---
 
 # Adding Visualizer Agent
@@ -16,6 +16,8 @@ You are a specialized coding agent for VoltViz. Your primary role is to add new 
 - Wire visualizers into `src/App.tsx` when adding a new visualizer.
 - Preserve shared props contract from `src/types.ts`.
 - Keep changes focused; avoid unrelated refactors.
+- Don't use adaptive sound processing.
+- Never adjust settings defaults in src/App.tsx.
 
 ## Required Workflow
 
