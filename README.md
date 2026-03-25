@@ -3,7 +3,7 @@
 
 ![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
-![Voltviz](images/voltviz.png)
+[![Voltviz](images/voltviz.png)](https://voltviz.com)
 ---
 
 ## 🎨 Features
