@@ -88,6 +88,10 @@ export default function App() {
   });
 
   useEffect(() => {
+    (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
+  }, []);
+
+  useEffect(() => {
     // Allow layout to settle, then notify visualizers of the size change
     const id = requestAnimationFrame(() => {
       window.dispatchEvent(new Event('resize'));
@@ -223,7 +227,6 @@ export default function App() {
                     <option value="background" className="bg-gray-900">Background</option>
                     <option value="blur" className="bg-gray-900">Blur</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
-
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>

@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a new Flame visualizer with an audio-reactive shader effect using Three.js.
+- Added **LED Panel** visualizer (`LEDPanel.tsx`): full-screen grid of LED-style dots whose per-column brightness reacts to audio frequency data, with a white glow bloom on lit dots.
 
 ### Changed
 - Registered the Flame visualizer in the visualizer selector and render mapping in `src/App.tsx`.
 - Bumped project version in `package.json` from `0.9.0` to `0.10.0`.
+- Reduced CyberMatrix default brightness: lowered bloom strength, particle audio reactivity, and line opacity multipliers so the visualizer no longer requires low sensitivity to look good.
+- Added more swing to CyberMatrix: sinusoidal camera orbit, pendulum scene sway, and increased rotation amplitude for a more dynamic feel.
 
 ## [0.9.0] - 2026-03-24
 

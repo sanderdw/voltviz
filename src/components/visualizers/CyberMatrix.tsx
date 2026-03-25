@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -64,7 +64,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
 
     // --- Post Processing ---
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(w, h), 1.5, 0.4, 0.1);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(w, h), 0.8, 0.4, 0.25);
 
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
@@ -116,7 +116,8 @@ export default function CyberMatrix({ stream, settings }: Props) {
       uniforms: {
         uTime: { value: 0 },
         uAudio: { value: 0 },
-        uHueShift: { value: 0 }
+        uHueShift: { value: 0 },
+        uBrightness: { value: 1.0 }
       },
       vertexShader: `
         attribute float size;
@@ -141,6 +142,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
       fragmentShader: `
         varying vec3 vColor;
         uniform float uHueShift;
+        uniform float uBrightness;
 
         vec3 hueShift(vec3 color, float hue) {
             const vec3 k = vec3(0.57735, 0.57735, 0.57735);
@@ -152,7 +154,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
           float dist = length(gl_PointCoord - vec2(0.5));
           if (dist > 0.5) discard;
 
-          vec3 shiftedColor = hueShift(vColor, uHueShift);
+          vec3 shiftedColor = hueShift(vColor, uHueShift) * uBrightness;
           float alpha = smoothstep(0.5, 0.1, dist);
           gl_FragColor = vec4(shiftedColor, alpha);
         }
@@ -261,6 +263,7 @@ export default function CyberMatrix({ stream, settings }: Props) {
     window.addEventListener('mousemove', onMouseMove);
 
     const clock = new THREE.Clock();
+    let smoothedBrightness = 0.3;
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
@@ -268,31 +271,45 @@ export default function CyberMatrix({ stream, settings }: Props) {
       const currentSettings = settingsRef.current;
       analyser.getByteFrequencyData(dataArray);
 
-      const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10 / 255;
-      const mid = dataArray.slice(10, 100).reduce((a, b) => a + b, 0) / 90 / 255;
+      const bass = dataArray.slice(0, 5).reduce((a, b) => a + b, 0) / 10 / 255;
+      const mid = dataArray.slice(5, 100).reduce((a, b) => a + b, 0) / 90 / 255;
       const treble = dataArray.slice(100, 200).reduce((a, b) => a + b, 0) / 100 / 255;
 
       const elapsedTime = clock.getElapsedTime() * currentSettings.speed;
 
       // Update uniforms
       particleMat.uniforms.uTime.value = elapsedTime;
-      particleMat.uniforms.uAudio.value = bass * currentSettings.sensitivity;
+      particleMat.uniforms.uAudio.value = bass * currentSettings.sensitivity * 0.25;
       particleMat.uniforms.uHueShift.value = (currentSettings.hueShift * Math.PI) / 180;
 
-      lineMat.uniforms.uHueShift.value = (currentSettings.hueShift * Math.PI) / 180;
-      lineMat.uniforms.uOpacity.value = 0.1 + treble * 0.4 * currentSettings.sensitivity;
+      // Stepped brightness pulse: quantize bass into 5 discrete steps with fade
+      const steps = 5;
+      const steppedBass = Math.floor(bass * steps) / steps;
+      const targetBrightness = 0.3 + steppedBass * 2.0 * currentSettings.sensitivity;
+      smoothedBrightness += (targetBrightness - smoothedBrightness) * 0.15;
+      particleMat.uniforms.uBrightness.value = smoothedBrightness;
 
-      // Camera movement
-      camera.position.x += (mouseX * 15 - camera.position.x) * 0.05;
-      camera.position.y += (-mouseY * 15 - camera.position.y) * 0.05;
+      lineMat.uniforms.uHueShift.value = (currentSettings.hueShift * Math.PI) / 180;
+      lineMat.uniforms.uOpacity.value = 0.1 + treble * 0.1 * currentSettings.sensitivity;
+
+      // Camera movement with swing orbit
+      const swingX = Math.sin(elapsedTime * 0.3) * 8;
+      const swingY = Math.cos(elapsedTime * 0.2) * 5;
+      camera.position.x += (mouseX * 15 + swingX - camera.position.x) * 0.05;
+      camera.position.y += (-mouseY * 15 + swingY - camera.position.y) * 0.05;
       camera.lookAt(scene.position);
 
-      // Rotate scene slightly based on audio
-      scene.rotation.y = elapsedTime * 0.05 + mid * 0.1 * currentSettings.sensitivity;
-      scene.rotation.x = elapsedTime * 0.02;
+      // Scene pendulum sway
+      scene.position.x = Math.sin(elapsedTime * 0.15) * 8 * (1 + bass * currentSettings.sensitivity);
+      scene.position.y = Math.cos(elapsedTime * 0.1) * 5;
+      scene.position.z = Math.sin(elapsedTime * 0.12) * 4;
+
+      // Rotate scene based on audio with more swing
+      scene.rotation.y = elapsedTime * 0.08 + Math.sin(elapsedTime * 0.25) * 0.3 + mid * 0.2 * currentSettings.sensitivity;
+      scene.rotation.x = elapsedTime * 0.03 + Math.cos(elapsedTime * 0.2) * 0.15;
 
       // Bloom intensity based on bass
-      bloomPass.strength = 1.0 + bass * 2.5 * currentSettings.sensitivity;
+      bloomPass.strength = 0.6 + bass * 0.6 * currentSettings.sensitivity;
 
       // Scale based on settings
       scene.scale.setScalar(currentSettings.scale);
