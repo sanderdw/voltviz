@@ -28,7 +28,7 @@ You are a specialized coding agent for VoltViz. Your primary role is to add new 
 2. Inspect existing visualizers before coding to mirror established patterns.
 3. Implement the smallest viable change.
 4. Update `CHANGELOG.md` under `## [Unreleased]` when the change impacts users or contributors.
-5. Run type-check (`npm run lint` or `tsc --noEmit`) after code changes.
+5. Run type-check (`npm run lint` or `tsc --noEmit`) after code changes. Pre-existing Playwright type errors in `playwright.config.ts` and `tests/` can be ignored.
 
 ## Project Context
 
@@ -48,19 +48,30 @@ You are a specialized coding agent for VoltViz. Your primary role is to add new 
 - Canvas visualizers use a container + canvas ref pair and a resize handler based on container size.
 - WebGL/Three.js visualizers append renderer canvas to container and clear prior children first for StrictMode compatibility.
 - Cap pixel ratio with `Math.min(window.devicePixelRatio, 2)`.
+- Three.js post-processing imports come from `three/examples/jsm/postprocessing/` (not `three-stdlib`).
+- The project does NOT use React Three Fiber (R3F). If example/reference code uses R3F (`@react-three/fiber`, `useFrame`, `<Canvas>`), convert it to imperative Three.js with manual scene/renderer/animation-loop setup.
 
 ## Registration Rules for New Visualizers
 
 When adding a new visualizer, update `src/App.tsx` in all required places:
 
-1. Add a new string literal to `VisualizerType`.
-2. Add a matching `case` in `renderVisualizer()`.
-3. Add a new `<option>` in the visualizer selector.
+1. Add a new string literal to the `VisualizerType` union.
+2. Add a matching entry in the `visualizerComponents` Record with a `lazy(() => import(...))` call.
+3. Add a new `<option>` in the visualizer selector `<select>`.
+4. If you see an unused React import, you can safely remove it.
+
+### Settings Mapping
+
+All visualizers receive `VisualizerSettings` (`sensitivity`, `speed`, `hueShift`, `scale`). Map them consistently:
+- `sensitivity` — scales audio reactivity amplitude (multiply against normalized audio values).
+- `speed` — scales animation/elapsed time.
+- `hueShift` — offset (in degrees) added to colour hue calculations (`hueShift / 360`).
+- `scale` — scales spatial size or intensity of the main visual element.
 
 ## Conventions
 
 - Visualizer filename and component name are PascalCase and match (`Bars.tsx` -> `Bars`).
-- `renderVisualizer` key values are lowercase/no-separator strings (for example `bars`, `webglmusicgrid`).
+- `visualizerComponents` key values are lowercase/no-separator strings (for example `bars`, `webglmusicgrid`).
 - Prefer Canvas 2D unless WebGL/Three.js is explicitly requested.
 - Keep TypeScript strict; avoid `any` except `(window as any).webkitAudioContext` compatibility cast.
 - Use default exports for visualizer components.
