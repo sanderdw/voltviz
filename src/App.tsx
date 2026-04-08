@@ -33,7 +33,8 @@ type VisualizerType =
   | 'vinyl'
   | 'background'
   | '3dequalizer'
-  | 'flame';
+  | 'flame'
+  | 'vumeter';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -71,6 +72,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   background: lazy(() => import('./components/visualizers/Background')),
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
   flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
+  vumeter: lazy(() => import('./components/visualizers/VUMeter')),
 };
 
 export default function App() {
@@ -227,6 +229,7 @@ export default function App() {
                     <option value="background" className="bg-gray-900">Background</option>
                     <option value="blur" className="bg-gray-900">Blur</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
+                    <option value="vumeter" className="bg-gray-900">VU Meter</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>
