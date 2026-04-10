@@ -1,5 +1,5 @@
 # VoltViz
-> **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio or microphone and watch your music come alive.
+> **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio, microphone, or [Sendspin](https://www.sendspin-audio.com) server and watch your music come alive.
 
 ![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
@@ -20,7 +20,7 @@ VoltViz comes with **30+ stunning visualization styles** to choose from:
 - **And many more**: Bars, Circular, Tunnel, Wave Terrain, Blur Visualizer...
 
 **Core Capabilities:**
-- 🎤 **Real-time Audio Input**: Connect microphone or capture system audio
+- 🎤 **Real-time Audio Input**: Connect microphone, capture system audio, or stream from a [Sendspin](https://www.sendspin-audio.com) server
 - 📊 **High-Performance Rendering**: GPU-accelerated with Three.js and WebGL
 - ⚙️ **Interactive Controls**: Pause, resume, and switch between visualizations
 - 🎯 **Responsive Design**: Works seamlessly on desktop and tablet devices
@@ -116,10 +116,26 @@ nginx/
 
 ## 🎯 How It Works
 
-1. **Audio Capture**: VoltViz captures audio from your microphone or system audio
+1. **Audio Capture**: VoltViz captures audio from your microphone, system audio, or a [Sendspin](https://www.sendspin-audio.com) server
 2. **Frequency Analysis**: Uses Web Audio API to analyze frequency data in real-time
 3. **Visualization**: Renders synchronized visualizations using Three.js and Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
+
+---
+
+## 📡 Sendspin Support
+
+VoltViz supports [Sendspin](https://www.sendspin-audio.com), a synchronized multi-room audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
+
+### Running a Local Sendspin Server
+
+You can quickly start a local Sendspin server using [uvx](https://docs.astral.sh/uv/):
+
+```bash
+uvx sendspin serve https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3
+```
+
+Then in VoltViz, click **Sendspin** and enter `http://localhost:8095` to connect.
 
 ---
 
