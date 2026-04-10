@@ -1,5 +1,6 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio } from 'lucide-react';
+import { SendspinPlayer } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 
@@ -88,6 +89,10 @@ export default function App() {
     hueShift: 0,
     scale: 1.0,
   });
+  const [showSendspinDialog, setShowSendspinDialog] = useState(false);
+  const [sendspinUrl, setSendspinUrl] = useState('');
+  const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
+  const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -144,7 +149,67 @@ export default function App() {
     }
   };
 
+  const startSendspin = async () => {
+    try {
+      const audioEl = document.createElement('audio');
+      audioEl.autoplay = true;
+      sendspinAudioRef.current = audioEl;
+
+      let resolveStream: (stream: MediaStream) => void;
+      let rejectStream: (err: Error) => void;
+      const streamPromise = new Promise<MediaStream>((resolve, reject) => {
+        resolveStream = resolve;
+        rejectStream = reject;
+      });
+
+      const timeout = setTimeout(() => {
+        rejectStream(new Error('Timeout waiting for audio from Sendspin server. Make sure the server is playing music.'));
+      }, 30000);
+
+      const player = new SendspinPlayer({
+        baseUrl: sendspinUrl,
+        audioElement: audioEl,
+        clientName: 'VoltViz Visualizer',
+        correctionMode: 'quality-local',
+        onStateChange: (state) => {
+          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
+            clearTimeout(timeout);
+            resolveStream(audioEl.srcObject);
+          }
+        }
+      });
+
+      sendspinPlayerRef.current = player;
+      await player.connect();
+
+      const mediaStream = await streamPromise;
+      setStream(mediaStream);
+      setError(null);
+      setShowSendspinDialog(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to Sendspin server');
+      if (sendspinPlayerRef.current) {
+        sendspinPlayerRef.current.disconnect('user_request');
+        sendspinPlayerRef.current = null;
+      }
+      if (sendspinAudioRef.current) {
+        sendspinAudioRef.current.pause();
+        sendspinAudioRef.current.srcObject = null;
+        sendspinAudioRef.current = null;
+      }
+    }
+  };
+
   const stopStream = (currentStream: MediaStream | null = stream) => {
+    if (sendspinPlayerRef.current) {
+      sendspinPlayerRef.current.disconnect('user_request');
+      sendspinPlayerRef.current = null;
+    }
+    if (sendspinAudioRef.current) {
+      sendspinAudioRef.current.pause();
+      sendspinAudioRef.current.srcObject = null;
+      sendspinAudioRef.current = null;
+    }
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -262,6 +327,13 @@ export default function App() {
                   >
                     <MonitorUp size={16} />
                     <span>System Audio</span>
+                  </button>
+                  <button
+                    onClick={() => setShowSendspinDialog(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/5 text-sm cursor-pointer"
+                  >
+                    <Radio size={16} />
+                    <span>Sendspin</span>
                   </button>
                 </>
               ) : (
@@ -418,6 +490,44 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {showSendspinDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4 mx-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-light">Connect to Sendspin</h3>
+              <button onClick={() => setShowSendspinDialog(false)} className="text-white/50 hover:text-white transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-white/50 text-sm">Enter the URL of your Sendspin server to stream synchronized audio.</p>
+            <input
+              type="url"
+              value={sendspinUrl}
+              onChange={e => setSendspinUrl(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl) startSendspin(); }}
+              placeholder="http://192.168.1.100:8095"
+              className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowSendspinDialog(false)}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={startSendspin}
+                disabled={!sendspinUrl}
+                className="px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
