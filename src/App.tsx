@@ -149,58 +149,7 @@ export default function App() {
     }
   };
 
-  const startSendspin = async () => {
-    try {
-      const audioEl = document.createElement('audio');
-      audioEl.autoplay = true;
-      sendspinAudioRef.current = audioEl;
-
-      let resolveStream: (stream: MediaStream) => void;
-      let rejectStream: (err: Error) => void;
-      const streamPromise = new Promise<MediaStream>((resolve, reject) => {
-        resolveStream = resolve;
-        rejectStream = reject;
-      });
-
-      const timeout = setTimeout(() => {
-        rejectStream(new Error('Timeout waiting for audio from Sendspin server. Make sure the server is playing music.'));
-      }, 30000);
-
-      const player = new SendspinPlayer({
-        baseUrl: sendspinUrl,
-        audioElement: audioEl,
-        clientName: 'VoltViz Visualizer',
-        correctionMode: 'quality-local',
-        onStateChange: (state) => {
-          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
-            clearTimeout(timeout);
-            resolveStream(audioEl.srcObject);
-          }
-        }
-      });
-
-      sendspinPlayerRef.current = player;
-      await player.connect();
-
-      const mediaStream = await streamPromise;
-      setStream(mediaStream);
-      setError(null);
-      setShowSendspinDialog(false);
-    } catch (err: any) {
-      setError(err.message || 'Failed to connect to Sendspin server');
-      if (sendspinPlayerRef.current) {
-        sendspinPlayerRef.current.disconnect('user_request');
-        sendspinPlayerRef.current = null;
-      }
-      if (sendspinAudioRef.current) {
-        sendspinAudioRef.current.pause();
-        sendspinAudioRef.current.srcObject = null;
-        sendspinAudioRef.current = null;
-      }
-    }
-  };
-
-  const stopStream = (currentStream: MediaStream | null = stream) => {
+  const cleanupSendspin = () => {
     if (sendspinPlayerRef.current) {
       sendspinPlayerRef.current.disconnect('user_request');
       sendspinPlayerRef.current = null;
@@ -210,6 +159,51 @@ export default function App() {
       sendspinAudioRef.current.srcObject = null;
       sendspinAudioRef.current = null;
     }
+  };
+
+  const startSendspin = async () => {
+    try {
+      const audioEl = document.createElement('audio');
+      audioEl.autoplay = true;
+      sendspinAudioRef.current = audioEl;
+
+      const streamPromise = new Promise<MediaStream>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Failed to receive audio from Sendspin server within 30 seconds. Please verify the server URL and ensure audio is streaming.'));
+        }, 30000);
+
+        const player = new SendspinPlayer({
+          baseUrl: sendspinUrl,
+          audioElement: audioEl,
+          clientName: 'VoltViz Visualizer',
+          correctionMode: 'quality-local',
+          onStateChange: (state) => {
+            if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
+              clearTimeout(timeout);
+              resolve(audioEl.srcObject);
+            }
+          }
+        });
+
+        sendspinPlayerRef.current = player;
+        player.connect().catch((err) => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+      });
+
+      const mediaStream = await streamPromise;
+      setStream(mediaStream);
+      setError(null);
+      setShowSendspinDialog(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to Sendspin server');
+      cleanupSendspin();
+    }
+  };
+
+  const stopStream = (currentStream: MediaStream | null = stream) => {
+    cleanupSendspin();
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
       setStream(null);
