@@ -173,10 +173,11 @@ export default function App() {
         }, 30000);
 
         const player = new SendspinPlayer({
+          playerId: 'VoltViz',
           baseUrl: sendspinUrl,
           audioElement: audioEl,
-          clientName: 'VoltViz Visualizer',
-          correctionMode: 'quality-local',
+          clientName: 'VoltViz',
+          correctionMode: 'sync',
           onStateChange: (state) => {
             if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
               clearTimeout(timeout);
