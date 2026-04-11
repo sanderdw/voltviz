@@ -176,41 +176,29 @@ export default function App() {
       audioEl.autoplay = true;
       sendspinAudioRef.current = audioEl;
 
-      const streamPromise = new Promise<MediaStream>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Failed to receive audio from Sendspin server within 30 seconds. Please verify the server URL and ensure audio is streaming.'));
-        }, 30000);
-
-        const player = new SendspinPlayer({
-          playerId: 'VoltViz',
-          baseUrl: sendspinUrl,
-          audioElement: audioEl,
-          clientName: 'VoltViz',
-          correctionMode: 'sync',
-          onStateChange: (state) => {
-            setSendspinPlaying(state.isPlaying);
-            if (state.serverState?.metadata) {
-              setSendspinMetadata(state.serverState.metadata);
-            }
-            if (state.serverState?.controller?.supported_commands) {
-              setSendspinSupportedCmds(state.serverState.controller.supported_commands);
-            }
-            if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
-              clearTimeout(timeout);
-              resolve(audioEl.srcObject);
-            }
+      const player = new SendspinPlayer({
+        playerId: 'VoltViz',
+        baseUrl: sendspinUrl,
+        audioElement: audioEl,
+        clientName: 'VoltViz',
+        correctionMode: 'sync',
+        onStateChange: (state) => {
+          setSendspinPlaying(state.isPlaying);
+          if (state.serverState?.metadata) {
+            setSendspinMetadata(state.serverState.metadata);
           }
-        });
-
-        sendspinPlayerRef.current = player;
-        player.connect().catch((err) => {
-          clearTimeout(timeout);
-          reject(err);
-        });
+          if (state.serverState?.controller?.supported_commands) {
+            setSendspinSupportedCmds(state.serverState.controller.supported_commands);
+          }
+          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
+            setStream(audioEl.srcObject);
+          }
+        }
       });
 
-      const mediaStream = await streamPromise;
-      setStream(mediaStream);
+      sendspinPlayerRef.current = player;
+      await player.connect();
+
       setError(null);
       setSendspinActive(true);
       setShowSendspinDialog(false);
