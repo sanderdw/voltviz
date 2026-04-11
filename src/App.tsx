@@ -497,7 +497,7 @@ export default function App() {
         </main>
       </div>
 
-      {sendspinActive && stream && showControls && (
+      {sendspinActive && showControls && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
           <div className="pointer-events-auto bg-black/70 backdrop-blur-xl border border-white/10 rounded-t-2xl px-6 py-3 flex items-center gap-4" data-testid="sendspin-controls">
             {/* Track info */}
