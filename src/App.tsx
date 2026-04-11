@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ServerStateMetadata } from '@sendspin/sendspin-js';
+import type { ServerStateMetadata, ControllerCommand } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 
@@ -220,9 +220,9 @@ export default function App() {
     }
   };
 
-  const sendspinCommand = (command: string) => {
+  const sendspinCommand = (command: ControllerCommand) => {
     if (sendspinPlayerRef.current) {
-      sendspinPlayerRef.current.sendCommand(command as any, undefined as any);
+      sendspinPlayerRef.current.sendCommand(command, undefined as never);
     }
   };
 
@@ -586,7 +586,7 @@ export default function App() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => sendspinCommand(sendspinMetadata?.shuffle ? 'unshuffle' : 'shuffle')}
-                disabled={!sendspinSupportedCmds.includes('shuffle')}
+                disabled={sendspinMetadata?.shuffle ? !sendspinSupportedCmds.includes('unshuffle') : !sendspinSupportedCmds.includes('shuffle')}
                 className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMetadata?.shuffle ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
                 title={sendspinMetadata?.shuffle ? 'Unshuffle' : 'Shuffle'}
                 data-testid="sendspin-shuffle"
@@ -596,7 +596,7 @@ export default function App() {
               <button
                 onClick={() => {
                   const current = sendspinMetadata?.repeat ?? 'off';
-                  const next = current === 'off' ? 'repeat_all' : current === 'all' ? 'repeat_one' : 'repeat_off';
+                  const next: ControllerCommand = current === 'off' ? 'repeat_all' : current === 'all' ? 'repeat_one' : 'repeat_off';
                   sendspinCommand(next);
                 }}
                 disabled={!sendspinSupportedCmds.includes('repeat_off')}
