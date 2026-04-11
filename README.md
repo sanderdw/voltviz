@@ -87,6 +87,7 @@ http://localhost:8080
 - **D3.js** 3.1 - Data visualization
 - **Tailwind CSS** 4.2 - Utility-first styling
 - **Lucide React** - Icon library
+- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.0 - Synchronized multi-room audio streaming client
 
 **Infrastructure:**
 - **Docker** - Containerization
@@ -136,6 +137,16 @@ uvx sendspin serve https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%20
 ```
 
 Then in VoltViz, click **Sendspin** and enter `http://localhost:8095` to connect.
+
+### Music Assistant / Home Assistant
+
+VoltViz works with [Music Assistant](https://www.music-assistant.io/player-support/sendspin/) for Home Assistant. When connecting to a Sendspin server on a Home Assistant instance, only **HTTP** is supported (not HTTPS) as VoltViz connects directly to the Sendspin server running on the Home Assistant device:
+
+```
+http://homeassistant.local:8927
+```
+
+To make this work the easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
 
 ---
 
