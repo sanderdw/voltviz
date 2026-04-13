@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added URL parameter support for direct Sendspin connection: navigate to `/?sendspin=<url>` to pre-fill the server URL and auto-open the connect dialog.
+- Added Vinyl Player visualizer that displays Sendspin artwork, song title, and artist name.
+- Added Glitch Player visualizer that applies audio-reactive glitch effects to Sendspin artwork.
+- Added Background Player visualizer that uses Sendspin artwork as background behind the frequency bars.
 
 ## [0.12.0] - 2026-04-13
 
 ### Added
 - Added [Music Assistant](https://music-assistant.io) support with [Sendspin](https://www.sendspin-audio.com) as a third audio source alongside Microphone and System Audio, enabling visualization of audio streams.
-- Added Vinyl Player visualizer that displays Sendspin artwork, song title, and artist name with a fallback to a dummy cover image.
-- Added Glitch Player visualizer that applies audio-reactive glitch effects to Sendspin artwork with a fallback to a dummy cover image.
-- Added Background Player visualizer that uses Sendspin artwork as background behind the frequency bars with a fallback to a dummy cover image.
 
 ## [0.11.0] - 2026-04-08
 
