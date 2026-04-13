@@ -1,5 +1,5 @@
 # VoltViz
-> **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio, microphone, or [Sendspin](https://www.sendspin-audio.com) server and watch your music come alive.
+> **A dynamic, real-time music visualizer** that transforms sound into stunning visual experiences. Synchronize with your system audio, microphone and [Music Assistant](https://music-assistant.io) support (through [Sendspin](https://www.sendspin-audio.com)) and watch your music come alive.
 
 ![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
@@ -87,7 +87,7 @@ http://localhost:8080
 - **D3.js** 3.1 - Data visualization
 - **Tailwind CSS** 4.2 - Utility-first styling
 - **Lucide React** - Icon library
-- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.0 - Synchronized multi-room audio streaming client
+- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.0 - Synchronized audio streaming client
 
 **Infrastructure:**
 - **Docker** - Containerization
@@ -124,13 +124,15 @@ nginx/
 
 ---
 
-## 📡 Sendspin Support
+## 📡 Music Assistant / Sendspin Support
 
-VoltViz supports [Sendspin](https://www.sendspin-audio.com), a synchronized multi-room audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
+![Music Assistant / Sendspin Support](images/home-assistant/music-assistant.png)
 
-### Running a Local Sendspin Server
+VoltViz has [Music Assistant](https://music-assistant.io) support through [Sendspin](https://www.sendspin-audio.com), an audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
 
-You can quickly start a local Sendspin server using [uvx](https://docs.astral.sh/uv/):
+### Try with a local Sendspin Server
+
+You can also quickly start a local Sendspin server using [uvx](https://docs.astral.sh/uv/):
 
 ```bash
 uvx sendspin serve https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3
@@ -138,15 +140,7 @@ uvx sendspin serve https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%20
 
 Then in VoltViz, click **Sendspin** and enter `http://localhost:8095` to connect.
 
-### Music Assistant / Home Assistant
-
-VoltViz works with [Music Assistant](https://www.music-assistant.io/player-support/sendspin/) for Home Assistant. When connecting to a Sendspin server on a Home Assistant instance, only **HTTP** is supported (not HTTPS) as VoltViz connects directly to the Sendspin server running on the Home Assistant device:
-
-```
-http://homeassistant.local:8927
-```
-
-To make this work the easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
+The easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
 
 ---
 

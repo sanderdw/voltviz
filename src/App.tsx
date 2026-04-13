@@ -81,7 +81,7 @@ export default function App() {
   const appVersion = __APP_VERSION__;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('grid');
+  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('sphere');
   const [showSettings, setShowSettings] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [settings, setSettings] = useState<VisualizerSettings>({
