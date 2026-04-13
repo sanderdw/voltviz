@@ -36,11 +36,15 @@ type VisualizerType =
   | 'background'
   | '3dequalizer'
   | 'flame'
-  | 'vumeter';
+  | 'vumeter'
+  | 'vinylplayer'
+  | 'glitchplayer'
+  | 'backgroundplayer';
 
 type VisualizerProps = {
   stream: MediaStream;
   settings: VisualizerSettings;
+  sendspinMetadata?: ServerStateMetadata | null;
 };
 
 const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
@@ -75,6 +79,9 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
   flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
   vumeter: lazy(() => import('./components/visualizers/VUMeter')),
+  vinylplayer: lazy(() => import('./components/visualizers/VinylPlayer')),
+  glitchplayer: lazy(() => import('./components/visualizers/GlitchPlayer')),
+  backgroundplayer: lazy(() => import('./components/visualizers/BackgroundPlayer')),
 };
 
 export default function App() {
@@ -239,7 +246,7 @@ export default function App() {
 
     return (
       <Suspense fallback={<div className="w-full h-full" />}>
-        <Visualizer stream={stream} settings={settings} />
+        <Visualizer stream={stream} settings={settings} sendspinMetadata={sendspinMetadata} />
       </Suspense>
     );
   };
@@ -311,6 +318,9 @@ export default function App() {
                     <option value="blur" className="bg-gray-900">Blur</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
                     <option value="vumeter" className="bg-gray-900">VU Meter</option>
+                    <option value="vinylplayer" className="bg-gray-900">Vinyl (Sendspin)</option>
+                    <option value="glitchplayer" className="bg-gray-900">Glitch (Sendspin)</option>
+                    <option value="backgroundplayer" className="bg-gray-900">Background (Sendspin)</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>
