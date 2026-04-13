@@ -1,7 +1,7 @@
 {
   "name": "voltviz",
   "private": true,
-  "version": "0.12.1",
+  "version": "0.13.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -11,24 +11,24 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@sendspin/sendspin-js": "^3.0.1",
+    "@sendspin/sendspin-js": "^3.0.2",
     "d3-geo": "^3.1.1",
-    "lucide-react": "^1.6.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "lucide-react": "^1.8.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "three": "^0.183.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/d3-geo": "^3.1.0",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
-    "vite": "^8.0.2"
+    "vite": "^8.0.8"
   }
 }

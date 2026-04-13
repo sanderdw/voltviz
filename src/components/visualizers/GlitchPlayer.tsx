@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { VisualizerSettings } from '../../types';
-import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import type { ServerStateMetadata } from '@sendspin/sendspin-js';
+import dummyCover from '../../../images/dummycover.png';
 
 interface Props {
   stream: MediaStream;
   settings: VisualizerSettings;
+  sendspinMetadata?: ServerStateMetadata | null;
 }
 
-export default function GlitchVisualizer({ stream, settings }: Props) {
+export default function GlitchPlayer({ stream, settings, sendspinMetadata }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -17,35 +19,20 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
   const settingsRef = useRef(settings);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
-
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
 
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setBgImage(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
+  // Load artwork from sendspin metadata or fall back to dummy cover
   useEffect(() => {
-    if (bgImage) {
-      const img = new Image();
-      img.onload = () => {
-        imageRef.current = img;
-      };
-      img.src = bgImage;
-    } else {
-      imageRef.current = null;
-    }
-  }, [bgImage]);
+    const url = sendspinMetadata?.artwork_url ?? dummyCover;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      imageRef.current = img;
+    };
+    img.src = url;
+  }, [sendspinMetadata?.artwork_url]);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -107,15 +94,14 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
       // Graduated glitch intensity tiers based on audio level
       const sens = currentSettings.sensitivity;
       const scale = currentSettings.scale;
-      const thresholdLow = 0.15 / sens;    // subtle distortion
-      const thresholdMid = 0.3 / sens;     // moderate glitch
-      const thresholdHigh = 0.5 / sens;    // heavy glitch
-      const thresholdExtreme = 0.7 / sens; // extreme glitch
+      const thresholdLow = 0.15 / sens;
+      const thresholdMid = 0.3 / sens;
+      const thresholdHigh = 0.5 / sens;
+      const thresholdExtreme = 0.7 / sens;
 
       if (normalizedIntensity > thresholdLow) {
         glitchParams.active = true;
 
-        // Map intensity to a 0-1 range relative to the tier thresholds
         let tier: number;
         let triggerChance: number;
         let rgbChance: number;
@@ -165,7 +151,6 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
           glitchParams.globalShiftY = (Math.random() - 0.5) * (shiftScale / 2) * glitchParams.intensity;
           glitchParams.rgbSplit = Math.random() > (1 - rgbChance);
 
-          // Generate slices scaled to tier
           const numSlices = Math.floor(Math.random() * maxSlices * glitchParams.intensity) + (tier > 1 ? 2 : 1);
           glitchParams.slices = [];
           for (let i = 0; i < numSlices; i++) {
@@ -197,7 +182,6 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
 
       ctx.clearRect(0, 0, w, h);
 
-      // Helper to draw the image covering the canvas
       const drawCoverImage = (context: CanvasRenderingContext2D, dx = 0, dy = 0) => {
         if (imageRef.current) {
           const img = imageRef.current;
@@ -208,14 +192,8 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
           const drawY = (h - drawH) / 2 + dy;
           context.drawImage(img, drawX, drawY, drawW, drawH);
         } else {
-          // Fallback pattern if no image
           context.fillStyle = '#111';
           context.fillRect(0, 0, w, h);
-          context.fillStyle = '#333';
-          context.font = '40px monospace';
-          context.textAlign = 'center';
-          context.textBaseline = 'middle';
-          context.fillText('UPLOAD IMAGE', w/2 + dx, h/2 + dy);
         }
       };
 
@@ -225,19 +203,15 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
       ctx.globalAlpha = 1.0;
 
       if (glitchParams.active && glitchParams.rgbSplit) {
-        // RGB Split effect
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
 
-        // Red channel shift
         ctx.filter = 'sepia(100%) hue-rotate(-50deg) saturate(500%)';
         drawCoverImage(ctx, glitchParams.globalShiftX - 10 * glitchParams.intensity, glitchParams.globalShiftY);
 
-        // Cyan/Blue channel shift
         ctx.filter = 'sepia(100%) hue-rotate(150deg) saturate(500%)';
         drawCoverImage(ctx, glitchParams.globalShiftX + 10 * glitchParams.intensity, glitchParams.globalShiftY);
 
-        // Green channel shift
         ctx.filter = 'sepia(100%) hue-rotate(50deg) saturate(500%)';
         drawCoverImage(ctx, glitchParams.globalShiftX, glitchParams.globalShiftY + 5 * glitchParams.intensity);
 
@@ -303,7 +277,7 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
       if (audioCtxRef.current) audioCtxRef.current.close();
       window.removeEventListener('resize', resize);
     };
-  }, [stream, bgImage]);
+  }, [stream]);
 
   return (
     <div ref={containerRef} className="w-full h-full relative bg-black">
@@ -311,29 +285,6 @@ export default function GlitchVisualizer({ stream, settings }: Props) {
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
       />
-
-      <div className="absolute bottom-6 right-6 flex items-center gap-3 z-20">
-        {showUI && (
-          <label className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm text-white cursor-pointer transition-colors">
-            <ImagePlus className="w-4 h-4" />
-            {bgImage ? 'Change Background' : 'Upload Background'}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleBgUpload}
-            />
-          </label>
-        )}
-
-        <button
-          onClick={() => setShowUI(!showUI)}
-          className="p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-colors cursor-pointer"
-          title={showUI ? "Hide UI" : "Show UI"}
-        >
-          {showUI ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
     </div>
   );
 }

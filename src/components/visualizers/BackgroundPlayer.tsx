@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { VisualizerSettings } from '../../types';
-import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import type { ServerStateMetadata } from '@sendspin/sendspin-js';
+import dummyCover from '../../../images/dummycover.png';
 
 interface Props {
   stream: MediaStream;
   settings: VisualizerSettings;
+  sendspinMetadata?: ServerStateMetadata | null;
 }
 
-export default function Background({ stream, settings }: Props) {
+export default function BackgroundPlayer({ stream, settings, sendspinMetadata }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -16,23 +18,11 @@ export default function Background({ stream, settings }: Props) {
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
 
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
-
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
 
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setBgImage(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
+  const bgImage = sendspinMetadata?.artwork_url ?? dummyCover;
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -86,21 +76,18 @@ export default function Background({ stream, settings }: Props) {
       ctx.stroke();
 
       const numBars = bufferLength;
-      const totalWidth = w * 0.8; // Take up 80% of the screen width
+      const totalWidth = w * 0.8;
       const barSpacing = totalWidth / numBars;
       const startX = (w - totalWidth) / 2;
 
       let x = startX;
 
       for (let i = 0; i < bufferLength; i++) {
-        // Apply a window function to make the edges taper off
         const windowMultiplier = Math.sin((i / (bufferLength - 1)) * Math.PI);
 
-        // Calculate bar height
         let barHeight = (dataArray[i] / 255) * (h * 0.4) * currentSettings.sensitivity * currentSettings.scale;
-        barHeight *= windowMultiplier; // Taper edges
+        barHeight *= windowMultiplier;
 
-        // Ensure a minimum height for the line
         if (barHeight < 2) barHeight = 2;
 
         const hue = (190 + currentSettings.hueShift) % 360;
@@ -146,40 +133,15 @@ export default function Background({ stream, settings }: Props) {
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-[#0a1118]">
-      {bgImage && (
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
-          style={{ backgroundImage: `url(${bgImage})` }}
-        />
-      )}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
 
       {/* Dark gradient overlay to make visualizer pop */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a1118]/40 to-[#0a1118]/80 z-0 pointer-events-none" />
 
       <canvas ref={canvasRef} className="w-full h-full block absolute inset-0 z-10" />
-
-      <div className="absolute bottom-6 right-6 flex items-center gap-3 z-20">
-        {showUI && (
-          <label className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm text-white cursor-pointer transition-colors">
-            <ImagePlus className="w-4 h-4" />
-            {bgImage ? 'Change Background' : 'Upload Background'}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleBgUpload}
-            />
-          </label>
-        )}
-
-        <button
-          onClick={() => setShowUI(!showUI)}
-          className="p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-colors cursor-pointer"
-          title={showUI ? "Hide UI" : "Show UI"}
-        >
-          {showUI ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
     </div>
   );
 }

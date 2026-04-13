@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { VisualizerSettings } from '../../types';
-import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import type { ServerStateMetadata } from '@sendspin/sendspin-js';
+import dummyCover from '../../../images/dummycover.png';
 
 interface Props {
   stream: MediaStream;
   settings: VisualizerSettings;
+  sendspinMetadata?: ServerStateMetadata | null;
 }
 
-export default function Vinyl({ stream, settings }: Props) {
+export default function VinylPlayer({ stream, settings, sendspinMetadata }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -16,36 +18,26 @@ export default function Vinyl({ stream, settings }: Props) {
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const settingsRef = useRef(settings);
   const imageRef = useRef<HTMLImageElement | null>(null);
-
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
+  const metadataRef = useRef(sendspinMetadata);
 
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
 
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setBgImage(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
   useEffect(() => {
-    if (bgImage) {
-      const img = new Image();
-      img.onload = () => {
-        imageRef.current = img;
-      };
-      img.src = bgImage;
-    } else {
-      imageRef.current = null;
-    }
-  }, [bgImage]);
+    metadataRef.current = sendspinMetadata;
+  }, [sendspinMetadata]);
+
+  // Load artwork from sendspin metadata or fall back to dummy cover
+  useEffect(() => {
+    const url = sendspinMetadata?.artwork_url ?? dummyCover;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      imageRef.current = img;
+    };
+    img.src = url;
+  }, [sendspinMetadata?.artwork_url]);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -58,7 +50,7 @@ export default function Vinyl({ stream, settings }: Props) {
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 1024; // Larger FFT size for better time domain resolution
+    analyser.fftSize = 1024;
     analyser.smoothingTimeConstant = 0.8;
     analyserRef.current = analyser;
 
@@ -88,19 +80,19 @@ export default function Vinyl({ stream, settings }: Props) {
       const w = canvas.width;
       const h = canvas.height;
       const currentSettings = settingsRef.current;
+      const metadata = metadataRef.current;
 
-      // Use time domain data for the waveform to get the oscilloscope look
       analyser.getByteTimeDomainData(dataArray);
 
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Draw Blurred Background
+      // 1. Blurred Background
       if (imageRef.current) {
         ctx.filter = 'blur(40px) brightness(0.4)';
         const scale = Math.max(w / imageRef.current.width, h / imageRef.current.height);
         const iw = imageRef.current.width * scale;
         const ih = imageRef.current.height * scale;
-        ctx.drawImage(imageRef.current, w/2 - iw/2, h/2 - ih/2, iw, ih);
+        ctx.drawImage(imageRef.current, w / 2 - iw / 2, h / 2 - ih / 2, iw, ih);
         ctx.filter = 'none';
       } else {
         ctx.fillStyle = '#0f172a';
@@ -115,10 +107,10 @@ export default function Vinyl({ stream, settings }: Props) {
 
       const angle = (performance.now() / 1000) * (33.3 / 60) * Math.PI * 2 * currentSettings.speed;
 
-      // 2. Draw Middle Band
+      // 2. Middle Band
       ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
-      const bandTop = h/2 - coverSize * 0.7;
-      const bandBottom = h/2 + coverSize * 0.7;
+      const bandTop = h / 2 - coverSize * 0.7;
+      const bandBottom = h / 2 + coverSize * 0.7;
       ctx.fillRect(0, bandTop, w, bandBottom - bandTop);
 
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
@@ -159,16 +151,16 @@ export default function Vinyl({ stream, settings }: Props) {
           targetCtx.stroke();
         }
 
-        // Highlights (Fixed, non-rotating)
+        // Highlights (fixed, non-rotating)
         targetCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
         targetCtx.beginPath();
         targetCtx.moveTo(0, 0);
-        targetCtx.arc(0, 0, vinylRadius, -Math.PI/8, Math.PI/8);
+        targetCtx.arc(0, 0, vinylRadius, -Math.PI / 8, Math.PI / 8);
         targetCtx.lineTo(0, 0);
         targetCtx.fill();
         targetCtx.beginPath();
         targetCtx.moveTo(0, 0);
-        targetCtx.arc(0, 0, vinylRadius, Math.PI - Math.PI/8, Math.PI + Math.PI/8);
+        targetCtx.arc(0, 0, vinylRadius, Math.PI - Math.PI / 8, Math.PI + Math.PI / 8);
         targetCtx.lineTo(0, 0);
         targetCtx.fill();
 
@@ -207,19 +199,19 @@ export default function Vinyl({ stream, settings }: Props) {
         }
 
         if (imageRef.current) {
-          targetCtx.drawImage(imageRef.current, -coverSize/2, -coverSize/2, coverSize, coverSize);
+          targetCtx.drawImage(imageRef.current, -coverSize / 2, -coverSize / 2, coverSize, coverSize);
         } else {
           targetCtx.fillStyle = '#1e293b';
-          targetCtx.fillRect(-coverSize/2, -coverSize/2, coverSize, coverSize);
+          targetCtx.fillRect(-coverSize / 2, -coverSize / 2, coverSize, coverSize);
           targetCtx.strokeStyle = '#334155';
           targetCtx.lineWidth = 2;
-          targetCtx.strokeRect(-coverSize/2, -coverSize/2, coverSize, coverSize);
+          targetCtx.strokeRect(-coverSize / 2, -coverSize / 2, coverSize, coverSize);
         }
         targetCtx.restore();
       };
 
-      // 3. Draw Reflection
-      const coverBottom = coverCenterY + coverSize/2;
+      // 3. Reflection
+      const coverBottom = coverCenterY + coverSize / 2;
       const reflectionStartY = bandBottom;
       const reflectionOffset = reflectionStartY - coverBottom;
 
@@ -233,23 +225,21 @@ export default function Vinyl({ stream, settings }: Props) {
         drawVinylAndCover(offCtx, true);
         offCtx.restore();
 
-        // Apply gradient mask to fade out the reflection
         offCtx.globalCompositeOperation = 'destination-in';
         const maskGrad = offCtx.createLinearGradient(0, reflectionStartY, 0, reflectionStartY + coverSize * 0.8);
-        maskGrad.addColorStop(0, 'rgba(0,0,0,0.15)'); // Barely visible at the mirror line
-        maskGrad.addColorStop(1, 'rgba(0,0,0,0)'); // Fade to transparent
+        maskGrad.addColorStop(0, 'rgba(0,0,0,0.15)');
+        maskGrad.addColorStop(1, 'rgba(0,0,0,0)');
         offCtx.fillStyle = maskGrad;
         offCtx.fillRect(0, reflectionStartY, w, h - reflectionStartY);
         offCtx.globalCompositeOperation = 'source-over';
 
-        // Draw the reflection onto the main canvas
         ctx.drawImage(offCanvas, 0, 0);
       }
 
-      // 4. Draw Actual Vinyl and Cover
+      // 4. Actual Vinyl and Cover
       drawVinylAndCover(ctx, false);
 
-      // 5. Draw Waveform
+      // 5. Waveform
       const waveStartX = vinylCenterX + vinylRadius + w * 0.05;
       const waveEndX = w * 0.9;
       const waveWidth = waveEndX - waveStartX;
@@ -263,7 +253,7 @@ export default function Vinyl({ stream, settings }: Props) {
       ctx.beginPath();
       for (let i = 0; i < numBars; i++) {
         const dataIdx = Math.floor((i / numBars) * bufferLength);
-        const val = (dataArray[dataIdx] - 128) / 128; // -1 to 1
+        const val = (dataArray[dataIdx] - 128) / 128;
 
         const windowMultiplier = Math.sin((i / (numBars - 1)) * Math.PI);
         let barHeight = Math.abs(val) * (coverSize * 0.6) * currentSettings.sensitivity * currentSettings.scale;
@@ -275,6 +265,29 @@ export default function Vinyl({ stream, settings }: Props) {
         ctx.lineTo(bx, coverCenterY + barHeight);
       }
       ctx.stroke();
+
+      // 6. Song title and artist overlay
+      const title = metadata?.title;
+      const artist = metadata?.artist;
+      if (title || artist) {
+        const textX = waveStartX;
+        const textY = coverCenterY + coverSize * 0.45;
+
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
+
+        if (title) {
+          ctx.font = `bold ${Math.max(14, coverSize * 0.09)}px Inter, system-ui, sans-serif`;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fillText(title, textX, textY);
+        }
+        if (artist) {
+          const artistY = textY + (title ? Math.max(18, coverSize * 0.11) : 0);
+          ctx.font = `${Math.max(12, coverSize * 0.065)}px Inter, system-ui, sans-serif`;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.fillText(artist, textX, artistY);
+        }
+      }
     };
 
     draw();
@@ -292,29 +305,6 @@ export default function Vinyl({ stream, settings }: Props) {
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-[#0f172a]">
       <canvas ref={canvasRef} className="w-full h-full block absolute inset-0 z-10" />
-
-      <div className="absolute bottom-6 right-6 flex items-center gap-3 z-20">
-        {showUI && (
-          <label className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm text-white cursor-pointer transition-colors">
-            <ImagePlus className="w-4 h-4" />
-            {bgImage ? 'Change Cover' : 'Upload Cover'}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleBgUpload}
-            />
-          </label>
-        )}
-
-        <button
-          onClick={() => setShowUI(!showUI)}
-          className="p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-colors cursor-pointer"
-          title={showUI ? "Hide UI" : "Show UI"}
-        >
-          {showUI ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
     </div>
   );
 }

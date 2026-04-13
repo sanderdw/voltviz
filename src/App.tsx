@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ServerStateMetadata, ControllerCommand } from '@sendspin/sendspin-js';
+import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 
@@ -36,11 +36,15 @@ type VisualizerType =
   | 'background'
   | '3dequalizer'
   | 'flame'
-  | 'vumeter';
+  | 'vumeter'
+  | 'vinylplayer'
+  | 'glitchplayer'
+  | 'backgroundplayer';
 
 type VisualizerProps = {
   stream: MediaStream;
   settings: VisualizerSettings;
+  sendspinMetadata?: ServerStateMetadata | null;
 };
 
 const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
@@ -75,6 +79,9 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
   flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
   vumeter: lazy(() => import('./components/visualizers/VUMeter')),
+  vinylplayer: lazy(() => import('./components/visualizers/VinylPlayer')),
+  glitchplayer: lazy(() => import('./components/visualizers/GlitchPlayer')),
+  backgroundplayer: lazy(() => import('./components/visualizers/BackgroundPlayer')),
 };
 
 export default function App() {
@@ -98,9 +105,18 @@ export default function App() {
   const [sendspinPlaying, setSendspinPlaying] = useState(false);
   const [sendspinMetadata, setSendspinMetadata] = useState<ServerStateMetadata | null>(null);
   const [sendspinSupportedCmds, setSendspinSupportedCmds] = useState<string[]>([]);
+  const [sendspinVolume, setSendspinVolume] = useState(100);
+  const [sendspinMuted, setSendspinMuted] = useState(false);
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
+
+    const params = new URLSearchParams(window.location.search);
+    const sendspinParam = params.get('sendspin');
+    if (sendspinParam) {
+      setSendspinUrl(sendspinParam);
+      setShowSendspinDialog(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -168,17 +184,26 @@ export default function App() {
     setSendspinPlaying(false);
     setSendspinMetadata(null);
     setSendspinSupportedCmds([]);
+    setSendspinVolume(100);
+    setSendspinMuted(false);
   };
 
-  const startSendspin = async () => {
+  const startSendspin = async (url?: string) => {
+    const serverUrl = url || sendspinUrl;
     try {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
       sendspinAudioRef.current = audioEl;
 
+      audioEl.addEventListener('playing', () => {
+        if (audioEl.srcObject instanceof MediaStream) {
+          setStream(audioEl.srcObject);
+        }
+      });
+
       const player = new SendspinPlayer({
         playerId: 'VoltViz',
-        baseUrl: sendspinUrl,
+        baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
         correctionMode: 'sync',
@@ -189,6 +214,12 @@ export default function App() {
           }
           if (state.serverState?.controller?.supported_commands) {
             setSendspinSupportedCmds(state.serverState.controller.supported_commands);
+          }
+          if (state.serverState?.controller?.volume !== undefined) {
+            setSendspinVolume(state.serverState.controller.volume);
+          }
+          if (state.serverState?.controller?.muted !== undefined) {
+            setSendspinMuted(state.serverState.controller.muted);
           }
           if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
             setStream(audioEl.srcObject);
@@ -208,9 +239,9 @@ export default function App() {
     }
   };
 
-  const sendspinCommand = (command: ControllerCommand) => {
+  const sendspinCommand = <T extends ControllerCommand>(command: T, params?: ControllerCommands[T]) => {
     if (sendspinPlayerRef.current) {
-      sendspinPlayerRef.current.sendCommand(command, undefined as never);
+      sendspinPlayerRef.current.sendCommand(command, params as never);
     }
   };
 
@@ -229,7 +260,7 @@ export default function App() {
 
     return (
       <Suspense fallback={<div className="w-full h-full" />}>
-        <Visualizer stream={stream} settings={settings} />
+        <Visualizer stream={stream} settings={settings} sendspinMetadata={sendspinMetadata} />
       </Suspense>
     );
   };
@@ -301,6 +332,9 @@ export default function App() {
                     <option value="blur" className="bg-gray-900">Blur</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
                     <option value="vumeter" className="bg-gray-900">VU Meter</option>
+                    <option value="vinylplayer" className="bg-gray-900">Vinyl (Sendspin)</option>
+                    <option value="glitchplayer" className="bg-gray-900">Glitch (Sendspin)</option>
+                    <option value="backgroundplayer" className="bg-gray-900">Background (Sendspin)</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>
@@ -570,6 +604,42 @@ export default function App() {
             {/* Divider */}
             <div className="w-px h-6 bg-white/10" />
 
+            {/* Volume */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => sendspinCommand('mute', { mute: !sendspinMuted })}
+                disabled={!sendspinSupportedCmds.includes('mute')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMuted ? 'text-red-400' : 'text-white/70 hover:text-white'}`}
+                title={sendspinMuted ? 'Unmute' : 'Mute'}
+                data-testid="sendspin-mute"
+              >
+                {sendspinMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={sendspinMuted ? 0 : sendspinVolume}
+                onChange={e => {
+                  const vol = parseInt(e.target.value);
+                  sendspinCommand('volume', { volume: vol });
+                  setSendspinVolume(vol);
+                  if (sendspinMuted && vol > 0) {
+                    sendspinCommand('mute', { mute: false });
+                    setSendspinMuted(false);
+                  }
+                }}
+                disabled={!sendspinSupportedCmds.includes('volume')}
+                className="w-20 accent-purple-500 disabled:opacity-30"
+                title={`Volume: ${sendspinVolume}%`}
+                data-testid="sendspin-volume"
+              />
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-white/10" />
+
             {/* Shuffle & Repeat */}
             <div className="flex items-center gap-1">
               <button
@@ -626,7 +696,7 @@ export default function App() {
                 Cancel
               </button>
               <button
-                onClick={startSendspin}
+                onClick={() => startSendspin()}
                 disabled={!sendspinUrl}
                 className="px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
