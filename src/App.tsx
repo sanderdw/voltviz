@@ -110,6 +110,13 @@ export default function App() {
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
+
+    const params = new URLSearchParams(window.location.search);
+    const sendspinParam = params.get('sendspin');
+    if (sendspinParam) {
+      setSendspinUrl(sendspinParam);
+      setShowSendspinDialog(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -181,15 +188,22 @@ export default function App() {
     setSendspinMuted(false);
   };
 
-  const startSendspin = async () => {
+  const startSendspin = async (url?: string) => {
+    const serverUrl = url || sendspinUrl;
     try {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
       sendspinAudioRef.current = audioEl;
 
+      audioEl.addEventListener('playing', () => {
+        if (audioEl.srcObject instanceof MediaStream) {
+          setStream(audioEl.srcObject);
+        }
+      });
+
       const player = new SendspinPlayer({
         playerId: 'VoltViz',
-        baseUrl: sendspinUrl,
+        baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
         correctionMode: 'sync',
@@ -682,7 +696,7 @@ export default function App() {
                 Cancel
               </button>
               <button
-                onClick={startSendspin}
+                onClick={() => startSendspin()}
                 disabled={!sendspinUrl}
                 className="px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
