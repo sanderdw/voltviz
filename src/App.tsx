@@ -1,5 +1,7 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown } from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { SendspinPlayer } from '@sendspin/sendspin-js';
+import type { ServerStateMetadata, ControllerCommand } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 
@@ -79,7 +81,7 @@ export default function App() {
   const appVersion = __APP_VERSION__;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('grid');
+  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('sphere');
   const [showSettings, setShowSettings] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [settings, setSettings] = useState<VisualizerSettings>({
@@ -88,6 +90,14 @@ export default function App() {
     hueShift: 0,
     scale: 1.0,
   });
+  const [showSendspinDialog, setShowSendspinDialog] = useState(false);
+  const [sendspinUrl, setSendspinUrl] = useState('');
+  const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
+  const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [sendspinActive, setSendspinActive] = useState(false);
+  const [sendspinPlaying, setSendspinPlaying] = useState(false);
+  const [sendspinMetadata, setSendspinMetadata] = useState<ServerStateMetadata | null>(null);
+  const [sendspinSupportedCmds, setSendspinSupportedCmds] = useState<string[]>([]);
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -144,7 +154,68 @@ export default function App() {
     }
   };
 
+  const cleanupSendspin = () => {
+    if (sendspinPlayerRef.current) {
+      sendspinPlayerRef.current.disconnect('user_request');
+      sendspinPlayerRef.current = null;
+    }
+    if (sendspinAudioRef.current) {
+      sendspinAudioRef.current.pause();
+      sendspinAudioRef.current.srcObject = null;
+      sendspinAudioRef.current = null;
+    }
+    setSendspinActive(false);
+    setSendspinPlaying(false);
+    setSendspinMetadata(null);
+    setSendspinSupportedCmds([]);
+  };
+
+  const startSendspin = async () => {
+    try {
+      const audioEl = document.createElement('audio');
+      audioEl.autoplay = true;
+      sendspinAudioRef.current = audioEl;
+
+      const player = new SendspinPlayer({
+        playerId: 'VoltViz',
+        baseUrl: sendspinUrl,
+        audioElement: audioEl,
+        clientName: 'VoltViz',
+        correctionMode: 'sync',
+        onStateChange: (state) => {
+          setSendspinPlaying(state.isPlaying);
+          if (state.serverState?.metadata) {
+            setSendspinMetadata(state.serverState.metadata);
+          }
+          if (state.serverState?.controller?.supported_commands) {
+            setSendspinSupportedCmds(state.serverState.controller.supported_commands);
+          }
+          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
+            setStream(audioEl.srcObject);
+          }
+        }
+      });
+
+      sendspinPlayerRef.current = player;
+      await player.connect();
+
+      setError(null);
+      setSendspinActive(true);
+      setShowSendspinDialog(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to Sendspin server');
+      cleanupSendspin();
+    }
+  };
+
+  const sendspinCommand = (command: ControllerCommand) => {
+    if (sendspinPlayerRef.current) {
+      sendspinPlayerRef.current.sendCommand(command, undefined as never);
+    }
+  };
+
   const stopStream = (currentStream: MediaStream | null = stream) => {
+    cleanupSendspin();
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -262,6 +333,13 @@ export default function App() {
                   >
                     <MonitorUp size={16} />
                     <span>System Audio</span>
+                  </button>
+                  <button
+                    onClick={() => setShowSendspinDialog(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/5 text-sm cursor-pointer"
+                  >
+                    <Radio size={16} />
+                    <span>Sendspin</span>
                   </button>
                 </>
               ) : (
@@ -418,6 +496,146 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {sendspinActive && showControls && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-black/70 backdrop-blur-xl border border-white/10 rounded-t-2xl px-6 py-3 flex items-center gap-4" data-testid="sendspin-controls">
+            {/* Track info */}
+            {sendspinMetadata?.title && (
+              <div className="flex items-center gap-3 mr-2 min-w-0">
+                {sendspinMetadata.artwork_url && (
+                  <img src={sendspinMetadata.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="text-sm text-white truncate max-w-[200px]">{sendspinMetadata.title}</div>
+                  {sendspinMetadata.artist && (
+                    <div className="text-xs text-white/50 truncate max-w-[200px]">{sendspinMetadata.artist}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Playback controls */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => sendspinCommand('previous')}
+                disabled={!sendspinSupportedCmds.includes('previous')}
+                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Previous"
+                data-testid="sendspin-previous"
+              >
+                <SkipBack size={18} />
+              </button>
+              {sendspinPlaying ? (
+                <button
+                  onClick={() => sendspinCommand('pause')}
+                  disabled={!sendspinSupportedCmds.includes('pause')}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Pause"
+                  data-testid="sendspin-pause"
+                >
+                  <Pause size={20} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => sendspinCommand('play')}
+                  disabled={!sendspinSupportedCmds.includes('play')}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Play"
+                  data-testid="sendspin-play"
+                >
+                  <Play size={20} />
+                </button>
+              )}
+              <button
+                onClick={() => sendspinCommand('stop')}
+                disabled={!sendspinSupportedCmds.includes('stop')}
+                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Stop"
+                data-testid="sendspin-stop"
+              >
+                <Square size={16} />
+              </button>
+              <button
+                onClick={() => sendspinCommand('next')}
+                disabled={!sendspinSupportedCmds.includes('next')}
+                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Next"
+                data-testid="sendspin-next"
+              >
+                <SkipForward size={18} />
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-white/10" />
+
+            {/* Shuffle & Repeat */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => sendspinCommand(sendspinMetadata?.shuffle ? 'unshuffle' : 'shuffle')}
+                disabled={sendspinMetadata?.shuffle ? !sendspinSupportedCmds.includes('unshuffle') : !sendspinSupportedCmds.includes('shuffle')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMetadata?.shuffle ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                title={sendspinMetadata?.shuffle ? 'Unshuffle' : 'Shuffle'}
+                data-testid="sendspin-shuffle"
+              >
+                <Shuffle size={16} />
+              </button>
+              <button
+                onClick={() => {
+                  const current = sendspinMetadata?.repeat ?? 'off';
+                  const next: ControllerCommand = current === 'off' ? 'repeat_all' : current === 'all' ? 'repeat_one' : 'repeat_off';
+                  sendspinCommand(next);
+                }}
+                disabled={!sendspinSupportedCmds.includes('repeat_off')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMetadata?.repeat && sendspinMetadata.repeat !== 'off' ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                title={`Repeat: ${sendspinMetadata?.repeat ?? 'off'}`}
+                data-testid="sendspin-repeat"
+              >
+                {sendspinMetadata?.repeat === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSendspinDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4 mx-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-light">Connect to Sendspin</h3>
+              <button onClick={() => setShowSendspinDialog(false)} className="text-white/50 hover:text-white transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-white/50 text-sm">Enter the URL of your Sendspin server to stream synchronized audio.</p>
+            <input
+              type="url"
+              value={sendspinUrl}
+              onChange={e => setSendspinUrl(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl) startSendspin(); }}
+              placeholder="http://192.168.1.100:8095"
+              className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowSendspinDialog(false)}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={startSendspin}
+                disabled={!sendspinUrl}
+                className="px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
