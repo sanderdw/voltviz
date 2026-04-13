@@ -40,7 +40,7 @@ test.describe('VoltViz – landing page (no stream)', () => {
   test('Sendspin dialog opens on button click', async ({ page }) => {
     await page.getByRole('button', { name: 'Sendspin' }).click();
     await expect(page.getByText('Connect to Sendspin')).toBeVisible();
-    await expect(page.getByPlaceholder('http://192.168.1.100:8095')).toBeVisible();
+    await expect(page.getByPlaceholder('http://homeassistant.local:8927')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Connect' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
   });

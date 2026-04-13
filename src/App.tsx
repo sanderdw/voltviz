@@ -614,7 +614,7 @@ export default function App() {
               value={sendspinUrl}
               onChange={e => setSendspinUrl(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl) startSendspin(); }}
-              placeholder="http://192.168.1.100:8095"
+              placeholder="http://homeassistant.local:8927"
               className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
               autoFocus
             />
