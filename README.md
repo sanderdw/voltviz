@@ -129,6 +129,16 @@ nginx/
 
 VoltViz has [Music Assistant](https://music-assistant.io) support through [Sendspin](https://www.sendspin-audio.com), an audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
 
+### Direct Connect via URL Parameter
+
+You can link directly to VoltViz with a pre-filled Sendspin server URL by adding a `sendspin` query parameter:
+
+```
+http://localhost:8080/?sendspin=http://homeassistant.local:8927
+```
+
+This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start.
+
 > **_NOTE:_** Mixed content is not supported in most browsers so it only works on local networks. So if you access Home Assistant by `http://homeassistant.local:8123` it works by using `http://homeassistant.local:8927` as Sendspin URL.
 
 ### Try with a local Sendspin Server
