@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { geoMercator, geoContains } from 'd3-geo';
 import { VisualizerSettings } from '../../types';

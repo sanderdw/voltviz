@@ -86,7 +86,7 @@ http://localhost:8080
 - **Three.js** 0.183 - 3D graphics
 - **D3.js** 3.1 - Data visualization
 - **Tailwind CSS** 4.2 - Utility-first styling
-- **Lucide React** - Icon library
+- **Lucide React** 1.8 - Icon library
 - **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.0 - Synchronized audio streaming client
 
 **Infrastructure:**

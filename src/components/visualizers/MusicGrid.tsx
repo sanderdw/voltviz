@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VisualizerSettings } from '../../types';
 import { geoMercator, geoPath, geoContains } from 'd3-geo';
 import netherlandsGeoJson from '../../data/Netherlands_gemeentes.json';

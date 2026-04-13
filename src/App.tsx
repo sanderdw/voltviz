@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ServerStateMetadata, ControllerCommand } from '@sendspin/sendspin-js';
+import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 
@@ -98,6 +98,8 @@ export default function App() {
   const [sendspinPlaying, setSendspinPlaying] = useState(false);
   const [sendspinMetadata, setSendspinMetadata] = useState<ServerStateMetadata | null>(null);
   const [sendspinSupportedCmds, setSendspinSupportedCmds] = useState<string[]>([]);
+  const [sendspinVolume, setSendspinVolume] = useState(100);
+  const [sendspinMuted, setSendspinMuted] = useState(false);
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -168,6 +170,8 @@ export default function App() {
     setSendspinPlaying(false);
     setSendspinMetadata(null);
     setSendspinSupportedCmds([]);
+    setSendspinVolume(100);
+    setSendspinMuted(false);
   };
 
   const startSendspin = async () => {
@@ -190,6 +194,12 @@ export default function App() {
           if (state.serverState?.controller?.supported_commands) {
             setSendspinSupportedCmds(state.serverState.controller.supported_commands);
           }
+          if (state.serverState?.controller?.volume !== undefined) {
+            setSendspinVolume(state.serverState.controller.volume);
+          }
+          if (state.serverState?.controller?.muted !== undefined) {
+            setSendspinMuted(state.serverState.controller.muted);
+          }
           if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
             setStream(audioEl.srcObject);
           }
@@ -208,9 +218,9 @@ export default function App() {
     }
   };
 
-  const sendspinCommand = (command: ControllerCommand) => {
+  const sendspinCommand = <T extends ControllerCommand>(command: T, params?: ControllerCommands[T]) => {
     if (sendspinPlayerRef.current) {
-      sendspinPlayerRef.current.sendCommand(command, undefined as never);
+      sendspinPlayerRef.current.sendCommand(command, params as never);
     }
   };
 
@@ -565,6 +575,42 @@ export default function App() {
               >
                 <SkipForward size={18} />
               </button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-white/10" />
+
+            {/* Volume */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => sendspinCommand('mute', { mute: !sendspinMuted })}
+                disabled={!sendspinSupportedCmds.includes('mute')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMuted ? 'text-red-400' : 'text-white/70 hover:text-white'}`}
+                title={sendspinMuted ? 'Unmute' : 'Mute'}
+                data-testid="sendspin-mute"
+              >
+                {sendspinMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={sendspinMuted ? 0 : sendspinVolume}
+                onChange={e => {
+                  const vol = parseInt(e.target.value);
+                  sendspinCommand('volume', { volume: vol });
+                  setSendspinVolume(vol);
+                  if (sendspinMuted && vol > 0) {
+                    sendspinCommand('mute', { mute: false });
+                    setSendspinMuted(false);
+                  }
+                }}
+                disabled={!sendspinSupportedCmds.includes('volume')}
+                className="w-20 accent-purple-500 disabled:opacity-30"
+                title={`Volume: ${sendspinVolume}%`}
+                data-testid="sendspin-volume"
+              />
             </div>
 
             {/* Divider */}

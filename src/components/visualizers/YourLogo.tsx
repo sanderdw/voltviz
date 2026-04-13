@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VisualizerSettings } from '../../types';
 import { Upload, Eye, EyeOff, Palette } from 'lucide-react';
 
