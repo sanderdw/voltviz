@@ -7,39 +7,39 @@ import { VisualizerSettings } from './types';
 
 type VisualizerType =
   | 'circular'
-  | 'blur'
-  | 'glitch'
-  | 'glitch2'
+  | 'blurimage'
+  | 'glitchbackground'
+  | 'glitchdatabend'
   | 'yourlogo'
   | 'cybermatrix'
   | 'cybergridcanvas'
-  | 'sheet'
+  | 'sheetmusic'
   | 'bars'
   | 'tunnel'
-  | 'grid'
-  | 'neon'
-  | 'sphere'
-  | 'skull'
-  | 'ghost'
-  | 'hextunnel'
+  | 'dutchgrid'
+  | 'neonwave'
+  | 'polysphere'
+  | 'psychedelicskull'
+  | 'ghostrainbow'
+  | 'neonhextunnel'
   | 'fluidsmoke'
-  | 'webgl'
-  | 'webglmusicgrid'
-  | 'festival'
-  | 'megafestival'
-  | 'droneshow'
-  | 'fireworks'
-  | 'perlin'
+  | 'cosmicparticles'
+  | 'dutchgridwebgl'
+  | 'festivalstage'
+  | 'defqonmainstage'
+  | 'disneydroneshow'
+  | 'fireworksshow'
+  | 'glowsphere'
   | 'crtterminal'
   | 'datadashboard'
   | 'vinyl'
-  | 'background'
+  | 'backgroundimage'
   | '3dequalizer'
   | 'flame'
   | 'vumeter'
-  | 'vinylplayer'
-  | 'glitchplayer'
-  | 'backgroundplayer';
+  | 'vinylsendspin'
+  | 'glitchbackgroundsendspin'
+  | 'backgroundimagesendspin';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -49,53 +49,65 @@ type VisualizerProps = {
 
 const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
   circular: lazy(() => import('./components/visualizers/Circular')),
-  blur: lazy(() => import('./components/visualizers/BlurVisualizer')),
-  glitch: lazy(() => import('./components/visualizers/GlitchVisualizer')),
-  glitch2: lazy(() => import('./components/visualizers/GlitchVisualizer2')),
+  blurimage: lazy(() => import('./components/visualizers/BlurVisualizer')),
+  glitchbackground: lazy(() => import('./components/visualizers/GlitchVisualizer')),
+  glitchdatabend: lazy(() => import('./components/visualizers/GlitchVisualizer2')),
   yourlogo: lazy(() => import('./components/visualizers/YourLogo')),
   cybermatrix: lazy(() => import('./components/visualizers/CyberMatrix')),
   cybergridcanvas: lazy(() => import('./components/visualizers/CyberGridCanvas')),
-  sheet: lazy(() => import('./components/visualizers/SheetMusic')),
+  sheetmusic: lazy(() => import('./components/visualizers/SheetMusic')),
   bars: lazy(() => import('./components/visualizers/Bars')),
   tunnel: lazy(() => import('./components/visualizers/Tunnel')),
-  grid: lazy(() => import('./components/visualizers/MusicGrid')),
-  neon: lazy(() => import('./components/visualizers/NeonWave')),
-  sphere: lazy(() => import('./components/visualizers/PolySphere')),
-  skull: lazy(() => import('./components/visualizers/PsychedelicSkull')),
-  ghost: lazy(() => import('./components/visualizers/GhostRainbow')),
-  hextunnel: lazy(() => import('./components/visualizers/NeonHexTunnel')),
+  dutchgrid: lazy(() => import('./components/visualizers/MusicGrid')),
+  neonwave: lazy(() => import('./components/visualizers/NeonWave')),
+  polysphere: lazy(() => import('./components/visualizers/PolySphere')),
+  psychedelicskull: lazy(() => import('./components/visualizers/PsychedelicSkull')),
+  ghostrainbow: lazy(() => import('./components/visualizers/GhostRainbow')),
+  neonhextunnel: lazy(() => import('./components/visualizers/NeonHexTunnel')),
   fluidsmoke: lazy(() => import('./components/visualizers/FluidSmoke')),
-  webgl: lazy(() => import('./components/visualizers/WebGLParticles')),
-  webglmusicgrid: lazy(() => import('./components/visualizers/WebGLMusicGrid')),
-  festival: lazy(() => import('./components/visualizers/FestivalStage')),
-  megafestival: lazy(() => import('./components/visualizers/MegaFestivalStage')),
-  droneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
-  fireworks: lazy(() => import('./components/visualizers/FireworksShow')),
-  perlin: lazy(() => import('./components/visualizers/PerlinSphere')),
+  cosmicparticles: lazy(() => import('./components/visualizers/WebGLParticles')),
+  dutchgridwebgl: lazy(() => import('./components/visualizers/WebGLMusicGrid')),
+  festivalstage: lazy(() => import('./components/visualizers/FestivalStage')),
+  defqonmainstage: lazy(() => import('./components/visualizers/MegaFestivalStage')),
+  disneydroneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
+  fireworksshow: lazy(() => import('./components/visualizers/FireworksShow')),
+  glowsphere: lazy(() => import('./components/visualizers/PerlinSphere')),
   crtterminal: lazy(() => import('./components/visualizers/CRTTerminal')),
   datadashboard: lazy(() => import('./components/visualizers/DataDashboard')),
   vinyl: lazy(() => import('./components/visualizers/Vinyl')),
-  background: lazy(() => import('./components/visualizers/Background')),
+  backgroundimage: lazy(() => import('./components/visualizers/Background')),
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
   flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
   vumeter: lazy(() => import('./components/visualizers/VUMeter')),
-  vinylplayer: lazy(() => import('./components/visualizers/VinylPlayer')),
-  glitchplayer: lazy(() => import('./components/visualizers/GlitchPlayer')),
-  backgroundplayer: lazy(() => import('./components/visualizers/BackgroundPlayer')),
+  vinylsendspin: lazy(() => import('./components/visualizers/VinylPlayer')),
+  glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchPlayer')),
+  backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundPlayer')),
 };
 
 export default function App() {
   const appVersion = __APP_VERSION__;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>('sphere');
+  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
+    const viz = new URLSearchParams(window.location.search).get('viz');
+    return viz && viz in visualizerComponents ? (viz as VisualizerType) : 'polysphere';
+  });
   const [showSettings, setShowSettings] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [settings, setSettings] = useState<VisualizerSettings>({
-    sensitivity: 1.0,
-    speed: 1.0,
-    hueShift: 0,
-    scale: 1.0,
+  const [settings, setSettings] = useState<VisualizerSettings>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const num = (key: string, def: number) => {
+      const v = params.get(key);
+      if (v === null) return def;
+      const n = parseFloat(v);
+      return isNaN(n) ? def : n;
+    };
+    return {
+      sensitivity: num('sensitivity', 1.0),
+      speed: num('speed', 1.0),
+      hueShift: num('hueShift', 0),
+      scale: num('scale', 1.0),
+    };
   });
   const [showSendspinDialog, setShowSendspinDialog] = useState(false);
   const [sendspinUrl, setSendspinUrl] = useState('');
@@ -120,6 +132,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('viz', activeVisualizer);
+    const setOrDelete = (key: string, value: number, defaultValue: number) => {
+      if (value !== defaultValue) params.set(key, value.toString());
+      else params.delete(key);
+    };
+    setOrDelete('sensitivity', settings.sensitivity, 1.0);
+    setOrDelete('speed', settings.speed, 1.0);
+    setOrDelete('hueShift', settings.hueShift, 0);
+    setOrDelete('scale', settings.scale, 1.0);
+    const qs = params.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [activeVisualizer, settings]);
+
+  useEffect(() => {
     // Allow layout to settle, then notify visualizers of the size change
     const id = requestAnimationFrame(() => {
       window.dispatchEvent(new Event('resize'));
@@ -128,6 +155,7 @@ export default function App() {
   }, [showControls]);
 
   const startMicrophone = async () => {
+    cleanupSendspin();
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -144,6 +172,7 @@ export default function App() {
   };
 
   const startSystemAudio = async () => {
+    cleanupSendspin();
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
@@ -186,6 +215,12 @@ export default function App() {
     setSendspinSupportedCmds([]);
     setSendspinVolume(100);
     setSendspinMuted(false);
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('sendspin')) {
+      params.delete('sendspin');
+      const qs = params.toString();
+      window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+    }
   };
 
   const startSendspin = async (url?: string) => {
@@ -301,40 +336,40 @@ export default function App() {
                     }}
                     className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
                   >
-                    <option value="grid" className="bg-gray-900">Dutch Grid</option>
-                    <option value="webglmusicgrid" className="bg-gray-900">Dutch Grid (WebGL)</option>
-                    <option value="glitch" className="bg-gray-900">Glitch</option>
-                    <option value="glitch2" className="bg-gray-900">Glitch Databend</option>
+                    <option value="dutchgrid" className="bg-gray-900">Dutch Grid</option>
+                    <option value="dutchgridwebgl" className="bg-gray-900">Dutch Grid (WebGL)</option>
+                    <option value="glitchbackground" className="bg-gray-900">Glitch Background</option>
+                    <option value="glitchdatabend" className="bg-gray-900">Glitch Databend</option>
                     <option value="yourlogo" className="bg-gray-900">Your Logo</option>
-                    <option value="perlin" className="bg-gray-900">Glow Sphere</option>
+                    <option value="glowsphere" className="bg-gray-900">Glow Sphere</option>
                     <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
-                    <option value="webgl" className="bg-gray-900">Cosmic Particles</option>
-                    <option value="neon" className="bg-gray-900">Neon Wave</option>
-                    <option value="sheet" className="bg-gray-900">Sheet Music</option>
+                    <option value="cosmicparticles" className="bg-gray-900">Cosmic Particles</option>
+                    <option value="neonwave" className="bg-gray-900">Neon Wave</option>
+                    <option value="sheetmusic" className="bg-gray-900">Sheet Music</option>
                     <option value="tunnel" className="bg-gray-900">Tunnel</option>
                     <option value="circular" className="bg-gray-900">Circular</option>
                     <option value="cybermatrix" className="bg-gray-900">Cyber Matrix</option>
                     <option value="cybergridcanvas" className="bg-gray-900">Cyber Grid Canvas</option>
                     <option value="bars" className="bg-gray-900">Bars</option>
-                    <option value="sphere" className="bg-gray-900">Poly Sphere</option>
-                    <option value="skull" className="bg-gray-900">Psychedelic Skull</option>
-                    <option value="ghost" className="bg-gray-900">Ghost Rainbow</option>
-                    <option value="hextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
+                    <option value="polysphere" className="bg-gray-900">Poly Sphere</option>
+                    <option value="psychedelicskull" className="bg-gray-900">Psychedelic Skull</option>
+                    <option value="ghostrainbow" className="bg-gray-900">Ghost Rainbow</option>
+                    <option value="neonhextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
                     <option value="fluidsmoke" className="bg-gray-900">Fluid Smoke</option>
                     <option value="3dequalizer" className="bg-gray-900">3D Equalizer</option>
-                    <option value="festival" className="bg-gray-900">Festival Stage</option>
-                    <option value="megafestival" className="bg-gray-900">Defqon Mainstage</option>
-                    <option value="droneshow" className="bg-gray-900">Disney Drone Show</option>
-                    <option value="fireworks" className="bg-gray-900">Fireworks Show</option>
+                    <option value="festivalstage" className="bg-gray-900">Festival Stage</option>
+                    <option value="defqonmainstage" className="bg-gray-900">Defqon Mainstage</option>
+                    <option value="disneydroneshow" className="bg-gray-900">Disney Drone Show</option>
+                    <option value="fireworksshow" className="bg-gray-900">Fireworks Show</option>
                     <option value="datadashboard" className="bg-gray-900">Data Dashboard</option>
                     <option value="vinyl" className="bg-gray-900">Vinyl</option>
-                    <option value="background" className="bg-gray-900">Background</option>
-                    <option value="blur" className="bg-gray-900">Blur</option>
+                    <option value="backgroundimage" className="bg-gray-900">Background Image</option>
+                    <option value="blurimage" className="bg-gray-900">Blur Image</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
                     <option value="vumeter" className="bg-gray-900">VU Meter</option>
-                    <option value="vinylplayer" className="bg-gray-900">Vinyl (Sendspin)</option>
-                    <option value="glitchplayer" className="bg-gray-900">Glitch (Sendspin)</option>
-                    <option value="backgroundplayer" className="bg-gray-900">Background (Sendspin)</option>
+                    <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
+                    <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
+                    <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
                 </div>

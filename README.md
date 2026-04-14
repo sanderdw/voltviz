@@ -129,6 +129,24 @@ nginx/
 
 VoltViz has [Music Assistant](https://music-assistant.io) support through [Sendspin](https://www.sendspin-audio.com), an audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
 
+### Deep-Link Visualizer & Settings via URL
+
+You can link directly to a specific visualizer with custom settings using URL parameters:
+
+```
+http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1.2
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `viz` | Visualizer name (e.g. `tunnel`, `sphere`, `festival`) | `sphere` |
+| `sensitivity` | Audio reactivity multiplier (0.1–3.0) | `1.0` |
+| `speed` | Animation speed multiplier (0.1–3.0) | `1.0` |
+| `hueShift` | Color shift in degrees (0–360) | `0` |
+| `scale` | Element scale multiplier (0.5–3.0) | `1.0` |
+
+The URL updates automatically as you change the visualizer or adjust settings in the UI, so you can share or bookmark your current configuration at any time. Only non-default settings are included to keep URLs clean.
+
 ### Direct Connect via URL Parameter
 
 You can link directly to VoltViz with a pre-filled Sendspin server URL by adding a `sendspin` query parameter:
@@ -137,7 +155,9 @@ You can link directly to VoltViz with a pre-filled Sendspin server URL by adding
 http://localhost:8080/?sendspin=http://homeassistant.local:8927
 ```
 
-This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start.
+This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start. The `sendspin` parameter is removed from the URL after it is read.
+
+You can combine both: `/?sendspin=http://homeassistant.local:8927&viz=vinylplayer&hueShift=90`
 
 > **_NOTE:_** Mixed content is not supported in most browsers so it only works on local networks. So if you access Home Assistant by `http://homeassistant.local:8123` it works by using `http://homeassistant.local:8927` as Sendspin URL.
 
