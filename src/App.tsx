@@ -136,7 +136,6 @@ export default function App() {
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
   const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
-  const sendspinAudioCtxRef = useRef<AudioContext | null>(null);
   const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
   const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
 
@@ -224,10 +223,6 @@ export default function App() {
       sendspinPlayerRef.current.disconnect('user_request');
       sendspinPlayerRef.current = null;
     }
-    if (sendspinAudioCtxRef.current) {
-      sendspinAudioCtxRef.current.close().catch(() => {});
-      sendspinAudioCtxRef.current = null;
-    }
     if (sendspinAudioRef.current) {
       sendspinAudioRef.current.pause();
       sendspinAudioRef.current.srcObject = null;
@@ -248,30 +243,23 @@ export default function App() {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
       (audioEl as any).playsInline = true;
-      audioEl.crossOrigin = 'anonymous';
       sendspinAudioRef.current = audioEl;
 
-      const getOrCreateStream = () => {
+      let capturedStream: MediaStream | null = null;
+      const getStream = (): MediaStream | null => {
         if (audioEl.srcObject instanceof MediaStream) {
           return audioEl.srcObject;
         }
-        // Mobile: Sendspin uses a URL source instead of WebRTC MediaStream.
-        // Capture audio from the element via Web Audio API.
-        if (!sendspinAudioCtxRef.current) {
-          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          ctx.resume();
-          const source = ctx.createMediaElementSource(audioEl);
-          const dest = ctx.createMediaStreamDestination();
-          source.connect(dest);
-          source.connect(ctx.destination); // keep audible output
-          sendspinAudioCtxRef.current = ctx;
-          return dest.stream;
+        // Mobile: Sendspin uses MSE instead of MediaStream on srcObject.
+        // Use captureStream() to tap the audio element output.
+        if (!capturedStream && typeof (audioEl as any).captureStream === 'function') {
+          capturedStream = (audioEl as any).captureStream();
         }
-        return null;
+        return capturedStream;
       };
 
       audioEl.addEventListener('playing', () => {
-        const s = getOrCreateStream();
+        const s = getStream();
         if (s) setStream(s);
       });
 
@@ -297,7 +285,7 @@ export default function App() {
           }
           updateSendspin(patch);
           if (state.isPlaying) {
-            const s = getOrCreateStream();
+            const s = getStream();
             if (s) setStream(s);
             // Ensure playback on mobile where autoplay may be blocked
             if (audioEl.paused) {
