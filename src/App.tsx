@@ -86,6 +86,11 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
 
 export default function App() {
   const appVersion = __APP_VERSION__;
+  const sendspinClientIdRef = useRef(
+    `VoltViz-${typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10)}`
+  );
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
@@ -228,6 +233,7 @@ export default function App() {
     try {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
+      (audioEl as any).playsInline = true;
       sendspinAudioRef.current = audioEl;
 
       audioEl.addEventListener('playing', () => {
@@ -237,7 +243,7 @@ export default function App() {
       });
 
       const player = new SendspinPlayer({
-        playerId: 'VoltViz',
+        playerId: sendspinClientIdRef.current,
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
@@ -258,12 +264,18 @@ export default function App() {
           }
           if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
             setStream(audioEl.srcObject);
+            // Ensure playback on mobile where autoplay may be blocked
+            if (audioEl.paused) {
+              audioEl.play().catch(() => {});
+            }
           }
         }
       });
 
       sendspinPlayerRef.current = player;
       await player.connect();
+      // Kick-start playback on mobile where autoplay may be blocked
+      audioEl.play().catch(() => {});
 
       setError(null);
       setSendspinActive(true);
@@ -303,9 +315,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
       {/* Mobile hint */}
-      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-white/40 tracking-wide">
+      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-purple-400 tracking-wide">
         <MonitorUp size={12} />
-        <span>Best experienced on a desktop browser</span>
+        <span>Best experienced on a larger screen</span>
       </div>
 
       {/* Atmospheric background */}
@@ -322,7 +334,7 @@ export default function App() {
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
                 <h1 className="text-2xl font-light tracking-widest uppercase">VoltViz<span className="font-bold text-green-400">Music Visualizer</span></h1>
-                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by sanderdw</p>
+                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">sanderdw</a></p>
               </div>
 
               {stream && (
