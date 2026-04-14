@@ -18,6 +18,13 @@
 - URL is automatically updated when changing the visualizer or adjusting settings in the UI.
 - Only non-default settings are included in the URL to keep it clean.
 
+## [0.13.1] - 2026-04-14
+
+### Added
+- Added URL parameter support for visualizer selection and settings: navigate to `/?viz=tunnel&sensitivity=1.5&hueShift=180` to deep-link a specific visualizer with custom settings.
+- URL is automatically updated when changing the visualizer or adjusting settings in the UI.
+- Only non-default settings are included in the URL to keep it clean.
+
 ## [0.13.0] - 2026-04-13
 
 ### Added
