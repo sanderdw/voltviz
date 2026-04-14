@@ -28,6 +28,7 @@ export default function WebGLGrid({ stream, settings }: Props) {
 
     // --- Audio Setup ---
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx.resume();
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();

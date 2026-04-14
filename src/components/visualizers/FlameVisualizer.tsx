@@ -200,6 +200,7 @@ export default function FlameVisualizer({ stream, settings }: Props) {
 
     // ── Audio ──────────────────────────────────────────────────────────────
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx.resume();
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();

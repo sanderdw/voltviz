@@ -42,6 +42,7 @@ export default function GlitchPlayer({ stream, settings, sendspinMetadata }: Pro
     if (!ctx) return;
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx.resume();
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();

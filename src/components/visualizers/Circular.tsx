@@ -28,6 +28,7 @@ export default function Circular({ stream, settings }: VisualizerProps) {
 
     // Setup Audio
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx.resume();
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();

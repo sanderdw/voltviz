@@ -20,6 +20,7 @@ export default function DataDashboard({ stream, settings }: Props) {
     if (!ctx) return;
 
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContextRef.current.resume();
     analyserRef.current = audioContextRef.current.createAnalyser();
     analyserRef.current.fftSize = 256;
     analyserRef.current.smoothingTimeConstant = 0.8;

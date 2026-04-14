@@ -66,6 +66,7 @@ export default function BlurVisualizer({ stream, settings }: Props) {
     if (!offCtx1 || !offCtx2) return;
 
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx.resume();
     audioCtxRef.current = audioCtx;
 
     const analyser = audioCtx.createAnalyser();
