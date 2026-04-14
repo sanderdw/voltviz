@@ -248,6 +248,7 @@ export default function App() {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
       (audioEl as any).playsInline = true;
+      audioEl.crossOrigin = 'anonymous';
       sendspinAudioRef.current = audioEl;
 
       const getOrCreateStream = () => {
