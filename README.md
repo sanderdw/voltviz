@@ -129,6 +129,8 @@ nginx/
 
 VoltViz has [Music Assistant](https://music-assistant.io) support through [Sendspin](https://www.sendspin-audio.com), an audio streaming protocol. Click the **Sendspin** button and enter your server URL to visualize audio from any Sendspin-compatible server.
 
+Demo Sendspin server link: https://voltviz.com/?sendspin=https://sendspin-demo.voltviz.com
+
 ### Deep-Link Visualizer & Settings via URL
 
 You can link directly to a specific visualizer with custom settings using URL parameters:
