@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
@@ -47,6 +47,24 @@ type VisualizerProps = {
   sendspinMetadata?: ServerStateMetadata | null;
 };
 
+type SendspinState = {
+  active: boolean;
+  playing: boolean;
+  metadata: ServerStateMetadata | null;
+  supportedCmds: string[];
+  volume: number;
+  muted: boolean;
+};
+
+const initialSendspinState: SendspinState = {
+  active: false,
+  playing: false,
+  metadata: null,
+  supportedCmds: [],
+  volume: 100,
+  muted: false,
+};
+
 const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
   circular: lazy(() => import('./components/visualizers/Circular')),
   blurimage: lazy(() => import('./components/visualizers/BlurVisualizer')),
@@ -86,6 +104,11 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
 
 export default function App() {
   const appVersion = __APP_VERSION__;
+  const sendspinClientIdRef = useRef(
+    `VoltViz-${typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10)}`
+  );
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
@@ -113,12 +136,8 @@ export default function App() {
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
   const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [sendspinActive, setSendspinActive] = useState(false);
-  const [sendspinPlaying, setSendspinPlaying] = useState(false);
-  const [sendspinMetadata, setSendspinMetadata] = useState<ServerStateMetadata | null>(null);
-  const [sendspinSupportedCmds, setSendspinSupportedCmds] = useState<string[]>([]);
-  const [sendspinVolume, setSendspinVolume] = useState(100);
-  const [sendspinMuted, setSendspinMuted] = useState(false);
+  const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
+  const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -209,12 +228,7 @@ export default function App() {
       sendspinAudioRef.current.srcObject = null;
       sendspinAudioRef.current = null;
     }
-    setSendspinActive(false);
-    setSendspinPlaying(false);
-    setSendspinMetadata(null);
-    setSendspinSupportedCmds([]);
-    setSendspinVolume(100);
-    setSendspinMuted(false);
+    setSendspin(initialSendspinState);
     const params = new URLSearchParams(window.location.search);
     if (params.has('sendspin')) {
       params.delete('sendspin');
@@ -228,6 +242,7 @@ export default function App() {
     try {
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
+      (audioEl as any).playsInline = true;
       sendspinAudioRef.current = audioEl;
 
       audioEl.addEventListener('playing', () => {
@@ -237,36 +252,43 @@ export default function App() {
       });
 
       const player = new SendspinPlayer({
-        playerId: 'VoltViz',
+        playerId: sendspinClientIdRef.current,
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
         correctionMode: 'sync',
         onStateChange: (state) => {
-          setSendspinPlaying(state.isPlaying);
+          const patch: Partial<SendspinState> = { playing: state.isPlaying };
           if (state.serverState?.metadata) {
-            setSendspinMetadata(state.serverState.metadata);
+            patch.metadata = state.serverState.metadata;
           }
           if (state.serverState?.controller?.supported_commands) {
-            setSendspinSupportedCmds(state.serverState.controller.supported_commands);
+            patch.supportedCmds = state.serverState.controller.supported_commands;
           }
           if (state.serverState?.controller?.volume !== undefined) {
-            setSendspinVolume(state.serverState.controller.volume);
+            patch.volume = state.serverState.controller.volume;
           }
           if (state.serverState?.controller?.muted !== undefined) {
-            setSendspinMuted(state.serverState.controller.muted);
+            patch.muted = state.serverState.controller.muted;
           }
+          updateSendspin(patch);
           if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
             setStream(audioEl.srcObject);
+            // Ensure playback on mobile where autoplay may be blocked
+            if (audioEl.paused) {
+              audioEl.play().catch(() => {});
+            }
           }
         }
       });
 
       sendspinPlayerRef.current = player;
       await player.connect();
+      // Kick-start playback on mobile where autoplay may be blocked
+      audioEl.play().catch(() => {});
 
       setError(null);
-      setSendspinActive(true);
+      updateSendspin({ active: true });
       setShowSendspinDialog(false);
     } catch (err: any) {
       setError(err.message || 'Failed to connect to Sendspin server');
@@ -288,24 +310,24 @@ export default function App() {
     }
   };
 
-  const renderVisualizer = () => {
+  const visualizerElement = useMemo(() => {
     if (!stream) return null;
     const Visualizer = visualizerComponents[activeVisualizer];
     if (!Visualizer) return null;
 
     return (
       <Suspense fallback={<div className="w-full h-full" />}>
-        <Visualizer stream={stream} settings={settings} sendspinMetadata={sendspinMetadata} />
+        <Visualizer stream={stream} settings={settings} sendspinMetadata={sendspin.metadata} />
       </Suspense>
     );
-  };
+  }, [stream, activeVisualizer, settings, sendspin.metadata]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
       {/* Mobile hint */}
-      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-white/40 tracking-wide">
+      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-purple-400 tracking-wide">
         <MonitorUp size={12} />
-        <span>Best experienced on a desktop browser</span>
+        <span>Best experienced on a larger screen</span>
       </div>
 
       {/* Atmospheric background */}
@@ -322,7 +344,7 @@ export default function App() {
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
                 <h1 className="text-2xl font-light tracking-widest uppercase">VoltViz<span className="font-bold text-green-400">Music Visualizer</span></h1>
-                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by sanderdw</p>
+                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">sanderdw</a></p>
               </div>
 
               {stream && (
@@ -442,8 +464,11 @@ export default function App() {
 
         <main className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
           {error && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-50">
-              {error}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-50 flex items-center gap-3">
+              <span>{error}</span>
+              <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
+                <X size={16} />
+              </button>
             </div>
           )}
 
@@ -459,7 +484,7 @@ export default function App() {
             </div>
           ) : (
             <div className="w-full h-full absolute inset-0">
-               {renderVisualizer()}
+               {visualizerElement}
             </div>
           )}
 
@@ -566,19 +591,19 @@ export default function App() {
         </main>
       </div>
 
-      {sendspinActive && showControls && (
+      {sendspin.active && showControls && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
           <div className="pointer-events-auto bg-black/70 backdrop-blur-xl border border-white/10 rounded-t-2xl px-6 py-3 flex items-center gap-4" data-testid="sendspin-controls">
             {/* Track info */}
-            {sendspinMetadata?.title && (
+            {sendspin.metadata?.title && (
               <div className="flex items-center gap-3 mr-2 min-w-0">
-                {sendspinMetadata.artwork_url && (
-                  <img src={sendspinMetadata.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                {sendspin.metadata.artwork_url && (
+                  <img src={sendspin.metadata.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <div className="text-sm text-white truncate max-w-[200px]">{sendspinMetadata.title}</div>
-                  {sendspinMetadata.artist && (
-                    <div className="text-xs text-white/50 truncate max-w-[200px]">{sendspinMetadata.artist}</div>
+                  <div className="text-sm text-white truncate max-w-[200px]">{sendspin.metadata.title}</div>
+                  {sendspin.metadata.artist && (
+                    <div className="text-xs text-white/50 truncate max-w-[200px]">{sendspin.metadata.artist}</div>
                   )}
                 </div>
               </div>
@@ -588,17 +613,17 @@ export default function App() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => sendspinCommand('previous')}
-                disabled={!sendspinSupportedCmds.includes('previous')}
+                disabled={!sendspin.supportedCmds.includes('previous')}
                 className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Previous"
                 data-testid="sendspin-previous"
               >
                 <SkipBack size={18} />
               </button>
-              {sendspinPlaying ? (
+              {sendspin.playing ? (
                 <button
                   onClick={() => sendspinCommand('pause')}
-                  disabled={!sendspinSupportedCmds.includes('pause')}
+                  disabled={!sendspin.supportedCmds.includes('pause')}
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Pause"
                   data-testid="sendspin-pause"
@@ -608,7 +633,7 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => sendspinCommand('play')}
-                  disabled={!sendspinSupportedCmds.includes('play')}
+                  disabled={!sendspin.supportedCmds.includes('play')}
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Play"
                   data-testid="sendspin-play"
@@ -618,7 +643,7 @@ export default function App() {
               )}
               <button
                 onClick={() => sendspinCommand('stop')}
-                disabled={!sendspinSupportedCmds.includes('stop')}
+                disabled={!sendspin.supportedCmds.includes('stop')}
                 className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Stop"
                 data-testid="sendspin-stop"
@@ -627,7 +652,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => sendspinCommand('next')}
-                disabled={!sendspinSupportedCmds.includes('next')}
+                disabled={!sendspin.supportedCmds.includes('next')}
                 className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Next"
                 data-testid="sendspin-next"
@@ -642,32 +667,32 @@ export default function App() {
             {/* Volume */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => sendspinCommand('mute', { mute: !sendspinMuted })}
-                disabled={!sendspinSupportedCmds.includes('mute')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMuted ? 'text-red-400' : 'text-white/70 hover:text-white'}`}
-                title={sendspinMuted ? 'Unmute' : 'Mute'}
+                onClick={() => sendspinCommand('mute', { mute: !sendspin.muted })}
+                disabled={!sendspin.supportedCmds.includes('mute')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.muted ? 'text-red-400' : 'text-white/70 hover:text-white'}`}
+                title={sendspin.muted ? 'Unmute' : 'Mute'}
                 data-testid="sendspin-mute"
               >
-                {sendspinMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                {sendspin.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
               <input
                 type="range"
                 min="0"
                 max="100"
                 step="1"
-                value={sendspinMuted ? 0 : sendspinVolume}
+                value={sendspin.muted ? 0 : sendspin.volume}
                 onChange={e => {
                   const vol = parseInt(e.target.value);
                   sendspinCommand('volume', { volume: vol });
-                  setSendspinVolume(vol);
-                  if (sendspinMuted && vol > 0) {
+                  updateSendspin({ volume: vol });
+                  if (sendspin.muted && vol > 0) {
                     sendspinCommand('mute', { mute: false });
-                    setSendspinMuted(false);
+                    updateSendspin({ muted: false });
                   }
                 }}
-                disabled={!sendspinSupportedCmds.includes('volume')}
+                disabled={!sendspin.supportedCmds.includes('volume')}
                 className="w-20 accent-purple-500 disabled:opacity-30"
-                title={`Volume: ${sendspinVolume}%`}
+                title={`Volume: ${sendspin.volume}%`}
                 data-testid="sendspin-volume"
               />
             </div>
@@ -678,26 +703,26 @@ export default function App() {
             {/* Shuffle & Repeat */}
             <div className="flex items-center gap-1">
               <button
-                onClick={() => sendspinCommand(sendspinMetadata?.shuffle ? 'unshuffle' : 'shuffle')}
-                disabled={sendspinMetadata?.shuffle ? !sendspinSupportedCmds.includes('unshuffle') : !sendspinSupportedCmds.includes('shuffle')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMetadata?.shuffle ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
-                title={sendspinMetadata?.shuffle ? 'Unshuffle' : 'Shuffle'}
+                onClick={() => sendspinCommand(sendspin.metadata?.shuffle ? 'unshuffle' : 'shuffle')}
+                disabled={sendspin.metadata?.shuffle ? !sendspin.supportedCmds.includes('unshuffle') : !sendspin.supportedCmds.includes('shuffle')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.metadata?.shuffle ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                title={sendspin.metadata?.shuffle ? 'Unshuffle' : 'Shuffle'}
                 data-testid="sendspin-shuffle"
               >
                 <Shuffle size={16} />
               </button>
               <button
                 onClick={() => {
-                  const current = sendspinMetadata?.repeat ?? 'off';
+                  const current = sendspin.metadata?.repeat ?? 'off';
                   const next: ControllerCommand = current === 'off' ? 'repeat_all' : current === 'all' ? 'repeat_one' : 'repeat_off';
                   sendspinCommand(next);
                 }}
-                disabled={!sendspinSupportedCmds.includes('repeat_off')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspinMetadata?.repeat && sendspinMetadata.repeat !== 'off' ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
-                title={`Repeat: ${sendspinMetadata?.repeat ?? 'off'}`}
+                disabled={!sendspin.supportedCmds.includes('repeat_off')}
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.metadata?.repeat && sendspin.metadata.repeat !== 'off' ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                title={`Repeat: ${sendspin.metadata?.repeat ?? 'off'}`}
                 data-testid="sendspin-repeat"
               >
-                {sendspinMetadata?.repeat === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
+                {sendspin.metadata?.repeat === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
               </button>
             </div>
           </div>

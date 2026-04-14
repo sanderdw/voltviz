@@ -1,9 +1,22 @@
 # Changelog
 
-All notable changes to the VoltViz project will be documented in this file.
+## [0.13.2] - 2026-04-14
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### Changed
+- Refactored Sendspin UI state in `src/App.tsx` into a single typed state object to simplify updates and reduce scattered state handling.
+- Optimized visualizer rendering with memoization in `src/App.tsx` so the active visualizer element is only recreated when relevant inputs change.
+- Improved error UX by adding a dismiss action to the in-app error banner.
+- Using unique playerId
+
+### Fixed
+- Fixed Sendspin playback startup on phones/smaller screens by improving mobile autoplay handling so visualizations reliably start after connecting.
+
+## [0.13.1] - 2026-04-14
+
+### Added
+- Added URL parameter support for visualizer selection and settings: navigate to `/?viz=tunnel&sensitivity=1.5&hueShift=180` to deep-link a specific visualizer with custom settings.
+- URL is automatically updated when changing the visualizer or adjusting settings in the UI.
+- Only non-default settings are included in the URL to keep it clean.
 
 ## [0.13.1] - 2026-04-14
 
