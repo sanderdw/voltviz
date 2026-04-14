@@ -155,7 +155,7 @@ You can link directly to VoltViz with a pre-filled Sendspin server URL by adding
 http://localhost:8080/?sendspin=http://homeassistant.local:8927
 ```
 
-This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start. The `sendspin` parameter is removed from the URL after it is read.
+This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start.
 
 You can combine both: `/?sendspin=http://homeassistant.local:8927&viz=vinylplayer&hueShift=90`
 
