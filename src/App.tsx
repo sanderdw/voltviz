@@ -136,6 +136,7 @@ export default function App() {
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
   const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sendspinAudioCtxRef = useRef<AudioContext | null>(null);
   const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
   const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
 
@@ -223,6 +224,10 @@ export default function App() {
       sendspinPlayerRef.current.disconnect('user_request');
       sendspinPlayerRef.current = null;
     }
+    if (sendspinAudioCtxRef.current) {
+      sendspinAudioCtxRef.current.close().catch(() => {});
+      sendspinAudioCtxRef.current = null;
+    }
     if (sendspinAudioRef.current) {
       sendspinAudioRef.current.pause();
       sendspinAudioRef.current.srcObject = null;
@@ -245,10 +250,28 @@ export default function App() {
       (audioEl as any).playsInline = true;
       sendspinAudioRef.current = audioEl;
 
-      audioEl.addEventListener('playing', () => {
+      const getOrCreateStream = () => {
         if (audioEl.srcObject instanceof MediaStream) {
-          setStream(audioEl.srcObject);
+          return audioEl.srcObject;
         }
+        // Mobile: Sendspin uses a URL source instead of WebRTC MediaStream.
+        // Capture audio from the element via Web Audio API.
+        if (!sendspinAudioCtxRef.current) {
+          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          ctx.resume();
+          const source = ctx.createMediaElementSource(audioEl);
+          const dest = ctx.createMediaStreamDestination();
+          source.connect(dest);
+          source.connect(ctx.destination); // keep audible output
+          sendspinAudioCtxRef.current = ctx;
+          return dest.stream;
+        }
+        return null;
+      };
+
+      audioEl.addEventListener('playing', () => {
+        const s = getOrCreateStream();
+        if (s) setStream(s);
       });
 
       const player = new SendspinPlayer({
@@ -272,8 +295,9 @@ export default function App() {
             patch.muted = state.serverState.controller.muted;
           }
           updateSendspin(patch);
-          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
-            setStream(audioEl.srcObject);
+          if (state.isPlaying) {
+            const s = getOrCreateStream();
+            if (s) setStream(s);
             // Ensure playback on mobile where autoplay may be blocked
             if (audioEl.paused) {
               audioEl.play().catch(() => {});
