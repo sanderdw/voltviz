@@ -325,9 +325,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
       {/* Mobile hint */}
-      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-purple-400 tracking-wide">
+      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-red-400 tracking-wide">
         <MonitorUp size={12} />
-        <span>Best experienced on a larger screen</span>
+        <span>Small screens are not supported, use "Desktopsite"</span>
       </div>
 
       {/* Atmospheric background */}
@@ -463,15 +463,6 @@ export default function App() {
         )}
 
         <main className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
-          {error && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-50 flex items-center gap-3">
-              <span>{error}</span>
-              <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
           {!stream ? (
             <div className="text-center max-w-md space-y-6 animate-in fade-in zoom-in duration-700 p-6">
               <div className="w-24 h-24 mx-auto border border-white/10 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm">
@@ -726,6 +717,15 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-[110] flex items-center gap-3">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
+            <X size={16} />
+          </button>
         </div>
       )}
 

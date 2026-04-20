@@ -211,6 +211,7 @@ export default function MusicGrid({ stream, settings }: Props) {
       const h = canvas.height;
       const currentSettings = settingsRef.current;
       const proj = projectionRef.current;
+      const sensitivity = currentSettings.sensitivity * 0.8;
 
       analyser.getByteFrequencyData(dataArray);
 
@@ -271,7 +272,7 @@ export default function MusicGrid({ stream, settings }: Props) {
       });
 
       // Spawn particles
-      if (bass * currentSettings.sensitivity > 150 && Math.random() > 0.5) {
+      if (bass * sensitivity > 150 && Math.random() > 0.5) {
         // Return (Generation): Flow from minor to major
         const edgeIdx = Math.floor(Math.random() * edgesRef.current.length);
         const edge = edgesRef.current[edgeIdx];
@@ -286,7 +287,7 @@ export default function MusicGrid({ stream, settings }: Props) {
         });
       }
 
-      if (treble * currentSettings.sensitivity > 100 && Math.random() > 0.3) {
+      if (treble * sensitivity > 100 && Math.random() > 0.3) {
         // Consumption: Flow from major to minor
         const validEdges = edgesRef.current.map((e, i) => ({e, i})).filter(x => nodesRef.current[x.e.from].isMajor !== nodesRef.current[x.e.to].isMajor);
         if (validEdges.length > 0) {
@@ -303,7 +304,7 @@ export default function MusicGrid({ stream, settings }: Props) {
         }
       }
 
-      if (mid * currentSettings.sensitivity > 120 && Math.random() > 0.4) {
+      if (mid * sensitivity > 120 && Math.random() > 0.4) {
         // Distribution: Flow between minor nodes
         const validEdges = edgesRef.current.map((e, i) => ({e, i})).filter(x => !nodesRef.current[x.e.from].isMajor && !nodesRef.current[x.e.to].isMajor);
         if (validEdges.length > 0) {
@@ -321,8 +322,8 @@ export default function MusicGrid({ stream, settings }: Props) {
       }
 
       // Spawn sparks on heavy bass
-      if (bass * currentSettings.sensitivity > 170) {
-        const numSparks = Math.floor((bass * currentSettings.sensitivity - 170) / 5);
+      if (bass * sensitivity > 170) {
+        const numSparks = Math.floor((bass * sensitivity - 170) / 5);
         for (let i = 0; i < numSparks; i++) {
           const sourceNode = nodesRef.current[Math.floor(Math.random() * nodesRef.current.length)];
           const pos = getScreenPos(sourceNode);
@@ -401,7 +402,7 @@ export default function MusicGrid({ stream, settings }: Props) {
 
         node.energy = node.energy * 0.8 + val * 0.2;
 
-        const radius = (node.isMajor ? 4 + node.energy * 6 * currentSettings.sensitivity : 2 + node.energy * 3 * currentSettings.sensitivity) * currentSettings.scale;
+        const radius = (node.isMajor ? 4 + node.energy * 6 * sensitivity : 2 + node.energy * 3 * sensitivity) * currentSettings.scale;
 
         const baseHue = node.isMajor ? 170 : 30;
         const hue = (baseHue + currentSettings.hueShift) % 360;
@@ -419,8 +420,8 @@ export default function MusicGrid({ stream, settings }: Props) {
 
       // Draw HUD
       // Real-world NL grid averages (2025): Consumption ~116 TWh/y ≈ 13,200 MW avg, Production ~128 TWh/y ≈ 14,600 MW avg
-      const consumptionMW = Math.round(10600 + (treble / 255) * 5300 * currentSettings.sensitivity);
-      const returnMW = Math.round(11700 + (bass / 255) * 5800 * currentSettings.sensitivity);
+      const consumptionMW = Math.round(10600 + (treble / 255) * 5300 * sensitivity);
+      const returnMW = Math.round(11700 + (bass / 255) * 5800 * sensitivity);
       const distributionMW = consumptionMW + returnMW;
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
