@@ -67,39 +67,39 @@ const initialSendspinState: SendspinState = {
 
 const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
   circular: lazy(() => import('./components/visualizers/Circular')),
-  blurimage: lazy(() => import('./components/visualizers/BlurVisualizer')),
-  glitchbackground: lazy(() => import('./components/visualizers/GlitchVisualizer')),
-  glitchdatabend: lazy(() => import('./components/visualizers/GlitchVisualizer2')),
+  blurimage: lazy(() => import('./components/visualizers/BlurImage')),
+  glitchbackground: lazy(() => import('./components/visualizers/GlitchBackground')),
+  glitchdatabend: lazy(() => import('./components/visualizers/GlitchDatabend')),
   yourlogo: lazy(() => import('./components/visualizers/YourLogo')),
   cybermatrix: lazy(() => import('./components/visualizers/CyberMatrix')),
   cybergridcanvas: lazy(() => import('./components/visualizers/CyberGridCanvas')),
   sheetmusic: lazy(() => import('./components/visualizers/SheetMusic')),
   bars: lazy(() => import('./components/visualizers/Bars')),
   tunnel: lazy(() => import('./components/visualizers/Tunnel')),
-  dutchgrid: lazy(() => import('./components/visualizers/MusicGrid')),
+  dutchgrid: lazy(() => import('./components/visualizers/DutchGrid')),
   neonwave: lazy(() => import('./components/visualizers/NeonWave')),
   polysphere: lazy(() => import('./components/visualizers/PolySphere')),
   psychedelicskull: lazy(() => import('./components/visualizers/PsychedelicSkull')),
   ghostrainbow: lazy(() => import('./components/visualizers/GhostRainbow')),
   neonhextunnel: lazy(() => import('./components/visualizers/NeonHexTunnel')),
   fluidsmoke: lazy(() => import('./components/visualizers/FluidSmoke')),
-  cosmicparticles: lazy(() => import('./components/visualizers/WebGLParticles')),
-  dutchgridwebgl: lazy(() => import('./components/visualizers/WebGLMusicGrid')),
+  cosmicparticles: lazy(() => import('./components/visualizers/CosmicParticles')),
+  dutchgridwebgl: lazy(() => import('./components/visualizers/DutchGridWebGL')),
   festivalstage: lazy(() => import('./components/visualizers/FestivalStage')),
-  defqonmainstage: lazy(() => import('./components/visualizers/MegaFestivalStage')),
+  defqonmainstage: lazy(() => import('./components/visualizers/DefqonMainstage')),
   disneydroneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
   fireworksshow: lazy(() => import('./components/visualizers/FireworksShow')),
-  glowsphere: lazy(() => import('./components/visualizers/PerlinSphere')),
+  glowsphere: lazy(() => import('./components/visualizers/GlowSphere')),
   crtterminal: lazy(() => import('./components/visualizers/CRTTerminal')),
   datadashboard: lazy(() => import('./components/visualizers/DataDashboard')),
   vinyl: lazy(() => import('./components/visualizers/Vinyl')),
-  backgroundimage: lazy(() => import('./components/visualizers/Background')),
+  backgroundimage: lazy(() => import('./components/visualizers/BackgroundImage')),
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
-  flame: lazy(() => import('./components/visualizers/FlameVisualizer')),
+  flame: lazy(() => import('./components/visualizers/Flame')),
   vumeter: lazy(() => import('./components/visualizers/VUMeter')),
-  vinylsendspin: lazy(() => import('./components/visualizers/VinylPlayer')),
-  glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchPlayer')),
-  backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundPlayer')),
+  vinylsendspin: lazy(() => import('./components/visualizers/VinylSendspin')),
+  glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchBackgroundSendspin')),
+  backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundImageSendspin')),
 };
 
 export default function App() {
@@ -325,9 +325,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
       {/* Mobile hint */}
-      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-purple-400 tracking-wide">
+      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-red-400 tracking-wide">
         <MonitorUp size={12} />
-        <span>Best experienced on a larger screen</span>
+        <span>Small screens are not supported, use "Desktopsite"</span>
       </div>
 
       {/* Atmospheric background */}
@@ -463,15 +463,6 @@ export default function App() {
         )}
 
         <main className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
-          {error && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-50 flex items-center gap-3">
-              <span>{error}</span>
-              <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
           {!stream ? (
             <div className="text-center max-w-md space-y-6 animate-in fade-in zoom-in duration-700 p-6">
               <div className="w-24 h-24 mx-auto border border-white/10 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm">
@@ -726,6 +717,15 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-[110] flex items-center gap-3">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
+            <X size={16} />
+          </button>
         </div>
       )}
 

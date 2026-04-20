@@ -7,7 +7,7 @@ interface Props {
   settings: VisualizerSettings;
 }
 
-export default function Background({ stream, settings }: Props) {
+export default function BackgroundImage({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);

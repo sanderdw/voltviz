@@ -7,7 +7,7 @@ interface Props {
   settings: VisualizerSettings;
 }
 
-export default function BlurVisualizer({ stream, settings }: Props) {
+export default function BlurImage({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);

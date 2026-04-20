@@ -59,7 +59,7 @@ function createCircleTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 
-export default function ThreeDEqualizer({ stream, settings }: Props) {
+export default function DutchGridWebGL({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const consRef = useRef<HTMLSpanElement>(null);
   const retRef = useRef<HTMLSpanElement>(null);

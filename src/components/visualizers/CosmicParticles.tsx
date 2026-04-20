@@ -7,7 +7,7 @@ interface Props {
   settings: VisualizerSettings;
 }
 
-export default function WebGLParticles({ stream, settings }: Props) {
+export default function CosmicParticles({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);

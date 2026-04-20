@@ -9,7 +9,7 @@ interface Props {
   sendspinMetadata?: ServerStateMetadata | null;
 }
 
-export default function BackgroundPlayer({ stream, settings, sendspinMetadata }: Props) {
+export default function BackgroundImageSendspin({ stream, settings, sendspinMetadata }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);

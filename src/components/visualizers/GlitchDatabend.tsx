@@ -6,7 +6,7 @@ interface Props {
   settings: VisualizerSettings;
 }
 
-export default function GlitchVisualizer2({ stream, settings }: Props) {
+export default function GlitchDatabend({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);

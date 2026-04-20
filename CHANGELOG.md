@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.4] - 2026-04-20
+
+### Fixed
+- Fixed error messages being hidden behind the Sendspin connect dialog by rendering the error toast at the root level with a higher z-index.
+- Reduced MusicGrid internal sensitivity by 0.8× damping factor to lower over-reactivity to audio.
+- Dependency bumps
+
 ## [0.13.2] - 2026-04-14
 
 ### Changed
