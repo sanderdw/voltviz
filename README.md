@@ -209,7 +209,7 @@ VoltViz includes a GitHub Actions workflow that automatically builds and publish
 
 The workflow triggers on:
 - **Push to main/master branches**: Builds and publishes with `latest` tag
-- **Git tags** (e.g., `v1.0.0`): Publishes with semantic version tags
+- **Git tags** (e.g., `1.0.0`): Publishes with semantic version tags
 - **Pull requests**: Builds images for testing (doesn't push)
 - **Manual trigger**: Via GitHub Actions UI
 
@@ -217,7 +217,7 @@ The workflow triggers on:
 
 Images are automatically tagged as:
 - `ghcr.io/sanderdw/voltviz:latest` (on main branch)
-- `ghcr.io/sanderdw/voltviz:v1.0.0` (on version tags)
+- `ghcr.io/sanderdw/voltviz:1.0.0` (on version tags)
 - `ghcr.io/sanderdw/voltviz:main` (branch name)
 - `ghcr.io/sanderdw/voltviz:sha-abc123def` (commit SHA)
 
