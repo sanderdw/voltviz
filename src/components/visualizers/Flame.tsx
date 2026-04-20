@@ -182,7 +182,7 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-export default function FlameVisualizer({ stream, settings }: Props) {
+export default function Flame({ stream, settings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);

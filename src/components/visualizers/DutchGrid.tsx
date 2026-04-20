@@ -41,7 +41,7 @@ interface Spark {
   size: number;
 }
 
-export default function MusicGrid({ stream, settings }: Props) {
+export default function DutchGrid({ stream, settings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
