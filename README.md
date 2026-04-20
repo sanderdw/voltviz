@@ -15,14 +15,14 @@
 
 VoltViz comes with **30+ stunning visualization styles** to choose from:
 
-- **Particle Effects**: WebGL Particles, Data Cloud, Fireworks
-- **Abstract Patterns**: CyberMatrix, Neon Hex Tunnel, Neon Wave
-- **3D Visualizations**: Poly Sphere, Perlin Sphere, 3D Equalizer
-- **Retro Styles**: CRT Terminal, Vinyl Record, Glitch Effects
-- **Festival Vibes**: Festival Stage, Mega Festival Stage, Disney Drone Show
-- **Organic Effects**: Fluid Smoke, Ghost Rainbow, Psychedelic Skull
-- **Data Driven**: Music Grid, WebGL Music Grid, Data Dashboard
-- **And many more**: Bars, Circular, Tunnel, Wave Terrain, Blur Visualizer...
+- **Particle Effects**: Cosmic Particles, Fireworks Show
+- **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Neon Hex Tunnel, Neon Wave
+- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer
+- **Retro Styles**: CRT Terminal, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend
+- **Festival Vibes**: Festival Stage, Defqon Mainstage, Disney Drone Show
+- **Organic Effects**: Fluid Smoke, Ghost Rainbow, Psychedelic Skull, Flame
+- **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard
+- **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, and Sendspin variants...
 
 **Core Capabilities:**
 - 🎤 **Real-time Audio Input**: Connect microphone, capture system audio, or stream from a [Sendspin](https://www.sendspin-audio.com) server
