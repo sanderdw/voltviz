@@ -37,6 +37,7 @@ type VisualizerType =
   | '3dequalizer'
   | 'flame'
   | 'vumeter'
+  | 'hexglobe'
   | 'vinylsendspin'
   | 'glitchbackgroundsendspin'
   | 'backgroundimagesendspin';
@@ -97,6 +98,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
   flame: lazy(() => import('./components/visualizers/Flame')),
   vumeter: lazy(() => import('./components/visualizers/VUMeter')),
+  hexglobe: lazy(() => import('./components/visualizers/HexGlobe')),
   vinylsendspin: lazy(() => import('./components/visualizers/VinylSendspin')),
   glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchBackgroundSendspin')),
   backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundImageSendspin')),
@@ -389,6 +391,7 @@ export default function App() {
                     <option value="blurimage" className="bg-gray-900">Blur Image</option>
                     <option value="flame" className="bg-gray-900">Flame</option>
                     <option value="vumeter" className="bg-gray-900">VU Meter</option>
+                    <option value="hexglobe" className="bg-gray-900">Hex Globe</option>
                     <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>

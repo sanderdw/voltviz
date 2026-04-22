@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.14.0] - 2026-04-22
+
+### Added
+- Hex Globe visualizer – audio-reactive hexagonal globe inspired by https://github.com/wehwayne2/x-challenge-geo (Three.js/WebGL).
+
 ## [0.13.4] - 2026-04-20
 
 ### Fixed
