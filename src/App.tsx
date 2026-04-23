@@ -40,7 +40,10 @@ type VisualizerType =
   | 'hexglobe'
   | 'vinylsendspin'
   | 'glitchbackgroundsendspin'
-  | 'backgroundimagesendspin';
+  | 'backgroundimagesendspin'
+  | 'icons'
+  | 'milkdrop'
+  | 'milkdropwarp';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -102,6 +105,9 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   vinylsendspin: lazy(() => import('./components/visualizers/VinylSendspin')),
   glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchBackgroundSendspin')),
   backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundImageSendspin')),
+  icons: lazy(() => import('./components/visualizers/Icons')),
+  milkdrop: lazy(() => import('./components/visualizers/MilkDrop')),
+  milkdropwarp: lazy(() => import('./components/visualizers/MilkDropWarp')),
 };
 
 export default function App() {
@@ -365,6 +371,7 @@ export default function App() {
                     <option value="glitchbackground" className="bg-gray-900">Glitch Background</option>
                     <option value="glitchdatabend" className="bg-gray-900">Glitch Databend</option>
                     <option value="yourlogo" className="bg-gray-900">Your Logo</option>
+                    <option value="icons" className="bg-gray-900">Icons</option>
                     <option value="glowsphere" className="bg-gray-900">Glow Sphere</option>
                     <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
                     <option value="cosmicparticles" className="bg-gray-900">Cosmic Particles</option>
@@ -392,6 +399,8 @@ export default function App() {
                     <option value="flame" className="bg-gray-900">Flame</option>
                     <option value="vumeter" className="bg-gray-900">VU Meter</option>
                     <option value="hexglobe" className="bg-gray-900">Hex Globe</option>
+                    <option value="milkdrop" className="bg-gray-900">MilkDrop</option>
+                    <option value="milkdropwarp" className="bg-gray-900">MilkDrop Warp</option>
                     <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>
