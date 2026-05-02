@@ -1,0 +1,434 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.708, 52.843]
+      },
+      "properties": {
+        "name": "OS Lemmer",
+        "type": "OS",
+        "location": "Lemmer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.835, 52.783]
+      },
+      "properties": {
+        "name": "OS Luttelgeest",
+        "type": "OS",
+        "location": "Luttelgeest"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.748, 52.715]
+      },
+      "properties": {
+        "name": "OS Emmeloord",
+        "type": "OS",
+        "location": "Emmeloord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.685, 52.690]
+      },
+      "properties": {
+        "name": "RS Tollebeek",
+        "type": "RS",
+        "location": "Tollebeek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.625, 52.670]
+      },
+      "properties": {
+        "name": "RS Urk-Zuid",
+        "type": "RS",
+        "location": "Urk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.815, 52.678]
+      },
+      "properties": {
+        "name": "OS Ens",
+        "type": "OS",
+        "location": "Ens"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.465, 52.538]
+      },
+      "properties": {
+        "name": "OS Lelystad",
+        "type": "OS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.508, 52.530]
+      },
+      "properties": {
+        "name": "RS Oostervaart Noord",
+        "type": "RS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.490, 52.520]
+      },
+      "properties": {
+        "name": "RS Zuiderzeewijk",
+        "type": "RS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.475, 52.512]
+      },
+      "properties": {
+        "name": "RS Noordersluis",
+        "type": "RS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.580, 52.545]
+      },
+      "properties": {
+        "name": "RS Swifterbant",
+        "type": "RS",
+        "location": "Swifterbant"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.600, 52.535]
+      },
+      "properties": {
+        "name": "SS Swifterringweg",
+        "type": "SS",
+        "location": "Dronten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.720, 52.535]
+      },
+      "properties": {
+        "name": "OS Dronten",
+        "type": "OS",
+        "location": "Dronten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.565, 52.518]
+      },
+      "properties": {
+        "name": "OS Zuiderveld",
+        "type": "OS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.745, 52.540]
+      },
+      "properties": {
+        "name": "RS Pioniersweg",
+        "type": "RS",
+        "location": "Dronten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.545, 52.503]
+      },
+      "properties": {
+        "name": "OS Lelystad Larserringweg",
+        "type": "OS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.770, 52.498]
+      },
+      "properties": {
+        "name": "RS Biddinghuizen",
+        "type": "RS",
+        "location": "Biddinghuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.450, 52.498]
+      },
+      "properties": {
+        "name": "RS Warande",
+        "type": "RS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.190, 52.478]
+      },
+      "properties": {
+        "name": "SS Stadhuis",
+        "type": "SS",
+        "location": "Almere Stad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.195, 52.468]
+      },
+      "properties": {
+        "name": "SS Vijzelaarshof",
+        "type": "SS",
+        "location": "Almere Stad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.218, 52.470]
+      },
+      "properties": {
+        "name": "OS de Vaart",
+        "type": "OS",
+        "location": "Almere Stad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.175, 52.462]
+      },
+      "properties": {
+        "name": "RS Zwenkgrasstraat",
+        "type": "RS",
+        "location": "Almere Stad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.155, 52.452]
+      },
+      "properties": {
+        "name": "OS Pampus",
+        "type": "OS",
+        "location": "Almere Poort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.120, 52.440]
+      },
+      "properties": {
+        "name": "OS Pampus 2",
+        "type": "OS",
+        "location": "Almere Poort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.275, 52.453]
+      },
+      "properties": {
+        "name": "OS Almere Oost",
+        "type": "OS",
+        "location": "Almere Buiten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.395, 52.488]
+      },
+      "properties": {
+        "name": "RS Meerkoetenweg",
+        "type": "RS",
+        "location": "Lelystad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.360, 52.445]
+      },
+      "properties": {
+        "name": "OS Zeewolde",
+        "type": "OS",
+        "location": "Zeewolde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.225, 52.430]
+      },
+      "properties": {
+        "name": "OS Almere",
+        "type": "OS",
+        "location": "Almere Stad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.185, 52.418]
+      },
+      "properties": {
+        "name": "RS Almere Haven",
+        "type": "RS",
+        "location": "Almere Haven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.240, 52.415]
+      },
+      "properties": {
+        "name": "RS Stichtse Kant",
+        "type": "RS",
+        "location": "Almere"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.230, 52.395]
+      },
+      "properties": {
+        "name": "SS Almere Rijsenburg",
+        "type": "SS",
+        "location": "Almere"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.400, 52.438]
+      },
+      "properties": {
+        "name": "SS Trekkersveld",
+        "type": "SS",
+        "location": "Zeewolde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.440, 52.425]
+      },
+      "properties": {
+        "name": "RS Planetenveld",
+        "type": "RS",
+        "location": "Almere Hout"
+      }
+    }
+  ]
+}

@@ -1,0 +1,421 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.583, 52.292]
+      },
+      "properties": {
+        "name": "OS Hillegom",
+        "type": "OS",
+        "location": "Hillegom"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.492, 52.262]
+      },
+      "properties": {
+        "name": "OS Noordwijkerhout",
+        "type": "OS",
+        "location": "Noordwijkerhout"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.557, 52.258]
+      },
+      "properties": {
+        "name": "OS Lisse",
+        "type": "OS",
+        "location": "Lisse"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.443, 52.236]
+      },
+      "properties": {
+        "name": "OS Noordwijk",
+        "type": "OS",
+        "location": "Noordwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.523, 52.225]
+      },
+      "properties": {
+        "name": "OS Sassenheim",
+        "type": "OS",
+        "location": "Sassenheim"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.442, 52.192]
+      },
+      "properties": {
+        "name": "OS Rijnsburg",
+        "type": "OS",
+        "location": "Rijnsburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.498, 52.205]
+      },
+      "properties": {
+        "name": "OS Bollenstreek-Oost",
+        "type": "OS",
+        "location": "Bollenstreek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.400, 52.200]
+      },
+      "properties": {
+        "name": "OS Katwijk",
+        "type": "OS",
+        "location": "Katwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.434, 52.181]
+      },
+      "properties": {
+        "name": "OS Valkenburg",
+        "type": "OS",
+        "location": "Valkenburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.470, 52.178]
+      },
+      "properties": {
+        "name": "OS Oegstgeest",
+        "type": "OS",
+        "location": "Oegstgeest"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.493, 52.172]
+      },
+      "properties": {
+        "name": "OS Leiden-Noord",
+        "type": "OS",
+        "location": "Leiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.472, 52.163]
+      },
+      "properties": {
+        "name": "SS Leiden Wassenaarseweg",
+        "type": "SS",
+        "location": "Leiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.497, 52.160]
+      },
+      "properties": {
+        "name": "OS Leiden",
+        "type": "OS",
+        "location": "Leiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.483, 52.157]
+      },
+      "properties": {
+        "name": "OS Leiden RU",
+        "type": "OS",
+        "location": "Leiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.530, 52.158]
+      },
+      "properties": {
+        "name": "OS Leiderdorp",
+        "type": "OS",
+        "location": "Leiderdorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.465, 52.150]
+      },
+      "properties": {
+        "name": "OS Leiden Vlietzone",
+        "type": "OS",
+        "location": "Leiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.395, 52.146]
+      },
+      "properties": {
+        "name": "OS Wassenaar",
+        "type": "OS",
+        "location": "Wassenaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.493, 52.118]
+      },
+      "properties": {
+        "name": "OS Zoeterwoude",
+        "type": "OS",
+        "location": "Zoeterwoude"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.447, 52.127]
+      },
+      "properties": {
+        "name": "OS Voorschoten",
+        "type": "OS",
+        "location": "Voorschoten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.685, 52.231]
+      },
+      "properties": {
+        "name": "OS Leimuiden",
+        "type": "OS",
+        "location": "Leimuiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.632, 52.196]
+      },
+      "properties": {
+        "name": "OS Roelofarendsveen",
+        "type": "OS",
+        "location": "Roelofarendsveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.712, 52.167]
+      },
+      "properties": {
+        "name": "OS Ter Aar",
+        "type": "OS",
+        "location": "Ter Aar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.667, 52.147]
+      },
+      "properties": {
+        "name": "OS Alphen Noord",
+        "type": "OS",
+        "location": "Alphen aan den Rijn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.642, 52.140]
+      },
+      "properties": {
+        "name": "OS Alphen Gnephoek",
+        "type": "OS",
+        "location": "Alphen aan den Rijn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.769, 52.148]
+      },
+      "properties": {
+        "name": "OS Nieuwkoop",
+        "type": "OS",
+        "location": "Nieuwkoop"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.596, 52.123]
+      },
+      "properties": {
+        "name": "OS Hazerswoude Rijndijk",
+        "type": "OS",
+        "location": "Hazerswoude-Rijndijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.636, 52.127]
+      },
+      "properties": {
+        "name": "OS Alphen West",
+        "type": "OS",
+        "location": "Alphen aan den Rijn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.658, 52.130]
+      },
+      "properties": {
+        "name": "OS Alphen Centrum",
+        "type": "OS",
+        "location": "Alphen aan den Rijn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.593, 52.098]
+      },
+      "properties": {
+        "name": "OS Hazerswoude-Dorp",
+        "type": "OS",
+        "location": "Hazerswoude-Dorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.655, 52.077]
+      },
+      "properties": {
+        "name": "OS Boskoop",
+        "type": "OS",
+        "location": "Boskoop"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.583, 52.046]
+      },
+      "properties": {
+        "name": "RS Zevenhuizen",
+        "type": "RS",
+        "location": "Zevenhuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.610, 52.030]
+      },
+      "properties": {
+        "name": "OS Zuidplaspolder",
+        "type": "OS",
+        "location": "Zuidplaspolder"
+      }
+    }
+  ]
+}

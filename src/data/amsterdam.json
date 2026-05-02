@@ -1,0 +1,668 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.770, 52.393]
+      },
+      "properties": {
+        "name": "OS A9 Zuid",
+        "type": "OS",
+        "location": "Amsterdam Westpoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.795, 52.395]
+      },
+      "properties": {
+        "name": "OS Westpoort",
+        "type": "OS",
+        "location": "Amsterdam Westpoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.805, 52.390]
+      },
+      "properties": {
+        "name": "RS Ruigoord",
+        "type": "RS",
+        "location": "Ruigoord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.840, 52.397]
+      },
+      "properties": {
+        "name": "OS IJpolder",
+        "type": "OS",
+        "location": "Amsterdam IJpolder"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.870, 52.400]
+      },
+      "properties": {
+        "name": "OS Petroleumhaven",
+        "type": "OS",
+        "location": "Amsterdam Westelijk Havengebied"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.860, 52.395]
+      },
+      "properties": {
+        "name": "OS Hemweg I & II",
+        "type": "OS",
+        "location": "Amsterdam Westelijk Havengebied"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.852, 52.392]
+      },
+      "properties": {
+        "name": "OS Westhaven",
+        "type": "OS",
+        "location": "Amsterdam Westelijk Havengebied"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.835, 52.390]
+      },
+      "properties": {
+        "name": "OS Sloterdijk",
+        "type": "OS",
+        "location": "Amsterdam Sloterdijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.848, 52.387]
+      },
+      "properties": {
+        "name": "OS Sextantweg",
+        "type": "OS",
+        "location": "Amsterdam Sloterdijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.845, 52.384]
+      },
+      "properties": {
+        "name": "OS Basisweg",
+        "type": "OS",
+        "location": "Amsterdam Sloterdijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.870, 52.412]
+      },
+      "properties": {
+        "name": "OS Oostzaan",
+        "type": "OS",
+        "location": "Oostzaan"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.895, 52.402]
+      },
+      "properties": {
+        "name": "OS Tuindorp Oostzaan",
+        "type": "OS",
+        "location": "Amsterdam-Noord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.937, 52.401]
+      },
+      "properties": {
+        "name": "OS Buikslotermeer",
+        "type": "OS",
+        "location": "Amsterdam-Noord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.915, 52.398]
+      },
+      "properties": {
+        "name": "OS Noord Klaprozenweg",
+        "type": "OS",
+        "location": "Amsterdam-Noord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.922, 52.392]
+      },
+      "properties": {
+        "name": "OS Noord Papaverweg",
+        "type": "OS",
+        "location": "Amsterdam-Noord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.940, 52.392]
+      },
+      "properties": {
+        "name": "OS Vliegenbos",
+        "type": "OS",
+        "location": "Amsterdam-Noord"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.798, 52.365]
+      },
+      "properties": {
+        "name": "OS Osdorp",
+        "type": "OS",
+        "location": "Amsterdam Osdorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.828, 52.378]
+      },
+      "properties": {
+        "name": "OS Slotermeer",
+        "type": "OS",
+        "location": "Amsterdam Slotermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.874, 52.389]
+      },
+      "properties": {
+        "name": "OS Havenstad",
+        "type": "OS",
+        "location": "Amsterdam Havenstad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.882, 52.385]
+      },
+      "properties": {
+        "name": "OS Westzaanstraat",
+        "type": "OS",
+        "location": "Amsterdam Westerpark"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.870, 52.374]
+      },
+      "properties": {
+        "name": "OS Nieuwpoortstraat",
+        "type": "OS",
+        "location": "Amsterdam West"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.860, 52.370]
+      },
+      "properties": {
+        "name": "OS Marnixstraat",
+        "type": "OS",
+        "location": "Amsterdam Centrum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.900, 52.372]
+      },
+      "properties": {
+        "name": "OS Uilenburg",
+        "type": "OS",
+        "location": "Amsterdam Centrum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.918, 52.374]
+      },
+      "properties": {
+        "name": "OS Hoogte Kadijk",
+        "type": "OS",
+        "location": "Amsterdam Centrum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.960, 52.375]
+      },
+      "properties": {
+        "name": "OS Zeeburgeiland",
+        "type": "OS",
+        "location": "Amsterdam Zeeburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.995, 52.358]
+      },
+      "properties": {
+        "name": "OS IJburg",
+        "type": "OS",
+        "location": "Amsterdam IJburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.835, 52.357]
+      },
+      "properties": {
+        "name": "OS Schipluidenlaan",
+        "type": "OS",
+        "location": "Amsterdam Nieuw-West"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.855, 52.352]
+      },
+      "properties": {
+        "name": "OS Karperweg",
+        "type": "OS",
+        "location": "Amsterdam Zuid"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.838, 52.345]
+      },
+      "properties": {
+        "name": "OS Nieuwe Meer I & II",
+        "type": "OS",
+        "location": "Amsterdam Nieuw-West"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.897, 52.362]
+      },
+      "properties": {
+        "name": "OS Frederiksplein",
+        "type": "OS",
+        "location": "Amsterdam Centrum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.908, 52.358]
+      },
+      "properties": {
+        "name": "OS Rhijnspoor",
+        "type": "OS",
+        "location": "Amsterdam Oost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.892, 52.352]
+      },
+      "properties": {
+        "name": "OS Zorgvlied",
+        "type": "OS",
+        "location": "Amsterdam Zuid"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.890, 52.347]
+      },
+      "properties": {
+        "name": "SS NACH",
+        "type": "SS",
+        "location": "Amsterdam Zuid"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.902, 52.347]
+      },
+      "properties": {
+        "name": "SS ROPT",
+        "type": "SS",
+        "location": "Amsterdam Zuid"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.872, 52.342]
+      },
+      "properties": {
+        "name": "SS Zuidas Noord",
+        "type": "SS",
+        "location": "Amsterdam Zuidas"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 36,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.870, 52.336]
+      },
+      "properties": {
+        "name": "SS Zuidas Zuid I & II",
+        "type": "SS",
+        "location": "Amsterdam Zuidas"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 37,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.928, 52.352]
+      },
+      "properties": {
+        "name": "OS Over Amstel",
+        "type": "OS",
+        "location": "Amsterdam Oost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 38,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.945, 52.357]
+      },
+      "properties": {
+        "name": "OS Watergraafsmeer",
+        "type": "OS",
+        "location": "Amsterdam Watergraafsmeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 39,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.944, 52.342]
+      },
+      "properties": {
+        "name": "OS Venserweg",
+        "type": "OS",
+        "location": "Amsterdam Duivendrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 40,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.972, 52.347]
+      },
+      "properties": {
+        "name": "OS Diemen",
+        "type": "OS",
+        "location": "Diemen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 41,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.015, 52.335]
+      },
+      "properties": {
+        "name": "OS Weesp Noord",
+        "type": "OS",
+        "location": "Weesp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 42,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.020, 52.318]
+      },
+      "properties": {
+        "name": "OS Weesp Zuid",
+        "type": "OS",
+        "location": "Weesp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 43,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.930, 52.332]
+      },
+      "properties": {
+        "name": "RS Duivendrecht",
+        "type": "RS",
+        "location": "Duivendrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 44,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.925, 52.325]
+      },
+      "properties": {
+        "name": "OS Bijlmer Noord",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 45,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.875, 52.317]
+      },
+      "properties": {
+        "name": "OS Amstelveen",
+        "type": "OS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 46,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.915, 52.317]
+      },
+      "properties": {
+        "name": "OS Amstel III",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 47,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.918, 52.307]
+      },
+      "properties": {
+        "name": "OS Bijlmer Zuid",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 48,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.960, 52.320]
+      },
+      "properties": {
+        "name": "OS Gaasperdam",
+        "type": "OS",
+        "location": "Amsterdam Gaasperdam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 49,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.975, 52.318]
+      },
+      "properties": {
+        "name": "OS Amsterdam Zuidoost",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 50,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.958, 52.312]
+      },
+      "properties": {
+        "name": "OS Bijlmer Oost",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 51,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.920, 52.302]
+      },
+      "properties": {
+        "name": "SS AUMC",
+        "type": "SS",
+        "location": "Amsterdam Zuidoost"
+      }
+    }
+  ]
+}

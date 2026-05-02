@@ -25,6 +25,7 @@ type VisualizerType =
   | 'fluidsmoke'
   | 'cosmicparticles'
   | 'dutchgridwebgl'
+  | 'dutchgridreal'
   | 'festivalstage'
   | 'defqonmainstage'
   | 'disneydroneshow'
@@ -89,6 +90,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   fluidsmoke: lazy(() => import('./components/visualizers/FluidSmoke')),
   cosmicparticles: lazy(() => import('./components/visualizers/CosmicParticles')),
   dutchgridwebgl: lazy(() => import('./components/visualizers/DutchGridWebGL')),
+  dutchgridreal: lazy(() => import('./components/visualizers/DutchGridReal')),
   festivalstage: lazy(() => import('./components/visualizers/FestivalStage')),
   defqonmainstage: lazy(() => import('./components/visualizers/DefqonMainstage')),
   disneydroneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
@@ -368,6 +370,7 @@ export default function App() {
                   >
                     <option value="dutchgrid" className="bg-gray-900">Dutch Grid</option>
                     <option value="dutchgridwebgl" className="bg-gray-900">Dutch Grid (WebGL)</option>
+                    <option value="dutchgridreal" className="bg-gray-900">Dutch Grid (Real Data)</option>
                     <option value="glitchbackground" className="bg-gray-900">Glitch Background</option>
                     <option value="glitchdatabend" className="bg-gray-900">Glitch Databend</option>
                     <option value="yourlogo" className="bg-gray-900">Your Logo</option>

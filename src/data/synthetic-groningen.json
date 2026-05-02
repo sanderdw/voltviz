@@ -1,0 +1,370 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.568, 53.218]
+      },
+      "properties": {
+        "name": "OS Groningen Stad",
+        "type": "OS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.583, 53.225]
+      },
+      "properties": {
+        "name": "OS Groningen Zernike",
+        "type": "OS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.548, 53.198]
+      },
+      "properties": {
+        "name": "OS Groningen Zuid",
+        "type": "OS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.612, 53.205]
+      },
+      "properties": {
+        "name": "RS Groningen Oost",
+        "type": "RS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.530, 53.210]
+      },
+      "properties": {
+        "name": "SS Groningen West",
+        "type": "SS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.625, 53.242]
+      },
+      "properties": {
+        "name": "RS Beijum",
+        "type": "RS",
+        "location": "Groningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.280, 53.325]
+      },
+      "properties": {
+        "name": "OS Lauwersoog",
+        "type": "OS",
+        "location": "Lauwersoog"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.428, 53.310]
+      },
+      "properties": {
+        "name": "RS Leens",
+        "type": "RS",
+        "location": "Leens"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.508, 53.330]
+      },
+      "properties": {
+        "name": "OS Uithuizen",
+        "type": "OS",
+        "location": "Uithuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.640, 53.365]
+      },
+      "properties": {
+        "name": "RS Roodeschool",
+        "type": "RS",
+        "location": "Roodeschool"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.755, 53.360]
+      },
+      "properties": {
+        "name": "OS Eemshaven",
+        "type": "OS",
+        "location": "Eemshaven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.925, 53.325]
+      },
+      "properties": {
+        "name": "OS Delfzijl",
+        "type": "OS",
+        "location": "Delfzijl"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.855, 53.318]
+      },
+      "properties": {
+        "name": "RS Appingedam",
+        "type": "RS",
+        "location": "Appingedam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.740, 53.280]
+      },
+      "properties": {
+        "name": "OS Ten Boer",
+        "type": "OS",
+        "location": "Ten Boer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.755, 53.210]
+      },
+      "properties": {
+        "name": "OS Haren",
+        "type": "OS",
+        "location": "Haren"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.595, 53.165]
+      },
+      "properties": {
+        "name": "OS Hoogezand",
+        "type": "OS",
+        "location": "Hoogezand"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.478, 53.165]
+      },
+      "properties": {
+        "name": "RS Leek",
+        "type": "RS",
+        "location": "Leek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.398, 53.200]
+      },
+      "properties": {
+        "name": "OS Zuidhorn",
+        "type": "OS",
+        "location": "Zuidhorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.878, 53.178]
+      },
+      "properties": {
+        "name": "OS Veendam",
+        "type": "OS",
+        "location": "Veendam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.948, 53.105]
+      },
+      "properties": {
+        "name": "OS Stadskanaal",
+        "type": "OS",
+        "location": "Stadskanaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.035, 53.142]
+      },
+      "properties": {
+        "name": "RS Vlagtwedde",
+        "type": "RS",
+        "location": "Vlagtwedde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.035, 53.178]
+      },
+      "properties": {
+        "name": "OS Winschoten",
+        "type": "OS",
+        "location": "Winschoten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.088, 53.252]
+      },
+      "properties": {
+        "name": "RS Nieuweschans",
+        "type": "RS",
+        "location": "Nieuweschans"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.678, 53.098]
+      },
+      "properties": {
+        "name": "SS Sappemeer",
+        "type": "SS",
+        "location": "Sappemeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.745, 53.138]
+      },
+      "properties": {
+        "name": "OS Wildervank",
+        "type": "OS",
+        "location": "Wildervank"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.958, 53.055]
+      },
+      "properties": {
+        "name": "RS Musselkanaal",
+        "type": "RS",
+        "location": "Musselkanaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.088, 53.202]
+      },
+      "properties": {
+        "name": "OS Scheemda",
+        "type": "OS",
+        "location": "Scheemda"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.998, 53.272]
+      },
+      "properties": {
+        "name": "SS Finsterwolde",
+        "type": "SS",
+        "location": "Finsterwolde"
+      }
+    }
+  ]
+}

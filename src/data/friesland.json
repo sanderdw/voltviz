@@ -1,0 +1,811 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.170, 53.480]
+      },
+      "properties": {
+        "name": "RS Schiermonnikoog",
+        "type": "RS",
+        "location": "Schiermonnikoog"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.770, 53.450]
+      },
+      "properties": {
+        "name": "RS Nes",
+        "type": "RS",
+        "location": "Nes (Ameland)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.980, 53.425]
+      },
+      "properties": {
+        "name": "SS Band Wad",
+        "type": "SS",
+        "location": "Ameland"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.280, 53.400]
+      },
+      "properties": {
+        "name": "OS Terschelling",
+        "type": "OS",
+        "location": "Terschelling"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.210, 53.395]
+      },
+      "properties": {
+        "name": "RS Midsland",
+        "type": "RS",
+        "location": "Terschelling"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.400, 53.395]
+      },
+      "properties": {
+        "name": "SS Oosterend Wad",
+        "type": "SS",
+        "location": "Terschelling"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.070, 53.300]
+      },
+      "properties": {
+        "name": "RS Vlieland",
+        "type": "RS",
+        "location": "Vlieland"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.883, 53.340]
+      },
+      "properties": {
+        "name": "SS Holwerd",
+        "type": "SS",
+        "location": "Holwerd"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.755, 53.330]
+      },
+      "properties": {
+        "name": "RS Hallum Noord",
+        "type": "RS",
+        "location": "Hallum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.755, 53.315]
+      },
+      "properties": {
+        "name": "RS Hallum",
+        "type": "RS",
+        "location": "Hallum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.595, 53.308]
+      },
+      "properties": {
+        "name": "SS Nieuwebildtd",
+        "type": "SS",
+        "location": "Nieuwebildtzijl"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.999, 53.327]
+      },
+      "properties": {
+        "name": "OS Dokkum",
+        "type": "OS",
+        "location": "Dokkum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.050, 53.320]
+      },
+      "properties": {
+        "name": "RS Anjum",
+        "type": "RS",
+        "location": "Anjum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.535, 53.270]
+      },
+      "properties": {
+        "name": "OS Minnertsga",
+        "type": "OS",
+        "location": "Minnertsga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.617, 53.260]
+      },
+      "properties": {
+        "name": "OS Menaam",
+        "type": "OS",
+        "location": "Menaam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.670, 53.260]
+      },
+      "properties": {
+        "name": "SS Stiens",
+        "type": "SS",
+        "location": "Stiens"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.755, 53.262]
+      },
+      "properties": {
+        "name": "OS Stiens",
+        "type": "OS",
+        "location": "Stiens"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.818, 53.258]
+      },
+      "properties": {
+        "name": "SS Rijperkerk",
+        "type": "SS",
+        "location": "Rijperkerk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.800, 53.240]
+      },
+      "properties": {
+        "name": "OS Leeuwarden",
+        "type": "OS",
+        "location": "Leeuwarden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.640, 53.248]
+      },
+      "properties": {
+        "name": "RS Dronrijp",
+        "type": "RS",
+        "location": "Dronrijp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.505, 53.245]
+      },
+      "properties": {
+        "name": "OS Herbayum Rijksweg",
+        "type": "OS",
+        "location": "Herbayum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.460, 53.225]
+      },
+      "properties": {
+        "name": "OS Midlum",
+        "type": "OS",
+        "location": "Midlum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.453, 53.218]
+      },
+      "properties": {
+        "name": "SS Midlum",
+        "type": "SS",
+        "location": "Midlum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.518, 53.228]
+      },
+      "properties": {
+        "name": "OS Herbaijum",
+        "type": "OS",
+        "location": "Herbaijum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.660, 53.220]
+      },
+      "properties": {
+        "name": "OS Schenkenschans",
+        "type": "OS",
+        "location": "Leeuwarden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.700, 53.215]
+      },
+      "properties": {
+        "name": "OS Boksumerdyk",
+        "type": "OS",
+        "location": "Boksum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.830, 53.225]
+      },
+      "properties": {
+        "name": "OS Louwsmeer",
+        "type": "OS",
+        "location": "Leeuwarden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.138, 53.257]
+      },
+      "properties": {
+        "name": "RS Buitenpost",
+        "type": "RS",
+        "location": "Buitenpost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.993, 53.195]
+      },
+      "properties": {
+        "name": "OS Bergum",
+        "type": "OS",
+        "location": "Bergum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.985, 53.188]
+      },
+      "properties": {
+        "name": "SS Bergum",
+        "type": "SS",
+        "location": "Bergum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.120, 53.200]
+      },
+      "properties": {
+        "name": "RS Drogeham",
+        "type": "RS",
+        "location": "Drogeham"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.850, 53.208]
+      },
+      "properties": {
+        "name": "SS Wergea",
+        "type": "SS",
+        "location": "Wergea"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.414, 53.174]
+      },
+      "properties": {
+        "name": "SS Harlingen",
+        "type": "SS",
+        "location": "Harlingen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.545, 53.190]
+      },
+      "properties": {
+        "name": "SS Franeker",
+        "type": "SS",
+        "location": "Franeker"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.590, 53.178]
+      },
+      "properties": {
+        "name": "SS Wommels",
+        "type": "SS",
+        "location": "Wommels"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 36,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.700, 53.195]
+      },
+      "properties": {
+        "name": "OS Rauwerd",
+        "type": "OS",
+        "location": "Rauwerd"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 37,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.527, 53.062]
+      },
+      "properties": {
+        "name": "OS Bolsward",
+        "type": "OS",
+        "location": "Bolsward"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 38,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.828, 53.090]
+      },
+      "properties": {
+        "name": "RS Grouw",
+        "type": "RS",
+        "location": "Grouw"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 39,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.097, 53.118]
+      },
+      "properties": {
+        "name": "OS Drachten",
+        "type": "OS",
+        "location": "Drachten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 40,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.105, 53.100]
+      },
+      "properties": {
+        "name": "OS Drachten Zuid",
+        "type": "OS",
+        "location": "Drachten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 41,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.398, 53.056]
+      },
+      "properties": {
+        "name": "SS Makkum",
+        "type": "SS",
+        "location": "Makkum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 42,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.558, 53.045]
+      },
+      "properties": {
+        "name": "OS Marnezijl",
+        "type": "OS",
+        "location": "Bolsward"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 43,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.645, 53.025]
+      },
+      "properties": {
+        "name": "OS Sneek Zuid",
+        "type": "OS",
+        "location": "Sneek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 44,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.670, 53.040]
+      },
+      "properties": {
+        "name": "OS Sneek",
+        "type": "OS",
+        "location": "Sneek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 45,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.610, 53.015]
+      },
+      "properties": {
+        "name": "SS Ulst",
+        "type": "SS",
+        "location": "Sneek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 46,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.842, 53.047]
+      },
+      "properties": {
+        "name": "RS Akkrum",
+        "type": "RS",
+        "location": "Akkrum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 47,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.935, 53.000]
+      },
+      "properties": {
+        "name": "OS Heerenveen KNO",
+        "type": "OS",
+        "location": "Heerenveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 48,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.270, 53.040]
+      },
+      "properties": {
+        "name": "RS Waskemeer",
+        "type": "RS",
+        "location": "Waskemeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 49,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.291, 52.993]
+      },
+      "properties": {
+        "name": "OS Oosterwolde",
+        "type": "OS",
+        "location": "Oosterwolde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 50,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.065, 53.005]
+      },
+      "properties": {
+        "name": "OS Gorredijk",
+        "type": "OS",
+        "location": "Gorredijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 51,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.445, 52.981]
+      },
+      "properties": {
+        "name": "RS Workum",
+        "type": "RS",
+        "location": "Workum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 52,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.924, 52.960]
+      },
+      "properties": {
+        "name": "OS Heerenveen",
+        "type": "OS",
+        "location": "Heerenveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 53,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.910, 52.945]
+      },
+      "properties": {
+        "name": "OS Oudehaske",
+        "type": "OS",
+        "location": "Oudehaske"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 54,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.965, 52.950]
+      },
+      "properties": {
+        "name": "SS Hermes",
+        "type": "SS",
+        "location": "Heerenveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 55,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.958, 52.940]
+      },
+      "properties": {
+        "name": "SS Pim Mulier",
+        "type": "SS",
+        "location": "Heerenveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 56,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.130, 52.948]
+      },
+      "properties": {
+        "name": "RS Oldeberkoop",
+        "type": "RS",
+        "location": "Oldeberkoop"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 57,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.793, 52.968]
+      },
+      "properties": {
+        "name": "RS Joure",
+        "type": "RS",
+        "location": "Joure"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 58,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.735, 52.930]
+      },
+      "properties": {
+        "name": "RS Spannenburg",
+        "type": "RS",
+        "location": "Joure"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 59,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.994, 52.879]
+      },
+      "properties": {
+        "name": "OS Wolvega",
+        "type": "OS",
+        "location": "Wolvega"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 60,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.550, 52.890]
+      },
+      "properties": {
+        "name": "RS Harich",
+        "type": "RS",
+        "location": "Harich"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 61,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.600, 52.895]
+      },
+      "properties": {
+        "name": "RS Balk",
+        "type": "RS",
+        "location": "Balk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 62,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.714, 52.845]
+      },
+      "properties": {
+        "name": "OS Lemmer",
+        "type": "OS",
+        "location": "Lemmer"
+      }
+    }
+  ]
+}

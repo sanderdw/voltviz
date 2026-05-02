@@ -1,0 +1,370 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.690, 50.850]
+      },
+      "properties": {
+        "name": "OS Maastricht",
+        "type": "OS",
+        "location": "Maastricht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.705, 50.868]
+      },
+      "properties": {
+        "name": "OS Maastricht Noord",
+        "type": "OS",
+        "location": "Maastricht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.672, 50.835]
+      },
+      "properties": {
+        "name": "RS Maastricht Zuid",
+        "type": "RS",
+        "location": "Maastricht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.718, 50.842]
+      },
+      "properties": {
+        "name": "SS Maastricht Oost",
+        "type": "SS",
+        "location": "Maastricht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.980, 50.885]
+      },
+      "properties": {
+        "name": "OS Heerlen",
+        "type": "OS",
+        "location": "Heerlen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.998, 50.900]
+      },
+      "properties": {
+        "name": "RS Heerlen Noord",
+        "type": "RS",
+        "location": "Heerlen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.965, 50.870]
+      },
+      "properties": {
+        "name": "OS Heerlen Zuid",
+        "type": "OS",
+        "location": "Heerlen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.040, 50.868]
+      },
+      "properties": {
+        "name": "OS Kerkrade",
+        "type": "OS",
+        "location": "Kerkrade"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.168, 51.365]
+      },
+      "properties": {
+        "name": "OS Venlo",
+        "type": "OS",
+        "location": "Venlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.182, 51.380]
+      },
+      "properties": {
+        "name": "RS Venlo Noord",
+        "type": "RS",
+        "location": "Venlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.148, 51.348]
+      },
+      "properties": {
+        "name": "OS Venlo Zuid",
+        "type": "OS",
+        "location": "Venlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.988, 51.195]
+      },
+      "properties": {
+        "name": "OS Roermond",
+        "type": "OS",
+        "location": "Roermond"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.005, 51.210]
+      },
+      "properties": {
+        "name": "RS Roermond Noord",
+        "type": "RS",
+        "location": "Roermond"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.868, 50.998]
+      },
+      "properties": {
+        "name": "OS Sittard",
+        "type": "OS",
+        "location": "Sittard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.852, 51.015]
+      },
+      "properties": {
+        "name": "RS Sittard Noord",
+        "type": "RS",
+        "location": "Sittard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.885, 50.978]
+      },
+      "properties": {
+        "name": "OS Geleen",
+        "type": "OS",
+        "location": "Geleen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.708, 51.248]
+      },
+      "properties": {
+        "name": "OS Weert",
+        "type": "OS",
+        "location": "Weert"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.725, 51.262]
+      },
+      "properties": {
+        "name": "RS Weert Noord",
+        "type": "RS",
+        "location": "Weert"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.782, 50.918]
+      },
+      "properties": {
+        "name": "OS Beek",
+        "type": "OS",
+        "location": "Beek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.855, 51.165]
+      },
+      "properties": {
+        "name": "SS Echt",
+        "type": "SS",
+        "location": "Echt"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.092, 51.438]
+      },
+      "properties": {
+        "name": "OS Tegelen",
+        "type": "OS",
+        "location": "Tegelen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.948, 51.440]
+      },
+      "properties": {
+        "name": "OS Venray",
+        "type": "OS",
+        "location": "Venray"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.962, 51.455]
+      },
+      "properties": {
+        "name": "RS Venray Noord",
+        "type": "RS",
+        "location": "Venray"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.762, 50.752]
+      },
+      "properties": {
+        "name": "OS Valkenburg",
+        "type": "OS",
+        "location": "Valkenburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.635, 50.762]
+      },
+      "properties": {
+        "name": "RS Eijsden",
+        "type": "RS",
+        "location": "Eijsden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.058, 51.260]
+      },
+      "properties": {
+        "name": "OS Panningen",
+        "type": "OS",
+        "location": "Panningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.828, 50.908]
+      },
+      "properties": {
+        "name": "SS Brunssum",
+        "type": "SS",
+        "location": "Brunssum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.618, 51.155]
+      },
+      "properties": {
+        "name": "OS Thorn",
+        "type": "OS",
+        "location": "Thorn"
+      }
+    }
+  ]
+}

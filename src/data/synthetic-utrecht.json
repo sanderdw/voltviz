@@ -1,0 +1,331 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.122, 52.092]
+      },
+      "properties": {
+        "name": "OS Utrecht Centrum",
+        "type": "OS",
+        "location": "Utrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.135, 52.108]
+      },
+      "properties": {
+        "name": "OS Utrecht Overvecht",
+        "type": "OS",
+        "location": "Utrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.148, 52.078]
+      },
+      "properties": {
+        "name": "RS Utrecht Zuid",
+        "type": "RS",
+        "location": "Utrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.098, 52.105]
+      },
+      "properties": {
+        "name": "SS Utrecht Leidsche Rijn",
+        "type": "SS",
+        "location": "Utrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.175, 52.095]
+      },
+      "properties": {
+        "name": "OS Utrecht Oost",
+        "type": "OS",
+        "location": "Utrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.388, 52.155]
+      },
+      "properties": {
+        "name": "OS Amersfoort",
+        "type": "OS",
+        "location": "Amersfoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.402, 52.170]
+      },
+      "properties": {
+        "name": "RS Amersfoort Noord",
+        "type": "RS",
+        "location": "Amersfoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.415, 52.140]
+      },
+      "properties": {
+        "name": "OS Amersfoort Zuid",
+        "type": "OS",
+        "location": "Amersfoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.358, 52.138]
+      },
+      "properties": {
+        "name": "SS Soest",
+        "type": "SS",
+        "location": "Soest"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.555, 52.038]
+      },
+      "properties": {
+        "name": "OS Veenendaal",
+        "type": "OS",
+        "location": "Veenendaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.542, 52.052]
+      },
+      "properties": {
+        "name": "RS Veenendaal Noord",
+        "type": "RS",
+        "location": "Veenendaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.088, 52.032]
+      },
+      "properties": {
+        "name": "OS Nieuwegein",
+        "type": "OS",
+        "location": "Nieuwegein"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.062, 52.025]
+      },
+      "properties": {
+        "name": "RS IJsselstein",
+        "type": "RS",
+        "location": "IJsselstein"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.232, 52.088]
+      },
+      "properties": {
+        "name": "OS Zeist",
+        "type": "OS",
+        "location": "Zeist"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.172, 52.042]
+      },
+      "properties": {
+        "name": "OS Houten",
+        "type": "OS",
+        "location": "Houten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.282, 52.055]
+      },
+      "properties": {
+        "name": "RS Driebergen",
+        "type": "RS",
+        "location": "Driebergen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.112, 52.168]
+      },
+      "properties": {
+        "name": "OS Maarssen",
+        "type": "OS",
+        "location": "Maarssen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.042, 52.070]
+      },
+      "properties": {
+        "name": "OS Woerden",
+        "type": "OS",
+        "location": "Woerden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.312, 52.128]
+      },
+      "properties": {
+        "name": "RS Baarn",
+        "type": "RS",
+        "location": "Baarn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.262, 52.165]
+      },
+      "properties": {
+        "name": "OS Bunschoten",
+        "type": "OS",
+        "location": "Bunschoten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.428, 52.078]
+      },
+      "properties": {
+        "name": "OS Woudenberg",
+        "type": "OS",
+        "location": "Woudenberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.398, 52.008]
+      },
+      "properties": {
+        "name": "RS Rhenen",
+        "type": "RS",
+        "location": "Rhenen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.008, 52.008]
+      },
+      "properties": {
+        "name": "OS Lopik",
+        "type": "OS",
+        "location": "Lopik"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.118, 52.002]
+      },
+      "properties": {
+        "name": "OS Vianen",
+        "type": "OS",
+        "location": "Vianen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.078, 52.128]
+      },
+      "properties": {
+        "name": "SS De Meern",
+        "type": "SS",
+        "location": "Utrecht"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1845 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.033,
+          52.475
+        ]
+      },
+      "properties": {
+        "name": "RS Hattemerbroek",
+        "type": "RS",
+        "location": "Hattemerbroek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.068,
+          52.478
+        ]
+      },
+      "properties": {
+        "name": "OS Hattem",
+        "type": "OS",
+        "location": "Hattem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.837,
+          52.444
+        ]
+      },
+      "properties": {
+        "name": "OS Elburg",
+        "type": "OS",
+        "location": "Elburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.997,
+          52.462
+        ]
+      },
+      "properties": {
+        "name": "RS Wezep",
+        "type": "RS",
+        "location": "Wezep"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.878,
+          52.408
+        ]
+      },
+      "properties": {
+        "name": "RS 't Harde",
+        "type": "RS",
+        "location": "'t Harde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.613,
+          52.35
+        ]
+      },
+      "properties": {
+        "name": "RS Archimedestraat",
+        "type": "RS",
+        "location": "Harderwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.786,
+          52.377
+        ]
+      },
+      "properties": {
+        "name": "OS Nunspeet",
+        "type": "OS",
+        "location": "Nunspeet"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.575,
+          52.348
+        ]
+      },
+      "properties": {
+        "name": "RS Lorentz",
+        "type": "RS",
+        "location": "Harderwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.718,
+          52.36
+        ]
+      },
+      "properties": {
+        "name": "RS Feithenhof",
+        "type": "RS",
+        "location": "Ermelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.622,
+          52.343
+        ]
+      },
+      "properties": {
+        "name": "OS Harderwijk",
+        "type": "OS",
+        "location": "Harderwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.625,
+          52.301
+        ]
+      },
+      "properties": {
+        "name": "RS Ermelo",
+        "type": "RS",
+        "location": "Ermelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.965,
+          52.383
+        ]
+      },
+      "properties": {
+        "name": "OS Vaassen",
+        "type": "OS",
+        "location": "Vaassen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.771,
+          52.255
+        ]
+      },
+      "properties": {
+        "name": "RS Uddelermeer",
+        "type": "RS",
+        "location": "Uddel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.607,
+          52.26
+        ]
+      },
+      "properties": {
+        "name": "OS Putten",
+        "type": "OS",
+        "location": "Putten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.477,
+          52.222
+        ]
+      },
+      "properties": {
+        "name": "OS Nijkerk de Flier",
+        "type": "OS",
+        "location": "Nijkerk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.492,
+          52.222
+        ]
+      },
+      "properties": {
+        "name": "OS Nijkerk",
+        "type": "OS",
+        "location": "Nijkerk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.683,
+          52.271
+        ]
+      },
+      "properties": {
+        "name": "RS Puttereng",
+        "type": "RS",
+        "location": "Putten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.937,
+          52.305
+        ]
+      },
+      "properties": {
+        "name": "OS Ankaar",
+        "type": "OS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.995,
+          52.301
+        ]
+      },
+      "properties": {
+        "name": "OS Zuidbroek",
+        "type": "OS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.928,
+          52.228
+        ]
+      },
+      "properties": {
+        "name": "SS Grift",
+        "type": "SS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.908,
+          52.22
+        ]
+      },
+      "properties": {
+        "name": "SS Loolaan",
+        "type": "SS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.88,
+          52.215
+        ]
+      },
+      "properties": {
+        "name": "SS Eendracht",
+        "type": "SS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.973,
+          52.212
+        ]
+      },
+      "properties": {
+        "name": "OS Apeldoorn",
+        "type": "OS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.99,
+          52.188
+        ]
+      },
+      "properties": {
+        "name": "OS Apeldoorn Zuid-Oost",
+        "type": "OS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.033,
+          52.245
+        ]
+      },
+      "properties": {
+        "name": "OS Woudhuís",
+        "type": "OS",
+        "location": "Apeldoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.19,
+          52.225
+        ]
+      },
+      "properties": {
+        "name": "SS Gorssel",
+        "type": "SS",
+        "location": "Gorssel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.478,
+          52.195
+        ]
+      },
+      "properties": {
+        "name": "RS Nijkerkerveen",
+        "type": "RS",
+        "location": "Nijkerkerveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.583,
+          52.173
+        ]
+      },
+      "properties": {
+        "name": "OS Harselaar",
+        "type": "OS",
+        "location": "Barneveld"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.588,
+          52.14
+        ]
+      },
+      "properties": {
+        "name": "RS Barneveld",
+        "type": "RS",
+        "location": "Barneveld"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.489,
+          52.08
+        ]
+      },
+      "properties": {
+        "name": "OS Scherpenzeel",
+        "type": "OS",
+        "location": "Scherpenzeel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.665,
+          52.045
+        ]
+      },
+      "properties": {
+        "name": "OS Ede",
+        "type": "OS",
+        "location": "Ede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.668,
+          52.032
+        ]
+      },
+      "properties": {
+        "name": "OS Ede Veldhuizen",
+        "type": "OS",
+        "location": "Ede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.6,
+          52.045
+        ]
+      },
+      "properties": {
+        "name": "OS Radonstraat",
+        "type": "OS",
+        "location": "Ede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.755,
+          52.105
+        ]
+      },
+      "properties": {
+        "name": "OS Wekerom",
+        "type": "OS",
+        "location": "Wekerom"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.895,
+          52.075
+        ]
+      },
+      "properties": {
+        "name": "OS Kattenberg",
+        "type": "OS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 36,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.055,
+          52.103
+        ]
+      },
+      "properties": {
+        "name": "OS Eerbeek",
+        "type": "OS",
+        "location": "Eerbeek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 37,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.195,
+          52.14
+        ]
+      },
+      "properties": {
+        "name": "OS Zutphen",
+        "type": "OS",
+        "location": "Zutphen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 38,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.215,
+          52.137
+        ]
+      },
+      "properties": {
+        "name": "SS de Mars",
+        "type": "SS",
+        "location": "Zutphen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 39,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.2,
+          52.13
+        ]
+      },
+      "properties": {
+        "name": "OS Zutphen Zuid",
+        "type": "OS",
+        "location": "Zutphen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 40,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.415,
+          52.16
+        ]
+      },
+      "properties": {
+        "name": "OS Lochem",
+        "type": "OS",
+        "location": "Lochem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 41,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.65,
+          51.975
+        ]
+      },
+      "properties": {
+        "name": "OS Frankeneng",
+        "type": "OS",
+        "location": "Wageningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 42,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.64,
+          51.975
+        ]
+      },
+      "properties": {
+        "name": "OS Wageningen West",
+        "type": "OS",
+        "location": "Wageningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 43,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.663,
+          51.985
+        ]
+      },
+      "properties": {
+        "name": "RS Wageningen Noord",
+        "type": "RS",
+        "location": "Wageningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 44,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.665,
+          51.968
+        ]
+      },
+      "properties": {
+        "name": "OS Wageningen",
+        "type": "OS",
+        "location": "Wageningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 45,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.91,
+          52
+        ]
+      },
+      "properties": {
+        "name": "OS Arnhem",
+        "type": "OS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 46,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.88,
+          51.995
+        ]
+      },
+      "properties": {
+        "name": "OS Arnhem Noord West",
+        "type": "OS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 47,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.85,
+          51.987
+        ]
+      },
+      "properties": {
+        "name": "OS Oosterbeek",
+        "type": "OS",
+        "location": "Oosterbeek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 48,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.93,
+          51.99
+        ]
+      },
+      "properties": {
+        "name": "OS Arnhemse Broek",
+        "type": "OS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 49,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.945,
+          51.985
+        ]
+      },
+      "properties": {
+        "name": "OS Presikhaaf",
+        "type": "OS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 50,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.975,
+          51.99
+        ]
+      },
+      "properties": {
+        "name": "OS Velp/Rheden",
+        "type": "OS",
+        "location": "Velp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 51,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.9,
+          51.984
+        ]
+      },
+      "properties": {
+        "name": "SS Arnhem CS",
+        "type": "SS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 52,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.905,
+          51.96
+        ]
+      },
+      "properties": {
+        "name": "RS/OS Arnhem Zuid",
+        "type": "RS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 53,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.527,
+          52.117
+        ]
+      },
+      "properties": {
+        "name": "OS Borculo",
+        "type": "OS",
+        "location": "Borculo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 54,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.615,
+          52.098
+        ]
+      },
+      "properties": {
+        "name": "OS Eibergen",
+        "type": "OS",
+        "location": "Eibergen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 55,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.575,
+          52.057
+        ]
+      },
+      "properties": {
+        "name": "SS Laarberg",
+        "type": "SS",
+        "location": "Groenlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 56,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.264,
+          52.065
+        ]
+      },
+      "properties": {
+        "name": "RS Hengelo",
+        "type": "RS",
+        "location": "Hengelo (Gld.)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 57,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.075,
+          52
+        ]
+      },
+      "properties": {
+        "name": "OS Angerlo",
+        "type": "OS",
+        "location": "Angerlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 58,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.19,
+          52.015
+        ]
+      },
+      "properties": {
+        "name": "OS Langerak",
+        "type": "OS",
+        "location": "Doesburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 59,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.385,
+          52.025
+        ]
+      },
+      "properties": {
+        "name": "OS Marienvelde",
+        "type": "OS",
+        "location": "Mariënvelde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 60,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.29,
+          51.965
+        ]
+      },
+      "properties": {
+        "name": "OS Doetinchem",
+        "type": "OS",
+        "location": "Doetinchem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 61,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.27,
+          51.967
+        ]
+      },
+      "properties": {
+        "name": "OS A18 Doetinchem",
+        "type": "OS",
+        "location": "Doetinchem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 62,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.61,
+          52.043
+        ]
+      },
+      "properties": {
+        "name": "OS Groenlo",
+        "type": "OS",
+        "location": "Groenlo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 63,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.72,
+          51.973
+        ]
+      },
+      "properties": {
+        "name": "OS Winterswijk",
+        "type": "OS",
+        "location": "Winterswijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 64,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.593,
+          51.978
+        ]
+      },
+      "properties": {
+        "name": "OS Dale",
+        "type": "OS",
+        "location": "Dale"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 65,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.453,
+          51.94
+        ]
+      },
+      "properties": {
+        "name": "RS Varsseveld",
+        "type": "RS",
+        "location": "Varsseveld"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 66,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.42,
+          51.935
+        ]
+      },
+      "properties": {
+        "name": "OS Wisch",
+        "type": "OS",
+        "location": "Wisch"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 67,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.37,
+          51.892
+        ]
+      },
+      "properties": {
+        "name": "OS Ulft",
+        "type": "OS",
+        "location": "Ulft"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 68,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.318,
+          51.935
+        ]
+      },
+      "properties": {
+        "name": "RS Slaghout",
+        "type": "RS",
+        "location": "Doetinchem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 69,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.44,
+          51.895
+        ]
+      },
+      "properties": {
+        "name": "RS Aalders",
+        "type": "RS",
+        "location": "Aalten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 70,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.227,
+          51.958
+        ]
+      },
+      "properties": {
+        "name": "RS Culemborg",
+        "type": "RS",
+        "location": "Culemborg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 71,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.29,
+          51.92
+        ]
+      },
+      "properties": {
+        "name": "OS Noordwest-Rivierenland",
+        "type": "OS",
+        "location": "Tiel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 72,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.38,
+          51.93
+        ]
+      },
+      "properties": {
+        "name": "OS Noordoost-Rivierenland",
+        "type": "OS",
+        "location": "Tiel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 73,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.487,
+          51.948
+        ]
+      },
+      "properties": {
+        "name": "RS Ingen",
+        "type": "RS",
+        "location": "Ingen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 74,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.395,
+          51.912
+        ]
+      },
+      "properties": {
+        "name": "RS Veldsteeg",
+        "type": "RS",
+        "location": "Tiel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 75,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.42,
+          51.885
+        ]
+      },
+      "properties": {
+        "name": "SS Tiel Hoekwel",
+        "type": "SS",
+        "location": "Tiel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 76,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.428,
+          51.882
+        ]
+      },
+      "properties": {
+        "name": "OS Tiel",
+        "type": "OS",
+        "location": "Tiel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 77,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.592,
+          51.905
+        ]
+      },
+      "properties": {
+        "name": "OS Dodewaard",
+        "type": "OS",
+        "location": "Dodewaard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 78,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.603,
+          51.888
+        ]
+      },
+      "properties": {
+        "name": "OS Druten",
+        "type": "OS",
+        "location": "Druten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 79,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.29,
+          51.88
+        ]
+      },
+      "properties": {
+        "name": "RS Beesd",
+        "type": "RS",
+        "location": "Beesd"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 80,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.32,
+          51.892
+        ]
+      },
+      "properties": {
+        "name": "RS Buurmalsen",
+        "type": "RS",
+        "location": "Buurmalsen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 81,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.23,
+          51.862
+        ]
+      },
+      "properties": {
+        "name": "OS West-Rivierenland",
+        "type": "OS",
+        "location": "Geldermalsen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 82,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.38,
+          51.858
+        ]
+      },
+      "properties": {
+        "name": "RS Van Heemstraweg",
+        "type": "RS",
+        "location": "Beneden-Leeuwen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 83,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.295,
+          51.845
+        ]
+      },
+      "properties": {
+        "name": "RS Neerijnen",
+        "type": "RS",
+        "location": "Neerijnen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 84,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.19,
+          51.85
+        ]
+      },
+      "properties": {
+        "name": "RS Leuven",
+        "type": "RS",
+        "location": "Beneden-Leeuwen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 85,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.198,
+          51.83
+        ]
+      },
+      "properties": {
+        "name": "OS De Epen",
+        "type": "OS",
+        "location": "Zaltbommel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 86,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.21,
+          51.81
+        ]
+      },
+      "properties": {
+        "name": "OS Zuilichem",
+        "type": "OS",
+        "location": "Zuilichem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 87,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.246,
+          51.812
+        ]
+      },
+      "properties": {
+        "name": "OS Zaltbommel",
+        "type": "OS",
+        "location": "Zaltbommel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 88,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.153,
+          51.798
+        ]
+      },
+      "properties": {
+        "name": "RS Poederoijen",
+        "type": "RS",
+        "location": "Poederoijen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 89,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.19,
+          51.785
+        ]
+      },
+      "properties": {
+        "name": "OS Bommelerwaard",
+        "type": "OS",
+        "location": "Zaltbommel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 90,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.258,
+          51.795
+        ]
+      },
+      "properties": {
+        "name": "RS Velddriel",
+        "type": "RS",
+        "location": "Velddriel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 91,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.73,
+          51.972
+        ]
+      },
+      "properties": {
+        "name": "OS Renkum",
+        "type": "OS",
+        "location": "Renkum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 92,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.845,
+          51.92
+        ]
+      },
+      "properties": {
+        "name": "OS Elst",
+        "type": "OS",
+        "location": "Elst"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 93,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.87,
+          51.935
+        ]
+      },
+      "properties": {
+        "name": "SS Bak",
+        "type": "SS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 94,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.015,
+          51.947
+        ]
+      },
+      "properties": {
+        "name": "OS Duiven",
+        "type": "OS",
+        "location": "Duiven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 95,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.072,
+          51.925
+        ]
+      },
+      "properties": {
+        "name": "OS Zevenaar",
+        "type": "OS",
+        "location": "Zevenaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 96,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6,
+          51.943
+        ]
+      },
+      "properties": {
+        "name": "SS IJsselboord",
+        "type": "SS",
+        "location": "Arnhem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 97,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.05,
+          51.935
+        ]
+      },
+      "properties": {
+        "name": "RS Roodwilligen",
+        "type": "RS",
+        "location": "Zevenaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 98,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8,
+          51.908
+        ]
+      },
+      "properties": {
+        "name": "OS Oosterhout",
+        "type": "OS",
+        "location": "Oosterhout (Gld.)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 99,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.895,
+          51.89
+        ]
+      },
+      "properties": {
+        "name": "OS Bemmel",
+        "type": "OS",
+        "location": "Bemmel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 100,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.05,
+          51.87
+        ]
+      },
+      "properties": {
+        "name": "OS Rijnwaarden",
+        "type": "OS",
+        "location": "Rijnwaarden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 101,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.825,
+          51.86
+        ]
+      },
+      "properties": {
+        "name": "RS ARN",
+        "type": "RS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 102,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.77,
+          51.865
+        ]
+      },
+      "properties": {
+        "name": "OS Beuningen",
+        "type": "OS",
+        "location": "Beuningen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 103,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.852,
+          51.843
+        ]
+      },
+      "properties": {
+        "name": "OS Nijmegen",
+        "type": "OS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 104,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.835,
+          51.838
+        ]
+      },
+      "properties": {
+        "name": "OS Winselingseweg",
+        "type": "OS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 105,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.78,
+          51.815
+        ]
+      },
+      "properties": {
+        "name": "OS Teerdijk",
+        "type": "OS",
+        "location": "Wijchen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 106,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.728,
+          51.808
+        ]
+      },
+      "properties": {
+        "name": "SS Wijchen",
+        "type": "SS",
+        "location": "Wijchen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 107,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.82,
+          51.828
+        ]
+      },
+      "properties": {
+        "name": "SS Viekoten",
+        "type": "SS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 108,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.85,
+          51.825
+        ]
+      },
+      "properties": {
+        "name": "OS Sint-Annastraat",
+        "type": "OS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 109,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.87,
+          51.82
+        ]
+      },
+      "properties": {
+        "name": "OS Nijmegen Zuid-Oost",
+        "type": "OS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 110,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.83,
+          51.81
+        ]
+      },
+      "properties": {
+        "name": "OS Deukenburg",
+        "type": "OS",
+        "location": "Nijmegen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 111,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.73,
+          51.778
+        ]
+      },
+      "properties": {
+        "name": "RS Overasselt",
+        "type": "RS",
+        "location": "Overasselt"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 112,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.85,
+          51.782
+        ]
+      },
+      "properties": {
+        "name": "ROCS Malden",
+        "type": "RS",
+        "location": "Malden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 113,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.95,
+          51.815
+        ]
+      },
+      "properties": {
+        "name": "OS Wylerbergmeer",
+        "type": "OS",
+        "location": "Beek-Ubbergen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 114,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.05,
+          51.835
+        ]
+      },
+      "properties": {
+        "name": "RS Millingen",
+        "type": "RS",
+        "location": "Millingen aan de Rijn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 115,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.937,
+          51.776
+        ]
+      },
+      "properties": {
+        "name": "OS Groesbeek",
+        "type": "OS",
+        "location": "Groesbeek"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1383 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.810, 53.140]
+      },
+      "properties": {
+        "name": "RS Zuid Eierland",
+        "type": "RS",
+        "location": "Texel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.797, 53.055]
+      },
+      "properties": {
+        "name": "OS Texel",
+        "type": "OS",
+        "location": "Texel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.788, 53.005]
+      },
+      "properties": {
+        "name": "OS het Horntje",
+        "type": "OS",
+        "location": "Texel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.748, 52.962]
+      },
+      "properties": {
+        "name": "OS Den Helder Vogelwijk",
+        "type": "OS",
+        "location": "Den Helder"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.788, 52.958]
+      },
+      "properties": {
+        "name": "OS Den Helder Marine",
+        "type": "OS",
+        "location": "Den Helder"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.740, 52.935]
+      },
+      "properties": {
+        "name": "OS Den Helder de Schooten",
+        "type": "OS",
+        "location": "Den Helder"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.830, 52.862]
+      },
+      "properties": {
+        "name": "OS Anna Paulowna",
+        "type": "OS",
+        "location": "Anna Paulowna"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.915, 52.860]
+      },
+      "properties": {
+        "name": "RS Ulkesluis",
+        "type": "RS",
+        "location": "Anna Paulowna"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.000, 52.838]
+      },
+      "properties": {
+        "name": "OS Hollands Kroon",
+        "type": "OS",
+        "location": "Hollands Kroon"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.048, 52.828]
+      },
+      "properties": {
+        "name": "RS Wieringerwerf",
+        "type": "RS",
+        "location": "Wieringerwerf"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.782, 52.768]
+      },
+      "properties": {
+        "name": "RS Sint Maarten",
+        "type": "RS",
+        "location": "Sint Maarten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.802, 52.790]
+      },
+      "properties": {
+        "name": "OS Schagen",
+        "type": "OS",
+        "location": "Schagen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.002, 52.810]
+      },
+      "properties": {
+        "name": "OS Middenmeer",
+        "type": "OS",
+        "location": "Middenmeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.110, 52.773]
+      },
+      "properties": {
+        "name": "RS Medemblik",
+        "type": "RS",
+        "location": "Medemblik"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.928, 52.685]
+      },
+      "properties": {
+        "name": "OS De Weel",
+        "type": "OS",
+        "location": "De Weel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.742, 52.695]
+      },
+      "properties": {
+        "name": "OS Warmenhuizen",
+        "type": "OS",
+        "location": "Warmenhuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.855, 52.688]
+      },
+      "properties": {
+        "name": "RS Heerhugowaard Noord",
+        "type": "RS",
+        "location": "Heerhugowaard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.840, 52.668]
+      },
+      "properties": {
+        "name": "OS Heerhugowaard",
+        "type": "OS",
+        "location": "Heerhugowaard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.795, 52.656]
+      },
+      "properties": {
+        "name": "OS Vroonermeer",
+        "type": "OS",
+        "location": "Alkmaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.722, 52.645]
+      },
+      "properties": {
+        "name": "OS Alkmaar West",
+        "type": "OS",
+        "location": "Alkmaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.868, 52.640]
+      },
+      "properties": {
+        "name": "OS Oterleek",
+        "type": "OS",
+        "location": "Oterleek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.750, 52.632]
+      },
+      "properties": {
+        "name": "OS Alkmaar",
+        "type": "OS",
+        "location": "Alkmaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.775, 52.637]
+      },
+      "properties": {
+        "name": "OS Oudorp",
+        "type": "OS",
+        "location": "Oudorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.643, 52.627]
+      },
+      "properties": {
+        "name": "RS Egmond aan de Hoef",
+        "type": "RS",
+        "location": "Egmond aan de Hoef"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.770, 52.618]
+      },
+      "properties": {
+        "name": "SS Alkmaar Boekelermeer",
+        "type": "SS",
+        "location": "Alkmaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.822, 52.612]
+      },
+      "properties": {
+        "name": "OS Noord-Kennemerland",
+        "type": "OS",
+        "location": "Alkmaar"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.717, 52.603]
+      },
+      "properties": {
+        "name": "OS Heiloo",
+        "type": "OS",
+        "location": "Heiloo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.706, 52.530]
+      },
+      "properties": {
+        "name": "OS Uitgeest",
+        "type": "OS",
+        "location": "Uitgeest"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.207, 52.744]
+      },
+      "properties": {
+        "name": "OS Andijk",
+        "type": "OS",
+        "location": "Andijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.010, 52.700]
+      },
+      "properties": {
+        "name": "OS Abbekerk",
+        "type": "OS",
+        "location": "Abbekerk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.155, 52.718]
+      },
+      "properties": {
+        "name": "OS Wervershoof",
+        "type": "OS",
+        "location": "Wervershoof"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.958, 52.698]
+      },
+      "properties": {
+        "name": "RS Hoogwoud",
+        "type": "RS",
+        "location": "Hoogwoud"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.020, 52.678]
+      },
+      "properties": {
+        "name": "OS Wognum",
+        "type": "OS",
+        "location": "Wognum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.090, 52.682]
+      },
+      "properties": {
+        "name": "OS Westwoud",
+        "type": "OS",
+        "location": "Westwoud"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.178, 52.692]
+      },
+      "properties": {
+        "name": "OS Lutjebroek",
+        "type": "OS",
+        "location": "Lutjebroek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 36,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.290, 52.702]
+      },
+      "properties": {
+        "name": "OS Enkhuizen",
+        "type": "OS",
+        "location": "Enkhuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 37,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.948, 52.668]
+      },
+      "properties": {
+        "name": "OS Obdam",
+        "type": "OS",
+        "location": "Obdam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 38,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.065, 52.658]
+      },
+      "properties": {
+        "name": "OS Hoorn Noord",
+        "type": "OS",
+        "location": "Hoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 39,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.038, 52.648]
+      },
+      "properties": {
+        "name": "OS Hoorn Parkweg",
+        "type": "OS",
+        "location": "Hoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 40,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.970, 52.635]
+      },
+      "properties": {
+        "name": "OS Avenhorn",
+        "type": "OS",
+        "location": "Avenhorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 41,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.078, 52.642]
+      },
+      "properties": {
+        "name": "OS Hoorn Holenweg",
+        "type": "OS",
+        "location": "Hoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 42,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.148, 52.658]
+      },
+      "properties": {
+        "name": "OS Zuiderkogge",
+        "type": "OS",
+        "location": "Zuiderkogge"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 43,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.008, 52.520]
+      },
+      "properties": {
+        "name": "OS Purmerend Kwadijkerkoogweg",
+        "type": "OS",
+        "location": "Purmerend"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 44,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.968, 52.510]
+      },
+      "properties": {
+        "name": "OS Purmerend Schaepmanstraat",
+        "type": "OS",
+        "location": "Purmerend"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 45,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.038, 52.505]
+      },
+      "properties": {
+        "name": "OS Baanstee",
+        "type": "OS",
+        "location": "Purmerend"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 46,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.920, 52.502]
+      },
+      "properties": {
+        "name": "OS Wijdewormer",
+        "type": "OS",
+        "location": "Wijdewormer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 47,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.058, 52.512]
+      },
+      "properties": {
+        "name": "OS Edam",
+        "type": "OS",
+        "location": "Edam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 48,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.752, 52.472]
+      },
+      "properties": {
+        "name": "OS Assendelft",
+        "type": "OS",
+        "location": "Assendelft"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 49,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.772, 52.468]
+      },
+      "properties": {
+        "name": "OS Krommenie",
+        "type": "OS",
+        "location": "Krommenie"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 50,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.788, 52.458]
+      },
+      "properties": {
+        "name": "OS Wormerveer",
+        "type": "OS",
+        "location": "Wormerveer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 51,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.040, 52.462]
+      },
+      "properties": {
+        "name": "OS Monnickendam",
+        "type": "OS",
+        "location": "Monnickendam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 52,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.816, 52.448]
+      },
+      "properties": {
+        "name": "OS Zaandijk",
+        "type": "OS",
+        "location": "Zaandijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 53,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.833, 52.440]
+      },
+      "properties": {
+        "name": "OS Zaandam Dovenetelweg",
+        "type": "OS",
+        "location": "Zaandam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 54,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.798, 52.437]
+      },
+      "properties": {
+        "name": "SS Westzanerpolder",
+        "type": "SS",
+        "location": "Zaandam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 55,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.795, 52.430]
+      },
+      "properties": {
+        "name": "OS Hoogtij",
+        "type": "OS",
+        "location": "Zaandam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 56,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.818, 52.428]
+      },
+      "properties": {
+        "name": "OS Zaandam West",
+        "type": "OS",
+        "location": "Zaandam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 57,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.862, 52.434]
+      },
+      "properties": {
+        "name": "OS Oostzaan",
+        "type": "OS",
+        "location": "Oostzaan"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 58,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.655, 52.485]
+      },
+      "properties": {
+        "name": "OS Beverwijk",
+        "type": "OS",
+        "location": "Beverwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 59,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.635, 52.468]
+      },
+      "properties": {
+        "name": "OS Velsen",
+        "type": "OS",
+        "location": "Velsen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 60,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.620, 52.460]
+      },
+      "properties": {
+        "name": "OS IJmuiden",
+        "type": "OS",
+        "location": "IJmuiden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 61,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.662, 52.438]
+      },
+      "properties": {
+        "name": "OS Velserbroek",
+        "type": "OS",
+        "location": "Velserbroek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 62,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.608, 52.402]
+      },
+      "properties": {
+        "name": "OS Overveen",
+        "type": "OS",
+        "location": "Overveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 63,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.643, 52.400]
+      },
+      "properties": {
+        "name": "OS Waarderpolder",
+        "type": "OS",
+        "location": "Haarlem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 64,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.533, 52.375]
+      },
+      "properties": {
+        "name": "OS Zandvoort",
+        "type": "OS",
+        "location": "Zandvoort"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 65,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.630, 52.370]
+      },
+      "properties": {
+        "name": "OS Haarlem Zuid",
+        "type": "OS",
+        "location": "Haarlem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 66,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.652, 52.368]
+      },
+      "properties": {
+        "name": "RS Oorkondelaan",
+        "type": "RS",
+        "location": "Haarlem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 67,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.665, 52.395]
+      },
+      "properties": {
+        "name": "OS Hofmanweg",
+        "type": "OS",
+        "location": "Haarlem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 68,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.685, 52.378]
+      },
+      "properties": {
+        "name": "OS Vijfhuizen",
+        "type": "OS",
+        "location": "Vijfhuizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 69,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.658, 52.358]
+      },
+      "properties": {
+        "name": "OS Schalkwijk",
+        "type": "OS",
+        "location": "Schalkwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 70,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.728, 52.375]
+      },
+      "properties": {
+        "name": "OS Zwanenburg",
+        "type": "OS",
+        "location": "Zwanenburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 71,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.712, 52.355]
+      },
+      "properties": {
+        "name": "OS Drie Merenweg",
+        "type": "OS",
+        "location": "Haarlemmermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 72,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.748, 52.342]
+      },
+      "properties": {
+        "name": "RS Badhoevedorp",
+        "type": "RS",
+        "location": "Badhoevedorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 73,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.693, 52.340]
+      },
+      "properties": {
+        "name": "OS Haarlemmermeer",
+        "type": "OS",
+        "location": "Haarlemmermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 74,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.753, 52.330]
+      },
+      "properties": {
+        "name": "OS Schiphol Centrum",
+        "type": "OS",
+        "location": "Schiphol"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 75,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.693, 52.318]
+      },
+      "properties": {
+        "name": "OS Hoofddorp",
+        "type": "OS",
+        "location": "Hoofddorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 76,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.688, 52.312]
+      },
+      "properties": {
+        "name": "SS Hoofddorp",
+        "type": "SS",
+        "location": "Hoofddorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 77,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.658, 52.308]
+      },
+      "properties": {
+        "name": "OS Nieuw-Vennep",
+        "type": "OS",
+        "location": "Nieuw-Vennep"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 78,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.666, 52.295]
+      },
+      "properties": {
+        "name": "OS A4-Zone West",
+        "type": "OS",
+        "location": "Haarlemmermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 79,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.728, 52.312]
+      },
+      "properties": {
+        "name": "OS Rozenburg",
+        "type": "OS",
+        "location": "Haarlemmermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 80,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.723, 52.298]
+      },
+      "properties": {
+        "name": "OS Rozenburg Zuid",
+        "type": "OS",
+        "location": "Haarlemmermeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 81,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.743, 52.300]
+      },
+      "properties": {
+        "name": "SS Schiphol-Rijk",
+        "type": "SS",
+        "location": "Schiphol-Rijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 82,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.643, 52.278]
+      },
+      "properties": {
+        "name": "RS Lisserbroek",
+        "type": "RS",
+        "location": "Lisserbroek"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 83,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.958, 52.348]
+      },
+      "properties": {
+        "name": "OS Diemen",
+        "type": "OS",
+        "location": "Diemen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 84,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.955, 52.358]
+      },
+      "properties": {
+        "name": "OS Venserweg",
+        "type": "OS",
+        "location": "Diemen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 85,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.935, 52.340]
+      },
+      "properties": {
+        "name": "RS Duivendrecht",
+        "type": "RS",
+        "location": "Duivendrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 86,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.958, 52.330]
+      },
+      "properties": {
+        "name": "OS Bijlmer Noord",
+        "type": "OS",
+        "location": "Amsterdam Zuidoost"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 87,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.868, 52.305]
+      },
+      "properties": {
+        "name": "OS Amstelveen Bolwerk",
+        "type": "OS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 88,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.888, 52.300]
+      },
+      "properties": {
+        "name": "OS Amstelveen Noord",
+        "type": "OS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 89,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.852, 52.298]
+      },
+      "properties": {
+        "name": "SS Oosteinde",
+        "type": "SS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 90,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.816, 52.298]
+      },
+      "properties": {
+        "name": "OS Schiphol Oost",
+        "type": "OS",
+        "location": "Schiphol"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 91,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.878, 52.288]
+      },
+      "properties": {
+        "name": "OS Amstelveen",
+        "type": "OS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 92,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.863, 52.278]
+      },
+      "properties": {
+        "name": "OS Amstelveen Zuid",
+        "type": "OS",
+        "location": "Amstelveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 93,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.778, 52.268]
+      },
+      "properties": {
+        "name": "OS Aalsmeer Bloemenveiling",
+        "type": "OS",
+        "location": "Aalsmeer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 94,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.788, 52.260]
+      },
+      "properties": {
+        "name": "RS De Kwakel",
+        "type": "RS",
+        "location": "De Kwakel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 95,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.826, 52.253]
+      },
+      "properties": {
+        "name": "OS Uithoorn",
+        "type": "OS",
+        "location": "Uithoorn"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 96,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.773, 52.245]
+      },
+      "properties": {
+        "name": "OS Kudelstraat",
+        "type": "OS",
+        "location": "Kudelstraat"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 97,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.007, 52.318]
+      },
+      "properties": {
+        "name": "OS Weesp Noord",
+        "type": "OS",
+        "location": "Weesp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 98,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.012, 52.308]
+      },
+      "properties": {
+        "name": "OS Weesp Zuid",
+        "type": "OS",
+        "location": "Weesp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 99,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.238, 52.305]
+      },
+      "properties": {
+        "name": "OS Huizen",
+        "type": "OS",
+        "location": "Huizen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 100,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.163, 52.298]
+      },
+      "properties": {
+        "name": "OS Naarden",
+        "type": "OS",
+        "location": "Naarden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 101,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.118, 52.270]
+      },
+      "properties": {
+        "name": "OS 's Graveland",
+        "type": "OS",
+        "location": "'s-Graveland"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 102,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.198, 52.268]
+      },
+      "properties": {
+        "name": "OS Hilversum Crailo",
+        "type": "OS",
+        "location": "Hilversum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 103,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.188, 52.248]
+      },
+      "properties": {
+        "name": "OS Hilversum Noorderbegraafplaats",
+        "type": "OS",
+        "location": "Hilversum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 104,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.175, 52.235]
+      },
+      "properties": {
+        "name": "OS Hilversum",
+        "type": "OS",
+        "location": "Hilversum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 105,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.193, 52.225]
+      },
+      "properties": {
+        "name": "OS Hilversum Jonkerweg",
+        "type": "OS",
+        "location": "Hilversum"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 106,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.203, 52.218]
+      },
+      "properties": {
+        "name": "OS Hilversum Raafstraat",
+        "type": "OS",
+        "location": "Hilversum"
+      }
+    }
+  ]
+}

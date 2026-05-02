@@ -1,0 +1,266 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.610, 51.498]
+      },
+      "properties": {
+        "name": "OS Middelburg",
+        "type": "OS",
+        "location": "Middelburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.575, 51.445]
+      },
+      "properties": {
+        "name": "OS Vlissingen",
+        "type": "OS",
+        "location": "Vlissingen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.625, 51.455]
+      },
+      "properties": {
+        "name": "RS Vlissingen Oost",
+        "type": "RS",
+        "location": "Vlissingen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.895, 51.500]
+      },
+      "properties": {
+        "name": "OS Goes",
+        "type": "OS",
+        "location": "Goes"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.912, 51.510]
+      },
+      "properties": {
+        "name": "RS Goes Noord",
+        "type": "RS",
+        "location": "Goes"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.830, 51.648]
+      },
+      "properties": {
+        "name": "OS Zierikzee",
+        "type": "OS",
+        "location": "Zierikzee"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.578, 51.342]
+      },
+      "properties": {
+        "name": "OS Terneuzen",
+        "type": "OS",
+        "location": "Terneuzen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.595, 51.355]
+      },
+      "properties": {
+        "name": "RS Terneuzen Noord",
+        "type": "RS",
+        "location": "Terneuzen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.052, 51.395]
+      },
+      "properties": {
+        "name": "OS Hulst",
+        "type": "OS",
+        "location": "Hulst"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.440, 51.498]
+      },
+      "properties": {
+        "name": "OS Westkapelle",
+        "type": "OS",
+        "location": "Westkapelle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.508, 51.502]
+      },
+      "properties": {
+        "name": "RS Domburg",
+        "type": "RS",
+        "location": "Domburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.685, 51.510]
+      },
+      "properties": {
+        "name": "SS Middelburg Oost",
+        "type": "SS",
+        "location": "Middelburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.012, 51.538]
+      },
+      "properties": {
+        "name": "OS Yerseke",
+        "type": "OS",
+        "location": "Yerseke"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.172, 51.498]
+      },
+      "properties": {
+        "name": "OS Reimerswaal",
+        "type": "OS",
+        "location": "Reimerswaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.478, 51.365]
+      },
+      "properties": {
+        "name": "OS Breskens",
+        "type": "OS",
+        "location": "Breskens"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.792, 51.472]
+      },
+      "properties": {
+        "name": "RS Kapelle",
+        "type": "RS",
+        "location": "Kapelle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.715, 51.382]
+      },
+      "properties": {
+        "name": "OS Axel",
+        "type": "OS",
+        "location": "Axel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.922, 51.310]
+      },
+      "properties": {
+        "name": "RS Sas van Gent",
+        "type": "RS",
+        "location": "Sas van Gent"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.020, 51.628]
+      },
+      "properties": {
+        "name": "OS Tholen",
+        "type": "OS",
+        "location": "Tholen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.660, 51.750]
+      },
+      "properties": {
+        "name": "RS Brouwershaven",
+        "type": "RS",
+        "location": "Brouwershaven"
+      }
+    }
+  ]
+}

@@ -1,0 +1,461 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.478, 51.438]
+      },
+      "properties": {
+        "name": "OS Eindhoven",
+        "type": "OS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.495, 51.455]
+      },
+      "properties": {
+        "name": "OS Eindhoven Noord",
+        "type": "OS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.462, 51.420]
+      },
+      "properties": {
+        "name": "RS Eindhoven Zuid",
+        "type": "RS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.515, 51.432]
+      },
+      "properties": {
+        "name": "SS Eindhoven Oost",
+        "type": "SS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.445, 51.445]
+      },
+      "properties": {
+        "name": "OS Eindhoven West",
+        "type": "OS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.535, 51.465]
+      },
+      "properties": {
+        "name": "OS High Tech Campus",
+        "type": "OS",
+        "location": "Eindhoven"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.075, 51.558]
+      },
+      "properties": {
+        "name": "OS Tilburg",
+        "type": "OS",
+        "location": "Tilburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.092, 51.575]
+      },
+      "properties": {
+        "name": "RS Tilburg Noord",
+        "type": "RS",
+        "location": "Tilburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.058, 51.542]
+      },
+      "properties": {
+        "name": "OS Tilburg Zuid",
+        "type": "OS",
+        "location": "Tilburg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.775, 51.588]
+      },
+      "properties": {
+        "name": "OS Breda",
+        "type": "OS",
+        "location": "Breda"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.792, 51.605]
+      },
+      "properties": {
+        "name": "RS Breda Noord",
+        "type": "RS",
+        "location": "Breda"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.758, 51.572]
+      },
+      "properties": {
+        "name": "OS Breda Zuid",
+        "type": "OS",
+        "location": "Breda"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.305, 51.690]
+      },
+      "properties": {
+        "name": "OS 's-Hertogenbosch",
+        "type": "OS",
+        "location": "'s-Hertogenbosch"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.322, 51.705]
+      },
+      "properties": {
+        "name": "RS 's-Hertogenbosch Noord",
+        "type": "RS",
+        "location": "'s-Hertogenbosch"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.288, 51.675]
+      },
+      "properties": {
+        "name": "SS 's-Hertogenbosch Zuid",
+        "type": "SS",
+        "location": "'s-Hertogenbosch"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.660, 51.438]
+      },
+      "properties": {
+        "name": "OS Helmond",
+        "type": "OS",
+        "location": "Helmond"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.678, 51.452]
+      },
+      "properties": {
+        "name": "RS Helmond Noord",
+        "type": "RS",
+        "location": "Helmond"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.530, 51.768]
+      },
+      "properties": {
+        "name": "OS Oss",
+        "type": "OS",
+        "location": "Oss"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.548, 51.755]
+      },
+      "properties": {
+        "name": "RS Oss Zuid",
+        "type": "RS",
+        "location": "Oss"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.462, 51.530]
+      },
+      "properties": {
+        "name": "OS Roosendaal",
+        "type": "OS",
+        "location": "Roosendaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.290, 51.495]
+      },
+      "properties": {
+        "name": "OS Bergen op Zoom",
+        "type": "OS",
+        "location": "Bergen op Zoom"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.308, 51.510]
+      },
+      "properties": {
+        "name": "RS Bergen op Zoom Noord",
+        "type": "RS",
+        "location": "Bergen op Zoom"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.632, 51.588]
+      },
+      "properties": {
+        "name": "OS Etten-Leur",
+        "type": "OS",
+        "location": "Etten-Leur"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.215, 51.598]
+      },
+      "properties": {
+        "name": "OS Waalwijk",
+        "type": "OS",
+        "location": "Waalwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.382, 51.475]
+      },
+      "properties": {
+        "name": "OS Best",
+        "type": "OS",
+        "location": "Best"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.465, 51.625]
+      },
+      "properties": {
+        "name": "OS Veghel",
+        "type": "OS",
+        "location": "Veghel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.620, 51.355]
+      },
+      "properties": {
+        "name": "OS Valkenswaard",
+        "type": "OS",
+        "location": "Valkenswaard"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.185, 51.480]
+      },
+      "properties": {
+        "name": "RS Oisterwijk",
+        "type": "RS",
+        "location": "Oisterwijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.950, 51.590]
+      },
+      "properties": {
+        "name": "OS Oosterhout",
+        "type": "OS",
+        "location": "Oosterhout"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.850, 51.488]
+      },
+      "properties": {
+        "name": "OS Deurne",
+        "type": "OS",
+        "location": "Deurne"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.728, 51.648]
+      },
+      "properties": {
+        "name": "RS Uden",
+        "type": "RS",
+        "location": "Uden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.555, 51.440]
+      },
+      "properties": {
+        "name": "SS Woensdrecht",
+        "type": "SS",
+        "location": "Woensdrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.945, 51.535]
+      },
+      "properties": {
+        "name": "OS Gemert",
+        "type": "OS",
+        "location": "Gemert"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.098, 51.698]
+      },
+      "properties": {
+        "name": "OS Heusden",
+        "type": "OS",
+        "location": "Heusden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.835, 51.498]
+      },
+      "properties": {
+        "name": "RS Zundert",
+        "type": "RS",
+        "location": "Zundert"
+      }
+    }
+  ]
+}

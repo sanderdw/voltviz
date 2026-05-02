@@ -1,0 +1,305 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.562, 52.993]
+      },
+      "properties": {
+        "name": "OS Assen",
+        "type": "OS",
+        "location": "Assen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.578, 53.005]
+      },
+      "properties": {
+        "name": "RS Assen Noord",
+        "type": "RS",
+        "location": "Assen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.545, 52.978]
+      },
+      "properties": {
+        "name": "SS Assen Zuid",
+        "type": "SS",
+        "location": "Assen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.895, 52.783]
+      },
+      "properties": {
+        "name": "OS Emmen",
+        "type": "OS",
+        "location": "Emmen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.912, 52.798]
+      },
+      "properties": {
+        "name": "RS Emmen Noord",
+        "type": "RS",
+        "location": "Emmen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.878, 52.768]
+      },
+      "properties": {
+        "name": "OS Emmen Zuid",
+        "type": "OS",
+        "location": "Emmen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.475, 52.720]
+      },
+      "properties": {
+        "name": "OS Hoogeveen",
+        "type": "OS",
+        "location": "Hoogeveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.490, 52.735]
+      },
+      "properties": {
+        "name": "RS Hoogeveen Noord",
+        "type": "RS",
+        "location": "Hoogeveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.195, 52.695]
+      },
+      "properties": {
+        "name": "OS Meppel",
+        "type": "OS",
+        "location": "Meppel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.210, 52.708]
+      },
+      "properties": {
+        "name": "RS Meppel Noord",
+        "type": "RS",
+        "location": "Meppel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.742, 52.743]
+      },
+      "properties": {
+        "name": "OS Coevorden",
+        "type": "OS",
+        "location": "Coevorden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.518, 52.858]
+      },
+      "properties": {
+        "name": "OS Beilen",
+        "type": "OS",
+        "location": "Beilen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.618, 52.930]
+      },
+      "properties": {
+        "name": "OS Gieten",
+        "type": "OS",
+        "location": "Gieten"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.698, 52.855]
+      },
+      "properties": {
+        "name": "RS Borger",
+        "type": "RS",
+        "location": "Borger"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.335, 52.840]
+      },
+      "properties": {
+        "name": "OS Westerbork",
+        "type": "OS",
+        "location": "Westerbork"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.412, 52.925]
+      },
+      "properties": {
+        "name": "RS Smilde",
+        "type": "RS",
+        "location": "Smilde"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.275, 52.762]
+      },
+      "properties": {
+        "name": "OS De Wijk",
+        "type": "OS",
+        "location": "De Wijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.450, 52.950]
+      },
+      "properties": {
+        "name": "SS Norg",
+        "type": "SS",
+        "location": "Norg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.365, 53.058]
+      },
+      "properties": {
+        "name": "OS Roden",
+        "type": "OS",
+        "location": "Roden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.668, 52.950]
+      },
+      "properties": {
+        "name": "RS Gasselternijveen",
+        "type": "RS",
+        "location": "Gasselternijveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.600, 52.710]
+      },
+      "properties": {
+        "name": "SS Dedemsvaart",
+        "type": "SS",
+        "location": "Dedemsvaart"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.048, 52.758]
+      },
+      "properties": {
+        "name": "OS Klazienaveen",
+        "type": "OS",
+        "location": "Klazienaveen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.758, 52.698]
+      },
+      "properties": {
+        "name": "RS Dalen",
+        "type": "RS",
+        "location": "Dalen"
+      }
+    }
+  ]
+}

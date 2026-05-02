@@ -1,0 +1,396 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.085, 52.515]
+      },
+      "properties": {
+        "name": "OS Zwolle",
+        "type": "OS",
+        "location": "Zwolle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.102, 52.528]
+      },
+      "properties": {
+        "name": "RS Zwolle Noord",
+        "type": "RS",
+        "location": "Zwolle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.068, 52.498]
+      },
+      "properties": {
+        "name": "SS Zwolle Zuid",
+        "type": "SS",
+        "location": "Zwolle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.912, 52.555]
+      },
+      "properties": {
+        "name": "OS Kampen",
+        "type": "OS",
+        "location": "Kampen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.928, 52.540]
+      },
+      "properties": {
+        "name": "RS Kampen Zuid",
+        "type": "RS",
+        "location": "Kampen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.198, 52.358]
+      },
+      "properties": {
+        "name": "OS Deventer",
+        "type": "OS",
+        "location": "Deventer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.182, 52.372]
+      },
+      "properties": {
+        "name": "RS Deventer Noord",
+        "type": "RS",
+        "location": "Deventer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.215, 52.345]
+      },
+      "properties": {
+        "name": "OS Deventer Zuid",
+        "type": "OS",
+        "location": "Deventer"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.895, 52.218]
+      },
+      "properties": {
+        "name": "OS Enschede",
+        "type": "OS",
+        "location": "Enschede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.878, 52.232]
+      },
+      "properties": {
+        "name": "RS Enschede West",
+        "type": "RS",
+        "location": "Enschede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.912, 52.205]
+      },
+      "properties": {
+        "name": "OS Enschede Zuid",
+        "type": "OS",
+        "location": "Enschede"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.668, 52.350]
+      },
+      "properties": {
+        "name": "OS Almelo",
+        "type": "OS",
+        "location": "Almelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.688, 52.338]
+      },
+      "properties": {
+        "name": "RS Almelo Zuid",
+        "type": "RS",
+        "location": "Almelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.795, 52.262]
+      },
+      "properties": {
+        "name": "OS Hengelo",
+        "type": "OS",
+        "location": "Hengelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.765, 52.275]
+      },
+      "properties": {
+        "name": "SS Hengelo Noord",
+        "type": "SS",
+        "location": "Hengelo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.595, 52.430]
+      },
+      "properties": {
+        "name": "OS Raalte",
+        "type": "OS",
+        "location": "Raalte"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.505, 52.448]
+      },
+      "properties": {
+        "name": "RS Heino",
+        "type": "RS",
+        "location": "Heino"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.438, 52.492]
+      },
+      "properties": {
+        "name": "OS Dalfsen",
+        "type": "OS",
+        "location": "Dalfsen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.495, 52.575]
+      },
+      "properties": {
+        "name": "OS Hardenberg",
+        "type": "OS",
+        "location": "Hardenberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.462, 52.602]
+      },
+      "properties": {
+        "name": "RS Ommen",
+        "type": "RS",
+        "location": "Ommen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.628, 52.292]
+      },
+      "properties": {
+        "name": "OS Rijssen",
+        "type": "OS",
+        "location": "Rijssen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.422, 52.358]
+      },
+      "properties": {
+        "name": "OS Olst",
+        "type": "OS",
+        "location": "Olst"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.738, 52.440]
+      },
+      "properties": {
+        "name": "OS Nijverdal",
+        "type": "OS",
+        "location": "Nijverdal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.845, 52.298]
+      },
+      "properties": {
+        "name": "SS Borne",
+        "type": "SS",
+        "location": "Borne"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.608, 52.218]
+      },
+      "properties": {
+        "name": "OS Wierden",
+        "type": "OS",
+        "location": "Wierden"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.255, 52.468]
+      },
+      "properties": {
+        "name": "RS Wijhe",
+        "type": "RS",
+        "location": "Wijhe"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.948, 52.315]
+      },
+      "properties": {
+        "name": "RS Oldenzaal",
+        "type": "RS",
+        "location": "Oldenzaal"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.128, 52.478]
+      },
+      "properties": {
+        "name": "OS Hasselt",
+        "type": "OS",
+        "location": "Hasselt"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.542, 52.518]
+      },
+      "properties": {
+        "name": "OS Vroomshoop",
+        "type": "OS",
+        "location": "Vroomshoop"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6.752, 52.178]
+      },
+      "properties": {
+        "name": "OS Haaksbergen",
+        "type": "OS",
+        "location": "Haaksbergen"
+      }
+    }
+  ]
+}

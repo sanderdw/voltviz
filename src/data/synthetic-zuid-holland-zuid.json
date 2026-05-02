@@ -1,0 +1,396 @@
+{
+  "type": "FeatureCollection",
+  "synthetic": true,
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.673, 51.813]
+      },
+      "properties": {
+        "name": "OS Dordrecht",
+        "type": "OS",
+        "location": "Dordrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.690, 51.828]
+      },
+      "properties": {
+        "name": "OS Dordrecht Noord",
+        "type": "OS",
+        "location": "Dordrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.655, 51.798]
+      },
+      "properties": {
+        "name": "RS Dordrecht Zuid",
+        "type": "RS",
+        "location": "Dordrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.708, 51.808]
+      },
+      "properties": {
+        "name": "SS Dordrecht Oost",
+        "type": "SS",
+        "location": "Dordrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.490, 51.868]
+      },
+      "properties": {
+        "name": "OS Spijkenisse",
+        "type": "OS",
+        "location": "Spijkenisse"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.512, 51.855]
+      },
+      "properties": {
+        "name": "RS Spijkenisse Zuid",
+        "type": "RS",
+        "location": "Spijkenisse"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.358, 51.920]
+      },
+      "properties": {
+        "name": "OS Hellevoetsluis",
+        "type": "OS",
+        "location": "Hellevoetsluis"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.310, 51.918]
+      },
+      "properties": {
+        "name": "RS Hellevoetsluis West",
+        "type": "RS",
+        "location": "Hellevoetsluis"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.095, 51.788]
+      },
+      "properties": {
+        "name": "OS Middelharnis",
+        "type": "OS",
+        "location": "Middelharnis"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.968, 51.758]
+      },
+      "properties": {
+        "name": "RS Ouddorp",
+        "type": "RS",
+        "location": "Ouddorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.185, 51.810]
+      },
+      "properties": {
+        "name": "OS Oude-Tonge",
+        "type": "OS",
+        "location": "Oude-Tonge"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.305, 51.838]
+      },
+      "properties": {
+        "name": "OS Oud-Beijerland",
+        "type": "OS",
+        "location": "Oud-Beijerland"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.425, 51.828]
+      },
+      "properties": {
+        "name": "RS 's-Gravendeel",
+        "type": "RS",
+        "location": "'s-Gravendeel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.560, 51.818]
+      },
+      "properties": {
+        "name": "OS Zwijndrecht",
+        "type": "OS",
+        "location": "Zwijndrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.588, 51.832]
+      },
+      "properties": {
+        "name": "OS Hendrik-Ido-Ambacht",
+        "type": "OS",
+        "location": "Hendrik-Ido-Ambacht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.620, 51.845]
+      },
+      "properties": {
+        "name": "OS Ridderkerk",
+        "type": "OS",
+        "location": "Ridderkerk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.548, 51.862]
+      },
+      "properties": {
+        "name": "OS Barendrecht",
+        "type": "OS",
+        "location": "Barendrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.632, 51.862]
+      },
+      "properties": {
+        "name": "RS Alblasserdam",
+        "type": "RS",
+        "location": "Alblasserdam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.698, 51.862]
+      },
+      "properties": {
+        "name": "OS Papendrecht",
+        "type": "OS",
+        "location": "Papendrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.708, 51.882]
+      },
+      "properties": {
+        "name": "OS Sliedrecht",
+        "type": "OS",
+        "location": "Sliedrecht"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.835, 51.865]
+      },
+      "properties": {
+        "name": "OS Gorinchem",
+        "type": "OS",
+        "location": "Gorinchem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.852, 51.878]
+      },
+      "properties": {
+        "name": "RS Gorinchem Noord",
+        "type": "RS",
+        "location": "Gorinchem"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.758, 51.908]
+      },
+      "properties": {
+        "name": "OS Leerdam",
+        "type": "OS",
+        "location": "Leerdam"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.712, 51.925]
+      },
+      "properties": {
+        "name": "OS Vianen",
+        "type": "OS",
+        "location": "Vianen"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.628, 51.918]
+      },
+      "properties": {
+        "name": "RS Groot-Ammers",
+        "type": "RS",
+        "location": "Groot-Ammers"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.702, 51.948]
+      },
+      "properties": {
+        "name": "OS Nieuwegein",
+        "type": "OS",
+        "location": "Nieuwegein"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.582, 51.928]
+      },
+      "properties": {
+        "name": "OS Kinderdijk",
+        "type": "OS",
+        "location": "Kinderdijk"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.475, 51.942]
+      },
+      "properties": {
+        "name": "SS Hoogvliet",
+        "type": "SS",
+        "location": "Hoogvliet"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.342, 51.878]
+      },
+      "properties": {
+        "name": "OS Numansdorp",
+        "type": "OS",
+        "location": "Numansdorp"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 30,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.205, 51.862]
+      },
+      "properties": {
+        "name": "RS Strijen",
+        "type": "RS",
+        "location": "Strijen"
+      }
+    }
+  ]
+}
