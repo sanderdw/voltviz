@@ -43,7 +43,10 @@ type VisualizerType =
   | 'backgroundimagesendspin'
   | 'icons'
   | 'milkdrop'
-  | 'milkdropwarp';
+  | 'milkdropwarp'
+  | 'aurorawaves'
+  | 'msdefrag'
+  | 'fractalorb';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -108,6 +111,9 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   icons: lazy(() => import('./components/visualizers/Icons')),
   milkdrop: lazy(() => import('./components/visualizers/MilkDrop')),
   milkdropwarp: lazy(() => import('./components/visualizers/MilkDropWarp')),
+  aurorawaves: lazy(() => import('./components/visualizers/AuroraWaves')),
+  msdefrag: lazy(() => import('./components/visualizers/MsDefrag')),
+  fractalorb: lazy(() => import('./components/visualizers/FractalOrb')),
 };
 
 export default function App() {
@@ -401,6 +407,9 @@ export default function App() {
                     <option value="hexglobe" className="bg-gray-900">Hex Globe</option>
                     <option value="milkdrop" className="bg-gray-900">MilkDrop</option>
                     <option value="milkdropwarp" className="bg-gray-900">MilkDrop Warp</option>
+                    <option value="aurorawaves" className="bg-gray-900">Aurora Waves</option>
+                    <option value="msdefrag" className="bg-gray-900">MS Defrag</option>
+                    <option value="fractalorb" className="bg-gray-900">Fractal Orb</option>
                     <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>

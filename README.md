@@ -8,21 +8,22 @@
 
 ## 🎨 Features
 
-![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.183-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
+![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.184-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
 [![Voltviz](images/voltviz.png)](https://voltviz.com)
 ---
 
-VoltViz comes with **30+ stunning visualization styles** to choose from:
+VoltViz comes with **40+ stunning visualization styles** to choose from:
 
 - **Particle Effects**: Cosmic Particles, Fireworks Show
-- **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Neon Hex Tunnel, Neon Wave
-- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer
-- **Retro Styles**: CRT Terminal, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend
+- **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Neon Hex Tunnel, Neon Wave, Aurora Waves
+- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb
+- **Retro Styles**: CRT Terminal, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
 - **Festival Vibes**: Festival Stage, Defqon Mainstage, Disney Drone Show
 - **Organic Effects**: Fluid Smoke, Ghost Rainbow, Psychedelic Skull, Flame
 - **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard
-- **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, and Sendspin variants...
+- **MilkDrop-inspired**: MilkDrop, MilkDrop Warp
+- **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons, and Sendspin variants...
 
 **Core Capabilities:**
 - 🎤 **Real-time Audio Input**: Connect microphone, capture system audio, or stream from a [Sendspin](https://www.sendspin-audio.com) server
@@ -146,7 +147,7 @@ http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `viz` | Visualizer name (e.g. `tunnel`, `sphere`, `festival`) | `sphere` |
+| `viz` | Visualizer name (e.g. `tunnel`, `polysphere`, `fractalorb`) | `polysphere` |
 | `sensitivity` | Audio reactivity multiplier (0.1–3.0) | `1.0` |
 | `speed` | Animation speed multiplier (0.1–3.0) | `1.0` |
 | `hueShift` | Color shift in degrees (0–360) | `0` |
