@@ -251,6 +251,29 @@ export default function App() {
     }
   };
 
+  const unhidePlayerInMA = (playerId: string) => {
+    try {
+      const base = new URL('ma-api-proxy/ws', window.location.href);
+      base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(base.href);
+      let commandSent = false;
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (!commandSent && msg.server_version) {
+          commandSent = true;
+          ws.send(JSON.stringify({
+            message_id: crypto.randomUUID().replace(/-/g, ''),
+            command: 'config/players/save',
+            args: { player_id: playerId, values: { hide_in_ui: false } }
+          }));
+          setTimeout(() => ws.close(), 2000);
+        }
+      };
+      ws.onerror = () => ws.close();
+    } catch { /* not running in HA add-on context */ }
+  };
+
   const startSendspin = async (url?: string) => {
     const serverUrl = url || sendspinUrl;
     try {
@@ -300,6 +323,8 @@ export default function App() {
       await player.connect();
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
+
+      unhidePlayerInMA(sendspinClientIdRef.current);
 
       setError(null);
       updateSendspin({ active: true });

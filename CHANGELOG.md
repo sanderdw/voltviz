@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0] - 2026-05-12
+
+### Fixed
+- Music Assistant player visibility: Sendspin player is now unhidden in Music Assistant after connecting, so it is visible in the UI.
+
+### Changed
+- Updated npm lockfile metadata (`package-lock.json`) to match the current toolchain and package manifest.
+
 ## [0.16.0] - 2026-05-05
 
 ### Added
