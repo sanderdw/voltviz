@@ -262,8 +262,11 @@ export default function App() {
         const msg = JSON.parse(event.data);
         if (!commandSent && msg.server_version) {
           commandSent = true;
+          const msgId = typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID().replace(/-/g, '')
+            : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
           ws.send(JSON.stringify({
-            message_id: crypto.randomUUID().replace(/-/g, ''),
+            message_id: msgId,
             command: 'config/players/save',
             args: { player_id: playerId, values: { hide_in_ui: false } }
           }));
