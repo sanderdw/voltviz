@@ -259,7 +259,8 @@ export default function App() {
       if (!ingress_entry) return;
 
       const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(`${wsProto}//${window.location.host}${ingress_entry}ws`);
+      const ingressPath = ingress_entry.endsWith('/') ? ingress_entry : ingress_entry + '/';
+      const ws = new WebSocket(`${wsProto}//${window.location.host}${ingressPath}ws`);
       let commandSent = false;
 
       ws.onmessage = (event) => {
