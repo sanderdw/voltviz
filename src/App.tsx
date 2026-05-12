@@ -251,20 +251,22 @@ export default function App() {
     }
   };
 
-  const unhidePlayerInMA = (playerId: string) => {
+  const unhidePlayerInMA = async (playerId: string) => {
     try {
-      const base = new URL('ma-api-proxy/ws', window.location.href);
-      base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(base.href);
+      const configResp = await fetch(new URL('ma-config.json', window.location.href).href);
+      if (!configResp.ok) return;
+      const { ingress_entry } = await configResp.json();
+      if (!ingress_entry) return;
+
+      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${wsProto}//${window.location.host}${ingress_entry}ws`);
       let commandSent = false;
 
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         if (!commandSent && msg.server_version) {
           commandSent = true;
-          const msgId = typeof crypto.randomUUID === 'function'
-            ? crypto.randomUUID().replace(/-/g, '')
-            : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+          const msgId = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
           ws.send(JSON.stringify({
             message_id: msgId,
             command: 'config/players/save',
