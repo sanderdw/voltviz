@@ -1,1 +1,195 @@
 @import "tailwindcss";
+
+.skin-90s {
+  image-rendering: pixelated;
+}
+
+
+.skin-90s input[type="range"] {
+  height: 20px;
+}
+
+.skin-90s input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 20px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: white #808080 #808080 white;
+  cursor: pointer;
+}
+
+.skin-90s input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #808080;
+  border: 1px solid;
+  border-color: #808080 white white #808080;
+}
+
+
+.skin-winamp input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  background: transparent;
+}
+
+.skin-winamp input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #0a0a14;
+  border: 2px solid;
+  border-color: #1a1a2a #6a6a7a #6a6a7a #1a1a2a;
+}
+
+.skin-winamp input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: #3a3a4a;
+  border: 2px solid;
+  border-color: #6a6a7a #1a1a2a #1a1a2a #6a6a7a;
+  cursor: pointer;
+}
+
+.skin-crt {
+  text-shadow: 0 0 4px rgba(255, 176, 0, 0.6);
+}
+
+.skin-crt::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+.skin-crt::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 99;
+}
+
+
+.skin-crt input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  background: transparent;
+}
+
+.skin-crt input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: #ffb000;
+  box-shadow: 0 0 4px rgba(255, 176, 0, 0.4);
+}
+
+.skin-crt input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  background: #ffb000;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(255, 176, 0, 0.6);
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 1; }
+  5% { opacity: 0.97; }
+  10% { opacity: 1; }
+  15% { opacity: 0.98; }
+  20% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.skin-crt > * {
+  animation: crt-flicker 8s infinite;
+}
+
+.skin-sonique input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  background: transparent;
+}
+
+.skin-sonique input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, #004499, #00ccbb);
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0, 204, 187, 0.3);
+}
+
+.skin-sonique input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  background: radial-gradient(circle, #00ccbb, #006655);
+  border: 1px solid #00ccbb;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 204, 187, 0.5);
+}
+
+.skin-pioneer input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  background: transparent;
+}
+
+.skin-pioneer input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: #2a2a2a;
+  border-radius: 2px;
+}
+
+.skin-pioneer input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: #1a1a1a;
+  border: 2px solid #0088ff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 136, 255, 0.4);
+}
+
+.skin-wmp input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  background: transparent;
+}
+
+.skin-wmp input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #1b3a6b;
+  border-radius: 2px;
+  border: 1px solid #3568b8;
+}
+
+.skin-wmp input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 14px;
+  margin-top: -6px;
+  background: linear-gradient(to bottom, #5b9ef5, #2b5090);
+  border: 1px solid #4488dd;
+  border-radius: 2px;
+  cursor: pointer;
+}
