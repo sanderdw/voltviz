@@ -45,6 +45,21 @@ export default function AudioDebug({ stream, settings }: Props) {
     source.connect(kickAnalyser);
     sourceRef.current = source;
 
+    // Stereo channel splitting for phase/correlation panel
+    const splitter = audioCtx.createChannelSplitter(2);
+    source.connect(splitter);
+    const analyserL = audioCtx.createAnalyser();
+    analyserL.fftSize = 2048;
+    analyserL.smoothingTimeConstant = 0;
+    const analyserR = audioCtx.createAnalyser();
+    analyserR.fftSize = 2048;
+    analyserR.smoothingTimeConstant = 0;
+    splitter.connect(analyserL, 0);
+    splitter.connect(analyserR, 1);
+    const stereoN = analyserL.fftSize;
+    const bufL = new Float32Array(stereoN);
+    const bufR = new Float32Array(stereoN);
+
     const bufferLength = analyser.frequencyBinCount;
     const freqData = new Uint8Array(bufferLength);
     const timeData = new Uint8Array(analyser.fftSize);
@@ -61,6 +76,14 @@ export default function AudioDebug({ stream, settings }: Props) {
     const KICK_COOLDOWN = 120;
     const HISTORY_SIZE = 90;
     const FLUX_HISTORY_SIZE = 60;
+
+    // Spectrogram state
+    let spectrogramImageData: ImageData | null = null;
+    let spectrogramW = 0;
+    let spectrogramH = 0;
+
+    // Stereo correlation state
+    let smoothedCorrelation = 0;
 
     const resize = () => {
       if (containerRef.current && canvasRef.current) {
@@ -184,7 +207,7 @@ export default function AudioDebug({ stream, settings }: Props) {
       // Layout
       const margin = 16;
       const panelW = (w - margin * 3) / 2;
-      const panelH = (h - margin * 4) / 3;
+      const panelH = (h - margin * 5) / 4;
 
       // Panel backgrounds
       const drawPanel = (x: number, y: number, pw: number, ph: number, title: string, flash = false) => {
@@ -488,6 +511,204 @@ export default function AudioDebug({ stream, settings }: Props) {
       ctx.font = '9px monospace';
       ctx.fillText('OVERALL LEVEL', tlX, meterY + meterH + 12);
       ctx.fillText(`${(overallEnergy * 100).toFixed(0)}%`, tlX + tlW - 30, meterY + meterH + 12);
+
+      // 7. Spectrogram (bottom-left)
+      drawPanel(margin, margin * 4 + panelH * 3, panelW, panelH, 'SPECTROGRAM');
+      const sgX = margin + 8;
+      const sgY = margin * 4 + panelH * 3 + 24;
+      const sgW = Math.floor(panelW - 16);
+      const sgH = Math.floor(panelH - 32);
+
+      if (sgW > 0 && sgH > 0) {
+        if (!spectrogramImageData || spectrogramW !== sgW || spectrogramH !== sgH) {
+          spectrogramImageData = ctx.createImageData(sgW, sgH);
+          spectrogramW = sgW;
+          spectrogramH = sgH;
+        }
+
+        const data = spectrogramImageData.data;
+        const rowBytes = sgW * 4;
+
+        // Shift all pixels left by 1 column
+        for (let row = 0; row < sgH; row++) {
+          const rowStart = row * rowBytes;
+          data.copyWithin(rowStart, rowStart + 4, rowStart + rowBytes);
+        }
+
+        // Write new column on the right edge (log-frequency mapping)
+        const minFreq = 20;
+        const maxFreq = sampleRate / 2;
+        const logMin = Math.log10(minFreq);
+        const logMax = Math.log10(maxFreq);
+
+        for (let py = 0; py < sgH; py++) {
+          const t = 1 - py / (sgH - 1);
+          const logFreq = logMin + t * (logMax - logMin);
+          const freq = Math.pow(10, logFreq);
+          const bin = Math.min(Math.round(freq / binHz), bufferLength - 1);
+          const intensity = Math.min(1, (freqData[bin] / 255) * s.sensitivity);
+
+          let r: number, g: number, b: number;
+          if (intensity < 0.2) {
+            const it = intensity / 0.2;
+            r = Math.floor(it * 40); g = 0; b = Math.floor(it * 80);
+          } else if (intensity < 0.45) {
+            const it = (intensity - 0.2) / 0.25;
+            r = Math.floor(40 + it * 215); g = 0; b = Math.floor(80 - it * 80);
+          } else if (intensity < 0.7) {
+            const it = (intensity - 0.45) / 0.25;
+            r = 255; g = Math.floor(it * 255); b = 0;
+          } else {
+            const it = (intensity - 0.7) / 0.3;
+            r = 255; g = 255; b = Math.floor(it * 255);
+          }
+
+          const idx = (py * sgW + (sgW - 1)) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
+          data[idx + 3] = 255;
+        }
+
+        ctx.putImageData(spectrogramImageData, sgX, sgY);
+
+        // Frequency labels on left edge
+        ctx.fillStyle = '#555566';
+        ctx.font = '9px monospace';
+        const sgFreqLabels = [100, 1000, 5000, 10000];
+        for (const freq of sgFreqLabels) {
+          const t2 = (Math.log10(freq) - logMin) / (logMax - logMin);
+          const ly = sgY + sgH - t2 * sgH;
+          if (ly > sgY && ly < sgY + sgH - 8) {
+            ctx.fillText(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, sgX + 2, ly + 3);
+          }
+        }
+      }
+
+      // 8. Stereo Phase / Correlation (bottom-right)
+      drawPanel(margin * 2 + panelW, margin * 4 + panelH * 3, panelW, panelH, 'STEREO PHASE / CORRELATION');
+      const phX = margin * 2 + panelW + 8;
+      const phY = margin * 4 + panelH * 3 + 24;
+      const phW = panelW - 16;
+      const phH = panelH - 32;
+
+      if (phW > 0 && phH > 0) {
+        analyserL.getFloatTimeDomainData(bufL);
+        analyserR.getFloatTimeDomainData(bufR);
+
+        // Mono detection + correlation calculation
+        let sumLR = 0, sumL2 = 0, sumR2 = 0;
+        let monoDetected = true;
+        for (let i = 0; i < stereoN; i++) {
+          sumLR += bufL[i] * bufR[i];
+          sumL2 += bufL[i] * bufL[i];
+          sumR2 += bufR[i] * bufR[i];
+          if (Math.abs(bufR[i] - bufL[i]) > 1e-5) monoDetected = false;
+        }
+        const rmsR2 = Math.sqrt(sumR2 / stereoN);
+        if (rmsR2 < 1e-5) monoDetected = true;
+
+        const denom = Math.sqrt(sumL2 * sumR2);
+        const correlation = denom > 1e-10 ? sumLR / denom : 0;
+        smoothedCorrelation += (correlation - smoothedCorrelation) * 0.15;
+
+        // Lissajous XY plot (left ~60%)
+        const lissSize = Math.min(phW * 0.55, phH - 10);
+        const lissCx = phX + lissSize / 2 + 5;
+        const lissCy = phY + phH / 2;
+        const lissR = lissSize / 2;
+
+        // Crosshair guides
+        ctx.strokeStyle = 'rgba(80, 80, 120, 0.3)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(lissCx - lissR, lissCy);
+        ctx.lineTo(lissCx + lissR, lissCy);
+        ctx.moveTo(lissCx, lissCy - lissR);
+        ctx.lineTo(lissCx, lissCy + lissR);
+        ctx.stroke();
+
+        // Circular boundary
+        ctx.beginPath();
+        ctx.arc(lissCx, lissCy, lissR, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(80, 80, 120, 0.2)';
+        ctx.stroke();
+
+        // Plot samples
+        const step = Math.max(1, Math.floor(stereoN / 512));
+        const lissHue = (180 + s.hueShift) % 360;
+        ctx.fillStyle = `hsla(${lissHue}, 80%, 60%, 0.4)`;
+        for (let i = 0; i < stereoN; i += step) {
+          const lx = lissCx + bufL[i] * lissR * s.sensitivity;
+          const ly = lissCy - bufR[i] * lissR * s.sensitivity;
+          ctx.fillRect(lx - 0.5, ly - 0.5, 1.5, 1.5);
+        }
+
+        // Axis labels
+        ctx.fillStyle = '#555566';
+        ctx.font = '9px monospace';
+        ctx.fillText('L', lissCx - lissR - 10, lissCy + 3);
+        ctx.fillText('R', lissCx + lissR + 4, lissCy + 3);
+
+        // Mono indicator
+        if (monoDetected) {
+          ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
+          ctx.font = 'bold 12px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('MONO', lissCx, lissCy + lissR + 14);
+          ctx.textAlign = 'left';
+        }
+
+        // Correlation meter (right side)
+        const meterX2 = phX + lissSize + 30;
+        const meterW2 = 20;
+        const meterTop = phY + 5;
+        const meterBottom = phY + phH - 5;
+        const meterH2 = meterBottom - meterTop;
+        const meterMid = meterTop + meterH2 / 2;
+
+        // Background
+        ctx.fillStyle = 'rgba(40, 40, 60, 0.5)';
+        ctx.fillRect(meterX2, meterTop, meterW2, meterH2);
+
+        // Zone coloring
+        ctx.fillStyle = 'rgba(50, 180, 50, 0.15)';
+        ctx.fillRect(meterX2, meterTop, meterW2, meterH2 * 0.25);
+        ctx.fillStyle = 'rgba(180, 180, 50, 0.10)';
+        ctx.fillRect(meterX2, meterTop + meterH2 * 0.25, meterW2, meterH2 * 0.5);
+        ctx.fillStyle = 'rgba(180, 50, 50, 0.15)';
+        ctx.fillRect(meterX2, meterTop + meterH2 * 0.75, meterW2, meterH2 * 0.25);
+
+        // Center line (0 mark)
+        ctx.strokeStyle = 'rgba(80, 80, 120, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(meterX2, meterMid);
+        ctx.lineTo(meterX2 + meterW2, meterMid);
+        ctx.stroke();
+
+        // Indicator
+        const indicatorY = meterMid - smoothedCorrelation * (meterH2 / 2);
+        const corrHue = smoothedCorrelation > 0.5 ? 120 : smoothedCorrelation > 0 ? 60 : 0;
+        ctx.fillStyle = `hsla(${(corrHue + s.hueShift) % 360}, 80%, 50%, 0.9)`;
+        ctx.fillRect(meterX2, Math.min(indicatorY, meterMid), meterW2, Math.abs(indicatorY - meterMid));
+
+        // Indicator line
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(meterX2 - 2, indicatorY - 1, meterW2 + 4, 3);
+
+        // Labels
+        ctx.fillStyle = '#888899';
+        ctx.font = '9px monospace';
+        ctx.fillText('+1', meterX2 + meterW2 + 4, meterTop + 4);
+        ctx.fillText(' 0', meterX2 + meterW2 + 4, meterMid + 3);
+        ctx.fillText('-1', meterX2 + meterW2 + 4, meterBottom + 3);
+
+        // Numeric readout
+        ctx.fillStyle = '#aaaacc';
+        ctx.font = '11px monospace';
+        ctx.fillText(`r = ${smoothedCorrelation.toFixed(2)}`, meterX2 + meterW2 + 4, meterBottom + 18);
+      }
     };
 
     draw();
@@ -496,6 +717,7 @@ export default function AudioDebug({ stream, settings }: Props) {
       window.removeEventListener('resize', resize);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (sourceRef.current) sourceRef.current.disconnect();
+      splitter.disconnect();
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close();
       }
