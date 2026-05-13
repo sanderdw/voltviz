@@ -55,7 +55,7 @@ const fragmentShader = `
     float b = 0.3 * uAsymmetry;
     mat2 rotAsym2 = mat2(cos(b), sin(b), -sin(b), cos(b));
 
-    for (int step = 0; step < 12; ++step) {
+    for (int step = 0; step < 8; ++step) {
       if (float(step) >= uFractalIters) break;
 
       pos.xy *= rotAnim;
@@ -98,7 +98,7 @@ const fragmentShader = `
     vec3 finalEnergy = vec3(0.0);
     float fieldVal = 0.0;
 
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 48; i++) {
       currentDepth += marchStep * exp(-2.0 * fieldVal);
       if (currentDepth > limits.y) break;
 
@@ -227,18 +227,39 @@ export default function FractalOrb({ stream, settings }: Props) {
     // Audio
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioCtxRef.current = audioCtx;
+
+    // Main analyser for smooth visual response
     const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.8;
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.7;
+
+    // Separate analyser for kick detection (minimal smoothing for transient response)
+    const kickAnalyser = audioCtx.createAnalyser();
+    kickAnalyser.fftSize = 1024;
+    kickAnalyser.smoothingTimeConstant = 0.2;
+
     const source = audioCtx.createMediaStreamSource(stream);
     source.connect(analyser);
+    source.connect(kickAnalyser);
     sourceRef.current = source;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    // Kick detection state
+    const kickBufferLength = kickAnalyser.frequencyBinCount;
+    const kickFreqData = new Uint8Array(kickBufferLength);
+    const prevKickFreqData = new Float32Array(kickBufferLength);
+    let lastKickTime = 0;
+    let fluxHistory: number[] = [];
+    let kickEnergy = 0;
+    const KICK_COOLDOWN = 120;
+    const FLUX_HISTORY_SIZE = 60;
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: false });
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     while (container.firstChild) container.removeChild(container.firstChild);
     container.appendChild(renderer.domElement);
@@ -303,7 +324,7 @@ export default function FractalOrb({ stream, settings }: Props) {
       blending: THREE.AdditiveBlending,
     });
 
-    const geometry = new THREE.SphereGeometry(2.0, 128, 128);
+    const geometry = new THREE.SphereGeometry(2.0, 64, 64);
     const orb = new THREE.Mesh(geometry, material);
     scene.add(orb);
 
@@ -313,7 +334,7 @@ export default function FractalOrb({ stream, settings }: Props) {
 
     // Post-processing
     const composer = new EffectComposer(renderer);
-    composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
     composer.setSize(w, h);
     composer.addPass(new RenderPass(scene, camera));
     const caPass = new ShaderPass(ChromaticAberrationShader);
@@ -324,32 +345,82 @@ export default function FractalOrb({ stream, settings }: Props) {
     const localCam = new THREE.Vector3();
     const tmpPrimary = new THREE.Color();
     const tmpSecondary = new THREE.Color();
-    let smoothedAmp = 0;
+    let smoothedBass = 0;
+    let smoothedMids = 0;
+    let smoothedHighs = 0;
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
       const s = settingsRef.current;
+      const now = performance.now();
 
+      // Frequency band analysis (matching AudioDebug Hz-based boundaries)
       analyser.getByteFrequencyData(dataArray);
-      const binCount = dataArray.length;
-      const bassEnd = Math.floor(binCount * 0.15);
-      const midsEnd = Math.floor(binCount * 0.55);
-      let bassSum = 0, midsSum = 0, highsSum = 0;
-      for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
-      for (let i = bassEnd; i < midsEnd; i++) midsSum += dataArray[i];
-      for (let i = midsEnd; i < binCount; i++) highsSum += dataArray[i];
-      const bass = (bassSum / (bassEnd * 255)) * s.sensitivity;
-      const mids = (midsSum / ((midsEnd - bassEnd) * 255)) * s.sensitivity;
-      const highs = (highsSum / ((binCount - midsEnd) * 255)) * s.sensitivity;
-      const amp = (bass + mids + highs) / 3;
-      smoothedAmp += (amp - smoothedAmp) * 0.15;
+      const sampleRate = audioCtx.sampleRate;
+      const binHz = sampleRate / analyser.fftSize;
+
+      const subBassEnd = Math.min(Math.floor(60 / binHz), bufferLength);
+      const bassEnd = Math.min(Math.floor(250 / binHz), bufferLength);
+      const midEnd = Math.min(Math.floor(2000 / binHz), bufferLength);
+      const highMidEnd = Math.min(Math.floor(6000 / binHz), bufferLength);
+
+      const bandEnergy = (start: number, end: number) => {
+        let sum = 0;
+        for (let i = start; i < end; i++) sum += dataArray[i];
+        return end > start ? (sum / ((end - start) * 255)) : 0;
+      };
+
+      const subBass = bandEnergy(0, subBassEnd) * s.sensitivity;
+      const bass = bandEnergy(subBassEnd, bassEnd) * s.sensitivity;
+      const mids = bandEnergy(bassEnd, midEnd) * s.sensitivity;
+      const highMids = bandEnergy(midEnd, highMidEnd) * s.sensitivity;
+      const highs = bandEnergy(highMidEnd, bufferLength) * s.sensitivity;
+
+      // Smooth the values for visual response
+      smoothedBass += ((subBass + bass) * 0.5 - smoothedBass) * 0.2;
+      smoothedMids += (mids - smoothedMids) * 0.15;
+      smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
+
+      // Kick detection using spectral flux (matching AudioDebug algorithm)
+      kickAnalyser.getByteFrequencyData(kickFreqData);
+      const kickBinHz = sampleRate / kickAnalyser.fftSize;
+      const kickBassEnd2 = Math.min(Math.floor(150 / kickBinHz), kickBufferLength);
+
+      let flux = 0;
+      for (let i = 1; i < kickBassEnd2; i++) {
+        const diff = kickFreqData[i] - prevKickFreqData[i];
+        if (diff > 0) flux += diff;
+      }
+      flux /= kickBassEnd2 * 255;
+
+      for (let i = 0; i < kickBufferLength; i++) {
+        prevKickFreqData[i] = kickFreqData[i];
+      }
+
+      fluxHistory.push(flux);
+      if (fluxHistory.length > FLUX_HISTORY_SIZE) fluxHistory.shift();
+
+      // Adaptive threshold: median + factor * stddev + floor
+      const sortedFlux = [...fluxHistory].sort((a, b) => a - b);
+      const medianFlux = sortedFlux[Math.floor(sortedFlux.length / 2)] || 0;
+      const meanFlux = fluxHistory.reduce((a, b) => a + b, 0) / fluxHistory.length;
+      const stdFlux = Math.sqrt(fluxHistory.reduce((a, b) => a + (b - meanFlux) ** 2, 0) / fluxHistory.length);
+      const kickThreshold = medianFlux + stdFlux * 1.2 + 0.02;
+
+      const isKick = flux > kickThreshold && (now - lastKickTime) > KICK_COOLDOWN;
+      if (isKick) {
+        lastKickTime = now;
+        kickEnergy = 1.0;
+      }
+      // Decay kick energy for visual response
+      kickEnergy *= 0.88;
 
       const delta = clock.getDelta();
-      orbUniforms.uTime.value += delta * (0.5 + mids * 0.6) * s.speed;
-      orbUniforms.uDensity.value = BASE_DENSITY * (1.0 + bass * 0.8);
-      orbUniforms.uInternalAnim.value = BASE_INTERNAL_ANIM * (1.0 + mids * 1.2);
-      atmosphereUniforms.uGlow.value = BASE_GLOW + bass * 0.6;
-      caPass.uniforms.uAmount.value = BASE_CA + highs * 0.04;
+      orbUniforms.uTime.value += delta * (0.5 + smoothedMids * 0.6) * s.speed;
+      orbUniforms.uDensity.value = BASE_DENSITY * (1.0 + smoothedBass * 0.8 + kickEnergy * 1.5);
+      orbUniforms.uInternalAnim.value = BASE_INTERNAL_ANIM * (1.0 + smoothedMids * 1.2);
+      atmosphereUniforms.uGlow.value = BASE_GLOW + smoothedBass * 0.6 + kickEnergy * 0.8;
+      caPass.uniforms.uAmount.value = BASE_CA + smoothedHighs * 0.04 + kickEnergy * 0.06;
 
       // Hue shift the base colors
       const hueDelta = s.hueShift / 360;
@@ -359,8 +430,8 @@ export default function FractalOrb({ stream, settings }: Props) {
       orbUniforms.uSecondaryColor.value.copy(tmpSecondary);
       atmosphereUniforms.uColor.value.copy(tmpPrimary);
 
-      // Pulse + scale
-      const targetScale = s.scale * (1.0 + smoothedAmp * 0.08);
+      // Pulse + scale — kicks cause a visible pop
+      const targetScale = s.scale * (1.0 + smoothedBass * 0.08 + kickEnergy * 0.15);
       orb.scale.setScalar(targetScale);
 
       // Auto-rotation
@@ -400,6 +471,7 @@ export default function FractalOrb({ stream, settings }: Props) {
       atmosphereMaterial.dispose();
       composer.dispose();
       renderer.dispose();
+      kickAnalyser.disconnect();
     };
   }, [stream]);
 
