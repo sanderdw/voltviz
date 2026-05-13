@@ -46,7 +46,9 @@ type VisualizerType =
   | 'milkdropwarp'
   | 'aurorawaves'
   | 'msdefrag'
-  | 'fractalorb';
+  | 'fractalorb'
+  | 'mossball'
+  | 'razor1911';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -114,6 +116,8 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   aurorawaves: lazy(() => import('./components/visualizers/AuroraWaves')),
   msdefrag: lazy(() => import('./components/visualizers/MsDefrag')),
   fractalorb: lazy(() => import('./components/visualizers/FractalOrb')),
+  mossball: lazy(() => import('./components/visualizers/MossBall')),
+  razor1911: lazy(() => import('./components/visualizers/Razor1911')),
 };
 
 export default function App() {
@@ -251,6 +255,35 @@ export default function App() {
     }
   };
 
+  const unhidePlayerInMA = async (playerId: string) => {
+    try {
+      const configResp = await fetch(new URL('ma-config.json', window.location.href).href);
+      if (!configResp.ok) return;
+      const { ingress_entry } = await configResp.json();
+      if (!ingress_entry) return;
+
+      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ingressPath = ingress_entry.endsWith('/') ? ingress_entry : ingress_entry + '/';
+      const ws = new WebSocket(`${wsProto}//${window.location.host}${ingressPath}ws`);
+      let commandSent = false;
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (!commandSent && msg.server_version) {
+          commandSent = true;
+          const msgId = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+          ws.send(JSON.stringify({
+            message_id: msgId,
+            command: 'config/players/save',
+            args: { player_id: playerId, values: { hide_in_ui: false } }
+          }));
+          setTimeout(() => ws.close(), 2000);
+        }
+      };
+      ws.onerror = () => ws.close();
+    } catch { /* not running in HA add-on context */ }
+  };
+
   const startSendspin = async (url?: string) => {
     const serverUrl = url || sendspinUrl;
     try {
@@ -270,7 +303,7 @@ export default function App() {
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
-        correctionMode: 'sync',
+        correctionMode: 'quality-local',
         onStateChange: (state) => {
           const patch: Partial<SendspinState> = { playing: state.isPlaying };
           if (state.serverState?.metadata) {
@@ -300,6 +333,8 @@ export default function App() {
       await player.connect();
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
+
+      unhidePlayerInMA(sendspinClientIdRef.current);
 
       setError(null);
       updateSendspin({ active: true });
@@ -410,6 +445,8 @@ export default function App() {
                     <option value="aurorawaves" className="bg-gray-900">Aurora Waves</option>
                     <option value="msdefrag" className="bg-gray-900">MS Defrag</option>
                     <option value="fractalorb" className="bg-gray-900">Fractal Orb</option>
+                    <option value="mossball" className="bg-gray-900">Moss Ball</option>
+                    <option value="razor1911" className="bg-gray-900">Razor 1911</option>
                     <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>
