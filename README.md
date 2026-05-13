@@ -8,7 +8,7 @@
 
 ## 🎨 Features
 
-![VoltViz](https://img.shields.io/badge/React-19.2-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.184-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
+![VoltViz](https://img.shields.io/badge/React-19.2.6-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.184-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0.12-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
 [![Voltviz](images/voltviz.png)](https://voltviz.com)
 ---
@@ -86,14 +86,14 @@ http://localhost:8080
 ## 🛠 Technology Stack
 
 **Frontend:**
-- **React** 19.2 - UI framework
+- **React** 19.2.6 - UI framework
 - **TypeScript** 6.0 - Type-safe development
-- **Vite** 8.0 - Next-gen build tool
-- **Three.js** 0.183 - 3D graphics
-- **D3.js** 3.1 - Data visualization
-- **Tailwind CSS** 4.2 - Utility-first styling
-- **Lucide React** 1.8 - Icon library
-- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.0 - Synchronized audio streaming client
+- **Vite** 8.0.12 - Next-gen build tool
+- **Three.js** 0.184 - 3D graphics
+- **D3.js** 3.1.1 - Data visualization
+- **Tailwind CSS** 4.3 - Utility-first styling
+- **Lucide React** 1.9 - Icon library
+- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.1 - Synchronized audio streaming client
 
 **Infrastructure:**
 - **Docker** - Containerization
@@ -107,7 +107,7 @@ http://localhost:8080
 ```
 src/
 ├── components/
-│   └── visualizers/        # 30+ visualization components
+│   └── visualizers/        # 40+ visualization components
 ├── data/                   # Static data (geographic, etc.)
 ├── images/                 # Asset images
 ├── App.tsx                 # Main app component
