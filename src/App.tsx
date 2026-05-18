@@ -51,6 +51,7 @@ type VisualizerType =
   | 'mossball'
   | 'razor1911'
   | 'ascii'
+  | 'cybercity'
   | 'audiodebug';
 
 type VisualizerProps = {
@@ -122,6 +123,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   mossball: lazy(() => import('./components/visualizers/MossBall')),
   razor1911: lazy(() => import('./components/visualizers/Razor1911')),
   ascii: lazy(() => import('./components/visualizers/Ascii')),
+  cybercity: lazy(() => import('./components/visualizers/CyberCity')),
   audiodebug: lazy(() => import('./components/visualizers/AudioDebug')),
 };
 
@@ -404,8 +406,8 @@ export default function App() {
           <header className={skin.header}>
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
-                <h1 className={skin.title}>VoltViz<span className={activeSkin === 'modern' ? 'font-bold text-green-400' : activeSkin === 'winamp' ? 'font-bold text-[#00ff00]' : activeSkin === 'crt' ? 'font-bold text-[#ffcc00]' : activeSkin === 'sonique' ? 'font-bold text-[#00ff66]' : activeSkin === 'pioneer' ? 'font-semibold text-[#0088ff]' : activeSkin === 'wmp' ? 'font-bold text-[#5b9ef5]' : 'font-bold text-[#008000]'}> Music Visualizer</span></h1>
-                <p className={skin.subtitle}>inspired by winamp & sonique - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className={activeSkin === 'win95' ? 'text-[#000080] underline' : activeSkin === 'winamp' ? 'text-[#00ff00]/80 hover:text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#ffb000]/70 hover:text-[#ffb000]' : activeSkin === 'sonique' ? 'text-[#00ccbb]/70 hover:text-[#00ccbb] transition-colors' : activeSkin === 'pioneer' ? 'text-[#808080] hover:text-[#0088ff] transition-colors' : activeSkin === 'wmp' ? 'text-[#a4bde8] hover:text-white transition-colors' : 'text-white/80 hover:text-white transition-colors'}>sanderdw</a></p>
+                <h1 className={skin.title}>VoltViz<span className={activeSkin === 'modern' ? 'font-bold text-green-400' : activeSkin === 'winamp' ? 'font-bold text-[#00ff00]' : activeSkin === 'crt' ? 'font-bold text-[#00ff00]' : 'font-bold text-[#008000]'}> Music Visualizer</span></h1>
+                <p className={skin.subtitle}>inspired by winamp - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className={activeSkin === 'win95' ? 'text-[#000080] underline' : activeSkin === 'winamp' ? 'text-[#00ff00]/80 hover:text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]/70 hover:text-[#00ff00]' : 'text-white/80 hover:text-white transition-colors'}>sanderdw</a></p>
               </div>
 
               {stream && (
@@ -460,36 +462,23 @@ export default function App() {
                     <option value="mossball" className={skin.selectOption}>Moss Ball</option>
                     <option value="razor1911" className={skin.selectOption}>Razor 1911</option>
                     <option value="ascii" className={skin.selectOption}>ASCII</option>
+                    <option value="cybercity" className={skin.selectOption}>Cyber City</option>
                     <option value="audiodebug" className={skin.selectOption}>Audio Debug</option>
                     <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
                   </select>
-                  <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${activeSkin === 'win95' ? 'text-black' : activeSkin === 'winamp' ? 'text-[#00ff00]/50' : activeSkin === 'crt' ? 'text-[#ffb000]/50' : activeSkin === 'sonique' ? 'text-[#00ccbb]/50' : activeSkin === 'pioneer' ? 'text-[#0088ff]/50' : activeSkin === 'wmp' ? 'text-[#a4bde8]/50' : 'text-white/50'}`} />
+                  <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${activeSkin === 'win95' ? 'text-black' : activeSkin === 'winamp' ? 'text-[#00ff00]/50' : activeSkin === 'crt' ? 'text-[#00ff00]/50' : 'text-white/50'}`} />
                 </div>
               )}
             </div>
 
             <div className="flex gap-4 items-center">
-              {/* Skin selector */}
-              <div className="relative">
-                <select
-                  value={activeSkin}
-                  onChange={(e) => setActiveSkin(e.target.value as SkinType)}
-                  className={skin.select}
-                >
-                  {Object.entries(skins).map(([key, s]) => (
-                    <option key={key} value={key} className={skin.selectOption}>{s.label}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${activeSkin === 'win95' ? 'text-black' : activeSkin === 'winamp' ? 'text-[#00ff00]/50' : activeSkin === 'crt' ? 'text-[#ffb000]/50' : activeSkin === 'sonique' ? 'text-[#00ccbb]/50' : activeSkin === 'pioneer' ? 'text-[#0088ff]/50' : activeSkin === 'wmp' ? 'text-[#a4bde8]/50' : 'text-white/50'}`} />
-              </div>
-
               <a
                 href="https://github.com/sanderdw/voltviz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={activeSkin === 'win95' ? 'p-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080]' : activeSkin === 'winamp' ? 'p-1 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a]' : activeSkin === 'crt' ? 'p-1.5 border border-[#ffb000]/30 hover:border-[#ffb000]/60 hover:shadow-[0_0_8px_rgba(255,176,0,0.2)]' : activeSkin === 'sonique' ? 'p-2 rounded-full border border-[#00ccbb]/20 hover:border-[#00ccbb]/50 transition-all' : activeSkin === 'pioneer' ? 'p-2 rounded border border-[#2a2a2a] hover:border-[#0088ff]/50 transition-all' : activeSkin === 'wmp' ? 'p-2 rounded-full bg-[#1b3a6b] border border-[#3568b8]/60 hover:bg-[#2b5090] transition-all' : 'p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white'}
+                className={activeSkin === 'win95' ? 'p-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080]' : activeSkin === 'winamp' ? 'p-1 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a]' : activeSkin === 'crt' ? 'p-1.5 border border-[#00ff00]/30 hover:border-[#00ff00]/60 hover:shadow-[0_0_8px_rgba(0,255,0,0.2)]' : 'p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white'}
                 title="GitHub"
                 aria-label="Open GitHub profile"
               >
@@ -552,11 +541,11 @@ export default function App() {
           {!stream ? (
             <div className="text-center max-w-md space-y-6 animate-in fade-in zoom-in duration-700 p-6">
               <div className={skin.heroIcon}>
-                <MonitorUp size={40} className={activeSkin === 'modern' ? 'text-purple-400 opacity-80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#ffb000]' : activeSkin === 'sonique' ? 'text-[#00ccbb]' : activeSkin === 'pioneer' ? 'text-[#0088ff]' : activeSkin === 'wmp' ? 'text-[#5b9ef5]' : 'text-[#000080]'} />
+                <MonitorUp size={40} className={activeSkin === 'modern' ? 'text-purple-400 opacity-80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'text-[#000080]'} />
               </div>
               <h2 className={skin.heroTitle}>Visualize Your Sound</h2>
               <p className={skin.heroText}>
-                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className={activeSkin === 'modern' ? 'text-white/80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#ffb000]' : activeSkin === 'sonique' ? 'text-[#00ccbb]' : activeSkin === 'pioneer' ? 'text-[#0088ff]' : activeSkin === 'wmp' ? 'text-[#5b9ef5] font-bold' : 'font-bold'}>Share audio</strong> is checked.
+                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className={activeSkin === 'modern' ? 'text-white/80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'font-bold'}>Share audio</strong> is checked.
               </p>
             </div>
           ) : (
@@ -578,8 +567,8 @@ export default function App() {
           {/* Settings Panel */}
           <div className={`${skin.settingsPanel} ${showSettings && showControls ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="flex justify-between items-center mb-8">
-              <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#ffb000] uppercase tracking-[0.3em]' : activeSkin === 'sonique' ? 'text-xl font-light italic text-[#00ccbb]' : activeSkin === 'pioneer' ? 'text-sm font-semibold text-[#e0e0e0] uppercase tracking-[0.15em]' : activeSkin === 'wmp' ? 'text-lg font-bold text-[#0a1a4a]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
-              <button onClick={() => setShowSettings(false)} className={activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#ffb000]/50 hover:text-[#ffb000]' : activeSkin === 'sonique' ? 'cursor-pointer text-[#00ccbb]/50 hover:text-[#00ccbb] transition-colors' : activeSkin === 'pioneer' ? 'cursor-pointer text-[#808080] hover:text-[#e0e0e0] transition-colors' : activeSkin === 'wmp' ? 'cursor-pointer text-[#1b3a6b] hover:text-[#0a1a4a] transition-colors' : 'cursor-pointer text-black'}>
+              <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
+              <button onClick={() => setShowSettings(false)} className={activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}>
                 <X size={20} />
               </button>
             </div>
@@ -834,33 +823,9 @@ export default function App() {
             )}
             {activeSkin === 'crt' && (
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold text-[#ffb000] uppercase tracking-[0.3em]">Connect to Sendspin</h3>
-                <button onClick={() => setShowSendspinDialog(false)} className="text-[#ffb000]/50 hover:text-[#ffb000] cursor-pointer">
+                <h3 className="text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]">Connect to Sendspin</h3>
+                <button onClick={() => setShowSendspinDialog(false)} className="text-[#00ff00]/50 hover:text-[#00ff00] cursor-pointer">
                   <X size={18} />
-                </button>
-              </div>
-            )}
-            {activeSkin === 'sonique' && (
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-light italic text-[#00ccbb]">Connect to Sendspin</h3>
-                <button onClick={() => setShowSendspinDialog(false)} className="text-[#00ccbb]/50 hover:text-[#00ccbb] cursor-pointer transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
-            )}
-            {activeSkin === 'pioneer' && (
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-semibold text-[#e0e0e0] uppercase tracking-[0.15em]">Connect to Sendspin</h3>
-                <button onClick={() => setShowSendspinDialog(false)} className="text-[#808080] hover:text-[#e0e0e0] cursor-pointer transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
-            )}
-            {activeSkin === 'wmp' && (
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-white">Connect to Sendspin</h3>
-                <button onClick={() => setShowSendspinDialog(false)} className="text-[#a4bde8] hover:text-white cursor-pointer transition-colors">
-                  <X size={20} />
                 </button>
               </div>
             )}
@@ -872,7 +837,7 @@ export default function App() {
                 </button>
               </div>
             )}
-            <p className={activeSkin === 'modern' ? 'text-white/50 text-sm' : activeSkin === 'winamp' ? 'text-[#00ff00]/60 text-sm' : activeSkin === 'crt' ? 'text-[#ffb000]/50 text-xs tracking-wide' : activeSkin === 'sonique' ? 'text-[#00ccbb]/50 text-sm' : activeSkin === 'pioneer' ? 'text-[#808080] text-sm' : activeSkin === 'wmp' ? 'text-[#a4bde8] text-sm' : 'text-black text-sm'}>Enter the URL of your Sendspin server to stream synchronized audio.</p>
+            <p className={activeSkin === 'modern' ? 'text-white/50 text-sm' : activeSkin === 'winamp' ? 'text-[#00ff00]/60 text-sm' : activeSkin === 'crt' ? 'text-[#00ff00]/50 text-xs tracking-wide' : 'text-black text-sm'}>Enter the URL of your Sendspin server to stream synchronized audio.</p>
             <input
               type="url"
               value={sendspinUrl}

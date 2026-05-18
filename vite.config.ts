@@ -12,7 +12,7 @@ export default defineConfig(({mode}) => {
       __APP_VERSION__: JSON.stringify(appVersion),
     },
     build: {
-      chunkSizeWarningLimit: 550,
+      chunkSizeWarningLimit: 600,
     },
     resolve: {
       alias: {
