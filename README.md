@@ -13,17 +13,19 @@
 [![Voltviz](images/voltviz.png)](https://voltviz.com)
 ---
 
-VoltViz comes with **40+ stunning visualization styles** to choose from:
+VoltViz comes with **50+ stunning visualization styles** to choose from:
 
-- **Particle Effects**: Cosmic Particles, Fireworks Show
-- **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Neon Hex Tunnel, Neon Wave, Aurora Waves
-- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb
-- **Retro Styles**: CRT Terminal, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
+- **Particle Effects**: Cosmic Particles, Fireworks Show, Trails Stream
+- **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Cyber City, Neon Hex Tunnel, Neon Wave, Aurora Waves, Shambhala
+- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb, Anunaki Sphere, Aurum Leaf
+- **Retro Styles**: CRT Terminal, ASCII, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
 - **Festival Vibes**: Festival Stage, Defqon Mainstage, Disney Drone Show
 - **Organic Effects**: Fluid Smoke, Ghost Rainbow, Psychedelic Skull, Flame
-- **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard
+- **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard, Audio Debug
 - **MilkDrop-inspired**: MilkDrop, MilkDrop Warp
 - **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons, and Sendspin variants...
+
+**UI Skins:** Switch the entire interface between **Modern**, **Win95**, **Winamp**, and **CRT** themes via the `?skin=` URL parameter.
 
 **Core Capabilities:**
 - 🎤 **Real-time Audio Input**: Connect microphone, capture system audio, or stream from a [Sendspin](https://www.sendspin-audio.com) server
@@ -152,6 +154,7 @@ http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1
 | `speed` | Animation speed multiplier (0.1–3.0) | `1.0` |
 | `hueShift` | Color shift in degrees (0–360) | `0` |
 | `scale` | Element scale multiplier (0.5–3.0) | `1.0` |
+| `skin` | UI theme: `modern`, `win95`, `winamp`, or `crt` | `modern` |
 
 The URL updates automatically as you change the visualizer or adjust settings in the UI, so you can share or bookmark your current configuration at any time. Only non-default settings are included to keep URLs clean.
 

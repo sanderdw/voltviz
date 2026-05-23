@@ -1,1 +1,120 @@
 @import "tailwindcss";
+
+.skin-90s {
+  image-rendering: pixelated;
+}
+
+
+.skin-90s input[type="range"] {
+  height: 20px;
+}
+
+.skin-90s input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 20px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: white #808080 #808080 white;
+  cursor: pointer;
+}
+
+.skin-90s input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #808080;
+  border: 1px solid;
+  border-color: #808080 white white #808080;
+}
+
+
+.skin-winamp input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  background: transparent;
+}
+
+.skin-winamp input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #0a0a14;
+  border: 2px solid;
+  border-color: #1a1a2a #6a6a7a #6a6a7a #1a1a2a;
+}
+
+.skin-winamp input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: #3a3a4a;
+  border: 2px solid;
+  border-color: #6a6a7a #1a1a2a #1a1a2a #6a6a7a;
+  cursor: pointer;
+}
+
+.skin-crt {
+  text-shadow: 0 0 4px rgba(0, 255, 0, 0.6);
+}
+
+.skin-crt::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+.skin-crt::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 99;
+}
+
+
+.skin-crt input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  background: transparent;
+}
+
+.skin-crt input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: #00ff00;
+  box-shadow: 0 0 4px rgba(0, 255, 0, 0.4);
+}
+
+.skin-crt input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  background: #00ff00;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 1; }
+  5% { opacity: 0.97; }
+  10% { opacity: 1; }
+  15% { opacity: 0.98; }
+  20% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.skin-crt > * {
+  animation: crt-flicker 8s infinite;
+}
+

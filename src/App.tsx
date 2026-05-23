@@ -4,6 +4,7 @@ import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
+import { skins, SkinType } from './skins';
 
 type VisualizerType =
   | 'circular'
@@ -48,7 +49,14 @@ type VisualizerType =
   | 'msdefrag'
   | 'fractalorb'
   | 'mossball'
-  | 'razor1911';
+  | 'razor1911'
+  | 'ascii'
+  | 'cybercity'
+  | 'audiodebug'
+  | 'aurumleaf'
+  | 'anunakisphere'
+  | 'trailsstream'
+  | 'shambhala';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -118,6 +126,13 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   fractalorb: lazy(() => import('./components/visualizers/FractalOrb')),
   mossball: lazy(() => import('./components/visualizers/MossBall')),
   razor1911: lazy(() => import('./components/visualizers/Razor1911')),
+  ascii: lazy(() => import('./components/visualizers/Ascii')),
+  cybercity: lazy(() => import('./components/visualizers/CyberCity')),
+  audiodebug: lazy(() => import('./components/visualizers/AudioDebug')),
+  aurumleaf: lazy(() => import('./components/visualizers/AurumLeaf')),
+  anunakisphere: lazy(() => import('./components/visualizers/AnunakiSphere')),
+  trailsstream: lazy(() => import('./components/visualizers/TrailsStream')),
+  shambhala: lazy(() => import('./components/visualizers/Shambhala')),
 };
 
 export default function App() {
@@ -150,6 +165,11 @@ export default function App() {
       scale: num('scale', 1.0),
     };
   });
+  const [activeSkin, setActiveSkin] = useState<SkinType>(() => {
+    const s = new URLSearchParams(window.location.search).get('skin');
+    return s && s in skins ? (s as SkinType) : 'modern';
+  });
+  const skin = skins[activeSkin];
   const [showSendspinDialog, setShowSendspinDialog] = useState(false);
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
@@ -179,9 +199,11 @@ export default function App() {
     setOrDelete('speed', settings.speed, 1.0);
     setOrDelete('hueShift', settings.hueShift, 0);
     setOrDelete('scale', settings.scale, 1.0);
+    if (activeSkin !== 'modern') params.set('skin', activeSkin);
+    else params.delete('skin');
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [activeVisualizer, settings]);
+  }, [activeVisualizer, settings, activeSkin]);
 
   useEffect(() => {
     // Allow layout to settle, then notify visualizers of the size change
@@ -372,15 +394,15 @@ export default function App() {
   }, [stream, activeVisualizer, settings, sendspin.metadata]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans relative overflow-hidden">
+    <div className={skin.root}>
       {/* Mobile hint */}
-      <div className="md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-red-400 tracking-wide">
+      <div className={skin.mobileHint}>
         <MonitorUp size={12} />
         <span>Small screens are not supported, use "Desktopsite"</span>
       </div>
 
       {/* Atmospheric background */}
-      {!stream && (
+      {!stream && skin.atmosphericBg && (
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDuration: '4s' }}></div>
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDuration: '7s' }}></div>
@@ -389,11 +411,11 @@ export default function App() {
 
       <div className="relative z-10 flex-1 flex flex-col">
         {showControls && (
-          <header className="p-6 flex justify-between items-center bg-black/20 backdrop-blur-md border-b border-white/10 transition-all duration-300">
+          <header className={skin.header}>
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
-                <h1 className="text-2xl font-light tracking-widest uppercase">VoltViz<span className="font-bold text-green-400">Music Visualizer</span></h1>
-                <p className="mt-1 text-xs tracking-[0.2em] text-white/60">inspired by winamp & sonique - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">sanderdw</a></p>
+                <h1 className={skin.title}>VoltViz<span className={activeSkin === 'modern' ? 'font-bold text-green-400' : activeSkin === 'winamp' ? 'font-bold text-[#00ff00]' : activeSkin === 'crt' ? 'font-bold text-[#00ff00]' : 'font-bold text-[#008000]'}> Music Visualizer</span></h1>
+                <p className={skin.subtitle}>inspired by winamp - created by <a href="https://github.com/sanderdw/voltviz" target="_blank" rel="noopener noreferrer" className={activeSkin === 'win95' ? 'text-[#000080] underline' : activeSkin === 'winamp' ? 'text-[#00ff00]/80 hover:text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]/70 hover:text-[#00ff00]' : 'text-white/80 hover:text-white transition-colors'}>sanderdw</a></p>
               </div>
 
               {stream && (
@@ -405,53 +427,60 @@ export default function App() {
                       setActiveVisualizer(value);
                       (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Select', value]);
                     }}
-                    className="appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors"
+                    className={skin.select}
                   >
-                    <option value="dutchgrid" className="bg-gray-900">Dutch Grid</option>
-                    <option value="dutchgridwebgl" className="bg-gray-900">Dutch Grid (WebGL)</option>
-                    <option value="glitchbackground" className="bg-gray-900">Glitch Background</option>
-                    <option value="glitchdatabend" className="bg-gray-900">Glitch Databend</option>
-                    <option value="yourlogo" className="bg-gray-900">Your Logo</option>
-                    <option value="icons" className="bg-gray-900">Icons</option>
-                    <option value="glowsphere" className="bg-gray-900">Glow Sphere</option>
-                    <option value="crtterminal" className="bg-gray-900">CRT Terminal</option>
-                    <option value="cosmicparticles" className="bg-gray-900">Cosmic Particles</option>
-                    <option value="neonwave" className="bg-gray-900">Neon Wave</option>
-                    <option value="sheetmusic" className="bg-gray-900">Sheet Music</option>
-                    <option value="tunnel" className="bg-gray-900">Tunnel</option>
-                    <option value="circular" className="bg-gray-900">Circular</option>
-                    <option value="cybermatrix" className="bg-gray-900">Cyber Matrix</option>
-                    <option value="cybergridcanvas" className="bg-gray-900">Cyber Grid Canvas</option>
-                    <option value="bars" className="bg-gray-900">Bars</option>
-                    <option value="polysphere" className="bg-gray-900">Poly Sphere</option>
-                    <option value="psychedelicskull" className="bg-gray-900">Psychedelic Skull</option>
-                    <option value="ghostrainbow" className="bg-gray-900">Ghost Rainbow</option>
-                    <option value="neonhextunnel" className="bg-gray-900">Neon Hex Tunnel</option>
-                    <option value="fluidsmoke" className="bg-gray-900">Fluid Smoke</option>
-                    <option value="3dequalizer" className="bg-gray-900">3D Equalizer</option>
-                    <option value="festivalstage" className="bg-gray-900">Festival Stage</option>
-                    <option value="defqonmainstage" className="bg-gray-900">Defqon Mainstage</option>
-                    <option value="disneydroneshow" className="bg-gray-900">Disney Drone Show</option>
-                    <option value="fireworksshow" className="bg-gray-900">Fireworks Show</option>
-                    <option value="datadashboard" className="bg-gray-900">Data Dashboard</option>
-                    <option value="vinyl" className="bg-gray-900">Vinyl</option>
-                    <option value="backgroundimage" className="bg-gray-900">Background Image</option>
-                    <option value="blurimage" className="bg-gray-900">Blur Image</option>
-                    <option value="flame" className="bg-gray-900">Flame</option>
-                    <option value="vumeter" className="bg-gray-900">VU Meter</option>
-                    <option value="hexglobe" className="bg-gray-900">Hex Globe</option>
-                    <option value="milkdrop" className="bg-gray-900">MilkDrop</option>
-                    <option value="milkdropwarp" className="bg-gray-900">MilkDrop Warp</option>
-                    <option value="aurorawaves" className="bg-gray-900">Aurora Waves</option>
-                    <option value="msdefrag" className="bg-gray-900">MS Defrag</option>
-                    <option value="fractalorb" className="bg-gray-900">Fractal Orb</option>
-                    <option value="mossball" className="bg-gray-900">Moss Ball</option>
-                    <option value="razor1911" className="bg-gray-900">Razor 1911</option>
-                    <option value="vinylsendspin" className="bg-gray-900">Vinyl (Sendspin)</option>
-                    <option value="glitchbackgroundsendspin" className="bg-gray-900">Glitch Background (Sendspin)</option>
-                    <option value="backgroundimagesendspin" className="bg-gray-900">Background Image (Sendspin)</option>
+                    <option value="dutchgrid" className={skin.selectOption}>Dutch Grid</option>
+                    <option value="dutchgridwebgl" className={skin.selectOption}>Dutch Grid (WebGL)</option>
+                    <option value="glitchbackground" className={skin.selectOption}>Glitch Background</option>
+                    <option value="glitchdatabend" className={skin.selectOption}>Glitch Databend</option>
+                    <option value="yourlogo" className={skin.selectOption}>Your Logo</option>
+                    <option value="icons" className={skin.selectOption}>Icons</option>
+                    <option value="glowsphere" className={skin.selectOption}>Glow Sphere</option>
+                    <option value="crtterminal" className={skin.selectOption}>CRT Terminal</option>
+                    <option value="cosmicparticles" className={skin.selectOption}>Cosmic Particles</option>
+                    <option value="neonwave" className={skin.selectOption}>Neon Wave</option>
+                    <option value="sheetmusic" className={skin.selectOption}>Sheet Music</option>
+                    <option value="tunnel" className={skin.selectOption}>Tunnel</option>
+                    <option value="circular" className={skin.selectOption}>Circular</option>
+                    <option value="cybermatrix" className={skin.selectOption}>Cyber Matrix</option>
+                    <option value="cybergridcanvas" className={skin.selectOption}>Cyber Grid Canvas</option>
+                    <option value="bars" className={skin.selectOption}>Bars</option>
+                    <option value="polysphere" className={skin.selectOption}>Poly Sphere</option>
+                    <option value="psychedelicskull" className={skin.selectOption}>Psychedelic Skull</option>
+                    <option value="ghostrainbow" className={skin.selectOption}>Ghost Rainbow</option>
+                    <option value="neonhextunnel" className={skin.selectOption}>Neon Hex Tunnel</option>
+                    <option value="fluidsmoke" className={skin.selectOption}>Fluid Smoke</option>
+                    <option value="3dequalizer" className={skin.selectOption}>3D Equalizer</option>
+                    <option value="festivalstage" className={skin.selectOption}>Festival Stage</option>
+                    <option value="defqonmainstage" className={skin.selectOption}>Defqon Mainstage</option>
+                    <option value="disneydroneshow" className={skin.selectOption}>Disney Drone Show</option>
+                    <option value="fireworksshow" className={skin.selectOption}>Fireworks Show</option>
+                    <option value="datadashboard" className={skin.selectOption}>Data Dashboard</option>
+                    <option value="vinyl" className={skin.selectOption}>Vinyl</option>
+                    <option value="backgroundimage" className={skin.selectOption}>Background Image</option>
+                    <option value="blurimage" className={skin.selectOption}>Blur Image</option>
+                    <option value="flame" className={skin.selectOption}>Flame</option>
+                    <option value="vumeter" className={skin.selectOption}>VU Meter</option>
+                    <option value="hexglobe" className={skin.selectOption}>Hex Globe</option>
+                    <option value="milkdrop" className={skin.selectOption}>MilkDrop</option>
+                    <option value="milkdropwarp" className={skin.selectOption}>MilkDrop Warp</option>
+                    <option value="aurorawaves" className={skin.selectOption}>Aurora Waves</option>
+                    <option value="msdefrag" className={skin.selectOption}>MS Defrag</option>
+                    <option value="fractalorb" className={skin.selectOption}>Fractal Orb</option>
+                    <option value="mossball" className={skin.selectOption}>Moss Ball</option>
+                    <option value="razor1911" className={skin.selectOption}>Razor 1911</option>
+                    <option value="ascii" className={skin.selectOption}>ASCII</option>
+                    <option value="cybercity" className={skin.selectOption}>Cyber City</option>
+                    <option value="audiodebug" className={skin.selectOption}>Audio Debug</option>
+                    <option value="aurumleaf" className={skin.selectOption}>Aurum Leaf</option>
+                    <option value="anunakisphere" className={skin.selectOption}>Anunaki Sphere</option>
+                    <option value="trailsstream" className={skin.selectOption}>Trails Stream</option>
+                    <option value="shambhala" className={skin.selectOption}>Shambhala</option>
+                    <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
+                    <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
+                    <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
                   </select>
-                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
+                  <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${activeSkin === 'win95' ? 'text-black' : activeSkin === 'winamp' ? 'text-[#00ff00]/50' : activeSkin === 'crt' ? 'text-[#00ff00]/50' : 'text-white/50'}`} />
                 </div>
               )}
             </div>
@@ -461,31 +490,31 @@ export default function App() {
                 href="https://github.com/sanderdw/voltviz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white"
+                className={activeSkin === 'win95' ? 'p-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080]' : activeSkin === 'winamp' ? 'p-1 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a]' : activeSkin === 'crt' ? 'p-1.5 border border-[#00ff00]/30 hover:border-[#00ff00]/60 hover:shadow-[0_0_8px_rgba(0,255,0,0.2)]' : 'p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white'}
                 title="GitHub"
                 aria-label="Open GitHub profile"
               >
-                <img src={githubIcon} alt="GitHub" width={20} height={20} />
+                <img src={githubIcon} alt="GitHub" width={20} height={20} className={activeSkin === 'win95' ? 'invert' : ''} />
               </a>
               {!stream ? (
                 <>
                   <button
                     onClick={startMicrophone}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/5 text-sm cursor-pointer"
+                    className={skin.buttonSecondary}
                   >
                     <Mic size={16} />
                     <span>Microphone</span>
                   </button>
                   <button
                     onClick={startSystemAudio}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/80 hover:bg-purple-500 transition-colors border border-purple-400/30 text-sm shadow-[0_0_15px_rgba(147,51,234,0.3)] cursor-pointer"
+                    className={skin.buttonPrimary}
                   >
                     <MonitorUp size={16} />
                     <span>System Audio</span>
                   </button>
                   <button
                     onClick={() => setShowSendspinDialog(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/5 text-sm cursor-pointer"
+                    className={skin.buttonSecondary}
                   >
                     <Radio size={16} />
                     <span>Sendspin</span>
@@ -495,21 +524,21 @@ export default function App() {
                 <>
                   <button
                     onClick={() => setShowControls(false)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white text-sm cursor-pointer"
+                    className={skin.buttonGhost}
                   >
                     <Maximize size={16} />
                     <span>Hide UI</span>
                   </button>
                   <button
                     onClick={() => setShowSettings(!showSettings)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors border text-sm cursor-pointer ${showSettings ? 'bg-white/20 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+                    className={skin.buttonGhost}
                   >
                     <Settings2 size={16} />
                     <span>Settings</span>
                   </button>
                   <button
                     onClick={() => stopStream()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors border border-red-500/30 text-sm cursor-pointer"
+                    className={skin.buttonDanger}
                   >
                     <Square size={16} />
                     <span>Stop</span>
@@ -520,15 +549,15 @@ export default function App() {
           </header>
         )}
 
-        <main className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+        <main className={skin.body}>
           {!stream ? (
             <div className="text-center max-w-md space-y-6 animate-in fade-in zoom-in duration-700 p-6">
-              <div className="w-24 h-24 mx-auto border border-white/10 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm">
-                <MonitorUp size={40} className="text-purple-400 opacity-80" />
+              <div className={skin.heroIcon}>
+                <MonitorUp size={40} className={activeSkin === 'modern' ? 'text-purple-400 opacity-80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'text-[#000080]'} />
               </div>
-              <h2 className="text-3xl font-light">Visualize Your Sound</h2>
-              <p className="text-white/50 font-light leading-relaxed">
-                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className="text-white/80">Share audio</strong> is checked.
+              <h2 className={skin.heroTitle}>Visualize Your Sound</h2>
+              <p className={skin.heroText}>
+                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className={activeSkin === 'modern' ? 'text-white/80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'font-bold'}>Share audio</strong> is checked.
               </p>
             </div>
           ) : (
@@ -548,10 +577,10 @@ export default function App() {
           )}
 
           {/* Settings Panel */}
-          <div className={`absolute top-0 right-0 bottom-0 w-80 bg-black/80 backdrop-blur-xl border-l border-white/10 p-6 transform transition-transform duration-300 z-50 ${showSettings && showControls ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className={`${skin.settingsPanel} ${showSettings && showControls ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-light">Settings</h3>
-              <button onClick={() => setShowSettings(false)} className="text-white/50 hover:text-white transition-colors cursor-pointer">
+              <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
+              <button onClick={() => setShowSettings(false)} className={activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}>
                 <X size={20} />
               </button>
             </div>
@@ -559,8 +588,8 @@ export default function App() {
             <div className="space-y-8">
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm text-white/70">Sensitivity</label>
-                  <span className="text-sm text-purple-400">{settings.sensitivity.toFixed(1)}x</span>
+                  <label className={skin.settingsLabel}>Sensitivity</label>
+                  <span className={skin.settingsValue}>{settings.sensitivity.toFixed(1)}x</span>
                 </div>
                 <input
                   type="range"
@@ -569,15 +598,15 @@ export default function App() {
                   step="0.1"
                   value={settings.sensitivity}
                   onChange={e => setSettings({...settings, sensitivity: parseFloat(e.target.value)})}
-                  className="w-full accent-purple-500"
+                  className={skin.settingsSlider}
                 />
-                <p className="text-xs text-white/40 mt-2">Adjusts how strongly the visualizer reacts to volume.</p>
+                <p className={skin.settingsDescription}>Adjusts how strongly the visualizer reacts to volume.</p>
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm text-white/70">Speed</label>
-                  <span className="text-sm text-purple-400">{settings.speed.toFixed(1)}x</span>
+                  <label className={skin.settingsLabel}>Speed</label>
+                  <span className={skin.settingsValue}>{settings.speed.toFixed(1)}x</span>
                 </div>
                 <input
                   type="range"
@@ -586,15 +615,15 @@ export default function App() {
                   step="0.1"
                   value={settings.speed}
                   onChange={e => setSettings({...settings, speed: parseFloat(e.target.value)})}
-                  className="w-full accent-purple-500"
+                  className={skin.settingsSlider}
                 />
-                <p className="text-xs text-white/40 mt-2">Controls the animation and movement speed.</p>
+                <p className={skin.settingsDescription}>Controls the animation and movement speed.</p>
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm text-white/70">Scale</label>
-                  <span className="text-sm text-purple-400">{settings.scale.toFixed(1)}x</span>
+                  <label className={skin.settingsLabel}>Scale</label>
+                  <span className={skin.settingsValue}>{settings.scale.toFixed(1)}x</span>
                 </div>
                 <input
                   type="range"
@@ -603,15 +632,15 @@ export default function App() {
                   step="0.1"
                   value={settings.scale}
                   onChange={e => setSettings({...settings, scale: parseFloat(e.target.value)})}
-                  className="w-full accent-purple-500"
+                  className={skin.settingsSlider}
                 />
-                <p className="text-xs text-white/40 mt-2">Scales the visualizer elements to fit the screen.</p>
+                <p className={skin.settingsDescription}>Scales the visualizer elements to fit the screen.</p>
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm text-white/70">Color Shift</label>
-                  <span className="text-sm text-purple-400">{settings.hueShift}°</span>
+                  <label className={skin.settingsLabel}>Color Shift</label>
+                  <span className={skin.settingsValue}>{settings.hueShift}°</span>
                 </div>
                 <input
                   type="range"
@@ -620,21 +649,21 @@ export default function App() {
                   step="1"
                   value={settings.hueShift}
                   onChange={e => setSettings({...settings, hueShift: parseInt(e.target.value)})}
-                  className="w-full accent-purple-500"
+                  className={skin.settingsSlider}
                 />
-                <p className="text-xs text-white/40 mt-2">Shifts the base colors across the spectrum.</p>
+                <p className={skin.settingsDescription}>Shifts the base colors across the spectrum.</p>
               </div>
 
               <button
                 onClick={() => setSettings({ sensitivity: 1.0, speed: 1.0, hueShift: 0, scale: 1.0 })}
-                className="w-full py-2 mt-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer"
+                className={skin.settingsButton}
               >
                 Reset to Defaults
               </button>
             </div>
           </div>
 
-          <div className="absolute bottom-3 left-4 text-[10px] tracking-[0.18em] uppercase text-white/25 pointer-events-none select-none z-40">
+          <div className={skin.versionLabel}>
             v{appVersion}
           </div>
         </main>
@@ -642,7 +671,7 @@ export default function App() {
 
       {sendspin.active && showControls && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto bg-black/70 backdrop-blur-xl border border-white/10 rounded-t-2xl px-6 py-3 flex items-center gap-4" data-testid="sendspin-controls">
+          <div className={skin.sendspinBar} data-testid="sendspin-controls">
             {/* Track info */}
             {sendspin.metadata?.title && (
               <div className="flex items-center gap-3 mr-2 min-w-0">
@@ -650,9 +679,9 @@ export default function App() {
                   <img src={sendspin.metadata.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <div className="text-sm text-white truncate max-w-[200px]">{sendspin.metadata.title}</div>
+                  <div className={skin.sendspinTrackTitle}>{sendspin.metadata.title}</div>
                   {sendspin.metadata.artist && (
-                    <div className="text-xs text-white/50 truncate max-w-[200px]">{sendspin.metadata.artist}</div>
+                    <div className={skin.sendspinTrackArtist}>{sendspin.metadata.artist}</div>
                   )}
                 </div>
               </div>
@@ -663,7 +692,7 @@ export default function App() {
               <button
                 onClick={() => sendspinCommand('previous')}
                 disabled={!sendspin.supportedCmds.includes('previous')}
-                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className={skin.sendspinButton}
                 title="Previous"
                 data-testid="sendspin-previous"
               >
@@ -673,7 +702,7 @@ export default function App() {
                 <button
                   onClick={() => sendspinCommand('pause')}
                   disabled={!sendspin.supportedCmds.includes('pause')}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  className={skin.sendspinPlayButton}
                   title="Pause"
                   data-testid="sendspin-pause"
                 >
@@ -683,7 +712,7 @@ export default function App() {
                 <button
                   onClick={() => sendspinCommand('play')}
                   disabled={!sendspin.supportedCmds.includes('play')}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  className={skin.sendspinPlayButton}
                   title="Play"
                   data-testid="sendspin-play"
                 >
@@ -693,7 +722,7 @@ export default function App() {
               <button
                 onClick={() => sendspinCommand('stop')}
                 disabled={!sendspin.supportedCmds.includes('stop')}
-                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className={skin.sendspinButton}
                 title="Stop"
                 data-testid="sendspin-stop"
               >
@@ -702,7 +731,7 @@ export default function App() {
               <button
                 onClick={() => sendspinCommand('next')}
                 disabled={!sendspin.supportedCmds.includes('next')}
-                className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className={skin.sendspinButton}
                 title="Next"
                 data-testid="sendspin-next"
               >
@@ -711,14 +740,14 @@ export default function App() {
             </div>
 
             {/* Divider */}
-            <div className="w-px h-6 bg-white/10" />
+            <div className={skin.sendspinDivider} />
 
             {/* Volume */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => sendspinCommand('mute', { mute: !sendspin.muted })}
                 disabled={!sendspin.supportedCmds.includes('mute')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.muted ? 'text-red-400' : 'text-white/70 hover:text-white'}`}
+                className={`${skin.sendspinButton} ${sendspin.muted ? 'text-red-400' : ''}`}
                 title={sendspin.muted ? 'Unmute' : 'Mute'}
                 data-testid="sendspin-mute"
               >
@@ -740,21 +769,21 @@ export default function App() {
                   }
                 }}
                 disabled={!sendspin.supportedCmds.includes('volume')}
-                className="w-20 accent-purple-500 disabled:opacity-30"
+                className={skin.sendspinVolumeSlider}
                 title={`Volume: ${sendspin.volume}%`}
                 data-testid="sendspin-volume"
               />
             </div>
 
             {/* Divider */}
-            <div className="w-px h-6 bg-white/10" />
+            <div className={skin.sendspinDivider} />
 
             {/* Shuffle & Repeat */}
             <div className="flex items-center gap-1">
               <button
                 onClick={() => sendspinCommand(sendspin.metadata?.shuffle ? 'unshuffle' : 'shuffle')}
                 disabled={sendspin.metadata?.shuffle ? !sendspin.supportedCmds.includes('unshuffle') : !sendspin.supportedCmds.includes('shuffle')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.metadata?.shuffle ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                className={`${skin.sendspinButton} ${sendspin.metadata?.shuffle ? skin.sendspinButtonActive : ''}`}
                 title={sendspin.metadata?.shuffle ? 'Unshuffle' : 'Shuffle'}
                 data-testid="sendspin-shuffle"
               >
@@ -767,7 +796,7 @@ export default function App() {
                   sendspinCommand(next);
                 }}
                 disabled={!sendspin.supportedCmds.includes('repeat_off')}
-                className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${sendspin.metadata?.repeat && sendspin.metadata.repeat !== 'off' ? 'text-purple-400' : 'text-white/70 hover:text-white'}`}
+                className={`${skin.sendspinButton} ${sendspin.metadata?.repeat && sendspin.metadata.repeat !== 'off' ? skin.sendspinButtonActive : ''}`}
                 title={`Repeat: ${sendspin.metadata?.repeat ?? 'off'}`}
                 data-testid="sendspin-repeat"
               >
@@ -779,7 +808,7 @@ export default function App() {
       )}
 
       {error && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-[110] flex items-center gap-3">
+        <div className={skin.errorBanner}>
           <span>{error}</span>
           <button onClick={() => setError(null)} className="text-red-300 hover:text-white transition-colors cursor-pointer flex-shrink-0">
             <X size={16} />
@@ -788,35 +817,59 @@ export default function App() {
       )}
 
       {showSendspinDialog && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4 mx-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-light">Connect to Sendspin</h3>
-              <button onClick={() => setShowSendspinDialog(false)} className="text-white/50 hover:text-white transition-colors cursor-pointer">
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-white/50 text-sm">Enter the URL of your Sendspin server to stream synchronized audio.</p>
+        <div className={skin.dialogOverlay}>
+          <div className={skin.dialog}>
+            {activeSkin === 'win95' && (
+              <div className="bg-[#000080] px-2 py-1 flex justify-between items-center -mx-1 -mt-1 mb-2">
+                <span className="text-white text-sm font-bold">Connect to Sendspin</span>
+                <button onClick={() => setShowSendspinDialog(false)} className="bg-[#c0c0c0] border border-t-white border-l-white border-b-[#808080] border-r-[#808080] px-1.5 text-black text-xs font-bold cursor-pointer">X</button>
+              </div>
+            )}
+            {activeSkin === 'winamp' && (
+              <div className="flex justify-between items-center bg-[#2a2a3a] border-b border-[#1a1a2a] -mx-5 -mt-5 mb-3 px-4 py-2">
+                <h3 className="text-sm font-bold text-[#d0d0d0] uppercase tracking-wider">Connect to Sendspin</h3>
+                <button onClick={() => setShowSendspinDialog(false)} className="text-[#a0a0a0] hover:text-[#d0d0d0] cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+            {activeSkin === 'crt' && (
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]">Connect to Sendspin</h3>
+                <button onClick={() => setShowSendspinDialog(false)} className="text-[#00ff00]/50 hover:text-[#00ff00] cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+            {activeSkin === 'modern' && (
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-light">Connect to Sendspin</h3>
+                <button onClick={() => setShowSendspinDialog(false)} className="text-white/50 hover:text-white transition-colors cursor-pointer">
+                  <X size={20} />
+                </button>
+              </div>
+            )}
+            <p className={activeSkin === 'modern' ? 'text-white/50 text-sm' : activeSkin === 'winamp' ? 'text-[#00ff00]/60 text-sm' : activeSkin === 'crt' ? 'text-[#00ff00]/50 text-xs tracking-wide' : 'text-black text-sm'}>Enter the URL of your Sendspin server to stream synchronized audio.</p>
             <input
               type="url"
               value={sendspinUrl}
               onChange={e => setSendspinUrl(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl) startSendspin(); }}
               placeholder="http://homeassistant.local:8927"
-              className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className={skin.dialogInput}
               autoFocus
             />
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowSendspinDialog(false)}
-                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer"
+                className={skin.dialogButtonSecondary}
               >
                 Cancel
               </button>
               <button
                 onClick={() => startSendspin()}
                 disabled={!sendspinUrl}
-                className="px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className={skin.dialogButtonPrimary}
               >
                 Connect
               </button>
