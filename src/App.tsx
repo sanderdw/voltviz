@@ -52,7 +52,11 @@ type VisualizerType =
   | 'razor1911'
   | 'ascii'
   | 'cybercity'
-  | 'audiodebug';
+  | 'audiodebug'
+  | 'aurumleaf'
+  | 'anunakisphere'
+  | 'trailsstream'
+  | 'shambhala';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -125,6 +129,10 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   ascii: lazy(() => import('./components/visualizers/Ascii')),
   cybercity: lazy(() => import('./components/visualizers/CyberCity')),
   audiodebug: lazy(() => import('./components/visualizers/AudioDebug')),
+  aurumleaf: lazy(() => import('./components/visualizers/AurumLeaf')),
+  anunakisphere: lazy(() => import('./components/visualizers/AnunakiSphere')),
+  trailsstream: lazy(() => import('./components/visualizers/TrailsStream')),
+  shambhala: lazy(() => import('./components/visualizers/Shambhala')),
 };
 
 export default function App() {
@@ -464,6 +472,10 @@ export default function App() {
                     <option value="ascii" className={skin.selectOption}>ASCII</option>
                     <option value="cybercity" className={skin.selectOption}>Cyber City</option>
                     <option value="audiodebug" className={skin.selectOption}>Audio Debug</option>
+                    <option value="aurumleaf" className={skin.selectOption}>Aurum Leaf</option>
+                    <option value="anunakisphere" className={skin.selectOption}>Anunaki Sphere</option>
+                    <option value="trailsstream" className={skin.selectOption}>Trails Stream</option>
+                    <option value="shambhala" className={skin.selectOption}>Shambhala</option>
                     <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
