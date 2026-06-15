@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.19.0] - 2026-06-15
+
+### Added
+- Holo Blinds visualizer – raymarched twisting gyroid confined to a squashed sphere core with audio-reactive brightness, twist speed, and detail (Three.js/WebGL).
+- Inside Quantum visualizer – full-screen KIFS fractal with volumetric raymarching, asymmetric folding, domain warping, and accumulated glow (Three.js/WebGL). Audio-reactive warp amplitude, rotation speed, and ray thickness.
+
+### Changed
+- Dependency bumps
+
+### Acknowledgments
+- Shoutout to [@sabosugi](https://x.com/sabosugi) for the nice visuals.
+
 ## [0.18.0] - 2026-05-23
 
 ### Added
