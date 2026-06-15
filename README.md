@@ -82,6 +82,8 @@ http://localhost:8080
 | `npm run preview` | Preview production build locally |
 | `npm run clean` | Remove build artifacts |
 | `npm run lint` | Check TypeScript for errors |
+| `npm run test` | Run the Playwright smoke tests |
+| `npm run test:install` | Download the Playwright Chromium browser |
 
 ---
 
@@ -199,6 +201,18 @@ npm run build
 npm run preview  # Test production build locally
 ```
 
+### Run Smoke Tests
+```bash
+npm run test:install
+npm run test
+```
+
+On Linux, Playwright may also need system browser libraries:
+
+```bash
+npx playwright install-deps chromium
+```
+
 ### Environment Setup
 
 The app requires **microphone or display-capture permissions** to function properly. When you first load VoltViz, you'll be prompted to grant these permissions.
@@ -255,6 +269,12 @@ MIT © 2026 VoltViz
 ## 🤝 Contributing
 
 Contributions are welcome! Whether you want to add new visualizations, improve performance, or fix bugs, feel free to open a pull request.
+
+---
+
+## 🎨 Credits
+
+Special shoutout to [@sabosugi](https://x.com/sabosugi) for the nice visuals.
 
 ---
 

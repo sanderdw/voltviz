@@ -56,7 +56,9 @@ type VisualizerType =
   | 'aurumleaf'
   | 'anunakisphere'
   | 'trailsstream'
-  | 'shambhala';
+  | 'shambhala'
+  | 'holoblinds'
+  | 'insidequantum';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -133,6 +135,8 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   anunakisphere: lazy(() => import('./components/visualizers/AnunakiSphere')),
   trailsstream: lazy(() => import('./components/visualizers/TrailsStream')),
   shambhala: lazy(() => import('./components/visualizers/Shambhala')),
+  holoblinds: lazy(() => import('./components/visualizers/HoloBlinds')),
+  insidequantum: lazy(() => import('./components/visualizers/InsideQuantum')),
 };
 
 export default function App() {
@@ -476,6 +480,8 @@ export default function App() {
                     <option value="anunakisphere" className={skin.selectOption}>Anunaki Sphere</option>
                     <option value="trailsstream" className={skin.selectOption}>Trails Stream</option>
                     <option value="shambhala" className={skin.selectOption}>Shambhala</option>
+                    <option value="holoblinds" className={skin.selectOption}>Holo Blinds</option>
+                    <option value="insidequantum" className={skin.selectOption}>Inside Quantum</option>
                     <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
