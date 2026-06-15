@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.19.0] - 2026-06-15
+## [0.19.1] - 2026-06-15
 
 ### Added
 - Holo Blinds visualizer – raymarched twisting gyroid confined to a squashed sphere core with audio-reactive brightness, twist speed, and detail (Three.js/WebGL).
