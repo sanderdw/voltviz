@@ -90,14 +90,14 @@ http://localhost:8080
 ## 🛠 Technology Stack
 
 **Frontend:**
-- **React** 19.2.6 - UI framework
-- **TypeScript** 6.0 - Type-safe development
-- **Vite** 8.0.12 - Next-gen build tool
-- **Three.js** 0.184 - 3D graphics
-- **D3.js** 3.1.1 - Data visualization
-- **Tailwind CSS** 4.3 - Utility-first styling
-- **Lucide React** 1.9 - Icon library
-- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** 3.1 - Synchronized audio streaming client
+- **React** - UI framework
+- **TypeScript** - Type-safe development
+- **Vite** - Next-gen build tool
+- **Three.js** - 3D graphics
+- **D3.js** - Data visualization
+- **Tailwind CSS** - Utility-first styling
+- **Lucide React** - Icon library
+- **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** - Synchronized audio streaming client
 
 **Infrastructure:**
 - **Docker** - Containerization
