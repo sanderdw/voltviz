@@ -58,7 +58,8 @@ type VisualizerType =
   | 'trailsstream'
   | 'shambhala'
   | 'holoblinds'
-  | 'insidequantum';
+  | 'insidequantum'
+  | 'particlesstream';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -137,6 +138,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   shambhala: lazy(() => import('./components/visualizers/Shambhala')),
   holoblinds: lazy(() => import('./components/visualizers/HoloBlinds')),
   insidequantum: lazy(() => import('./components/visualizers/InsideQuantum')),
+  particlesstream: lazy(() => import('./components/visualizers/ParticlesStream')),
 };
 
 export default function App() {
@@ -445,6 +447,7 @@ export default function App() {
                     <option value="neonwave" className={skin.selectOption}>Neon Wave</option>
                     <option value="sheetmusic" className={skin.selectOption}>Sheet Music</option>
                     <option value="tunnel" className={skin.selectOption}>Tunnel</option>
+                    <option value="particlesstream" className={skin.selectOption}>Particles Stream</option>
                     <option value="circular" className={skin.selectOption}>Circular</option>
                     <option value="cybermatrix" className={skin.selectOption}>Cyber Matrix</option>
                     <option value="cybergridcanvas" className={skin.selectOption}>Cyber Grid Canvas</option>
