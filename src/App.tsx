@@ -1,72 +1,15 @@
-import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, LayoutGrid, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 import { skins, SkinType } from './skins';
-
-type VisualizerType =
-  | 'circular'
-  | 'blurimage'
-  | 'glitchbackground'
-  | 'glitchdatabend'
-  | 'yourlogo'
-  | 'cybermatrix'
-  | 'cybergridcanvas'
-  | 'sheetmusic'
-  | 'bars'
-  | 'tunnel'
-  | 'dutchgrid'
-  | 'neonwave'
-  | 'polysphere'
-  | 'psychedelicskull'
-  | 'ghostrainbow'
-  | 'neonhextunnel'
-  | 'fluidsmoke'
-  | 'cosmicparticles'
-  | 'dutchgridwebgl'
-  | 'festivalstage'
-  | 'defqonmainstage'
-  | 'disneydroneshow'
-  | 'fireworksshow'
-  | 'glowsphere'
-  | 'crtterminal'
-  | 'datadashboard'
-  | 'vinyl'
-  | 'backgroundimage'
-  | '3dequalizer'
-  | 'flame'
-  | 'vumeter'
-  | 'hexglobe'
-  | 'vinylsendspin'
-  | 'glitchbackgroundsendspin'
-  | 'backgroundimagesendspin'
-  | 'icons'
-  | 'milkdrop'
-  | 'milkdropwarp'
-  | 'aurorawaves'
-  | 'msdefrag'
-  | 'fractalorb'
-  | 'mossball'
-  | 'razor1911'
-  | 'ascii'
-  | 'cybercity'
-  | 'audiodebug'
-  | 'aurumleaf'
-  | 'anunakisphere'
-  | 'trailsstream'
-  | 'shambhala'
-  | 'holoblinds'
-  | 'insidequantum'
-  | 'particlesstream'
-  | 'sungalizer';
-
-type VisualizerProps = {
-  stream: MediaStream;
-  settings: VisualizerSettings;
-  sendspinMetadata?: ServerStateMetadata | null;
-};
+import { visualizers, visualizerIds, visualizerNames, isVisualizerType } from './visualizers';
+import type { VisualizerType } from './visualizers';
+import VisualizerPicker from './components/VisualizerPicker';
+import VisualizerStage, { TRANSITION_MODES } from './components/VisualizerStage';
+import type { TransitionMode } from './components/VisualizerStage';
 
 type SendspinState = {
   active: boolean;
@@ -86,62 +29,15 @@ const initialSendspinState: SendspinState = {
   muted: false,
 };
 
-const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<React.ComponentType<VisualizerProps>>> = {
-  circular: lazy(() => import('./components/visualizers/Circular')),
-  blurimage: lazy(() => import('./components/visualizers/BlurImage')),
-  glitchbackground: lazy(() => import('./components/visualizers/GlitchBackground')),
-  glitchdatabend: lazy(() => import('./components/visualizers/GlitchDatabend')),
-  yourlogo: lazy(() => import('./components/visualizers/YourLogo')),
-  cybermatrix: lazy(() => import('./components/visualizers/CyberMatrix')),
-  cybergridcanvas: lazy(() => import('./components/visualizers/CyberGridCanvas')),
-  sheetmusic: lazy(() => import('./components/visualizers/SheetMusic')),
-  bars: lazy(() => import('./components/visualizers/Bars')),
-  tunnel: lazy(() => import('./components/visualizers/Tunnel')),
-  dutchgrid: lazy(() => import('./components/visualizers/DutchGrid')),
-  neonwave: lazy(() => import('./components/visualizers/NeonWave')),
-  polysphere: lazy(() => import('./components/visualizers/PolySphere')),
-  psychedelicskull: lazy(() => import('./components/visualizers/PsychedelicSkull')),
-  ghostrainbow: lazy(() => import('./components/visualizers/GhostRainbow')),
-  neonhextunnel: lazy(() => import('./components/visualizers/NeonHexTunnel')),
-  fluidsmoke: lazy(() => import('./components/visualizers/FluidSmoke')),
-  cosmicparticles: lazy(() => import('./components/visualizers/CosmicParticles')),
-  dutchgridwebgl: lazy(() => import('./components/visualizers/DutchGridWebGL')),
-  festivalstage: lazy(() => import('./components/visualizers/FestivalStage')),
-  defqonmainstage: lazy(() => import('./components/visualizers/DefqonMainstage')),
-  disneydroneshow: lazy(() => import('./components/visualizers/DisneyDroneShow')),
-  fireworksshow: lazy(() => import('./components/visualizers/FireworksShow')),
-  glowsphere: lazy(() => import('./components/visualizers/GlowSphere')),
-  crtterminal: lazy(() => import('./components/visualizers/CRTTerminal')),
-  datadashboard: lazy(() => import('./components/visualizers/DataDashboard')),
-  vinyl: lazy(() => import('./components/visualizers/Vinyl')),
-  backgroundimage: lazy(() => import('./components/visualizers/BackgroundImage')),
-  '3dequalizer': lazy(() => import('./components/visualizers/ThreeDEqualizer')),
-  flame: lazy(() => import('./components/visualizers/Flame')),
-  vumeter: lazy(() => import('./components/visualizers/VUMeter')),
-  hexglobe: lazy(() => import('./components/visualizers/HexGlobe')),
-  vinylsendspin: lazy(() => import('./components/visualizers/VinylSendspin')),
-  glitchbackgroundsendspin: lazy(() => import('./components/visualizers/GlitchBackgroundSendspin')),
-  backgroundimagesendspin: lazy(() => import('./components/visualizers/BackgroundImageSendspin')),
-  icons: lazy(() => import('./components/visualizers/Icons')),
-  milkdrop: lazy(() => import('./components/visualizers/MilkDrop')),
-  milkdropwarp: lazy(() => import('./components/visualizers/MilkDropWarp')),
-  aurorawaves: lazy(() => import('./components/visualizers/AuroraWaves')),
-  msdefrag: lazy(() => import('./components/visualizers/MsDefrag')),
-  fractalorb: lazy(() => import('./components/visualizers/FractalOrb')),
-  mossball: lazy(() => import('./components/visualizers/MossBall')),
-  razor1911: lazy(() => import('./components/visualizers/Razor1911')),
-  ascii: lazy(() => import('./components/visualizers/Ascii')),
-  cybercity: lazy(() => import('./components/visualizers/CyberCity')),
-  audiodebug: lazy(() => import('./components/visualizers/AudioDebug')),
-  aurumleaf: lazy(() => import('./components/visualizers/AurumLeaf')),
-  anunakisphere: lazy(() => import('./components/visualizers/AnunakiSphere')),
-  trailsstream: lazy(() => import('./components/visualizers/TrailsStream')),
-  shambhala: lazy(() => import('./components/visualizers/Shambhala')),
-  holoblinds: lazy(() => import('./components/visualizers/HoloBlinds')),
-  insidequantum: lazy(() => import('./components/visualizers/InsideQuantum')),
-  particlesstream: lazy(() => import('./components/visualizers/ParticlesStream')),
-  sungalizer: lazy(() => import('./components/visualizers/Sungalizer')),
-};
+const SHUFFLE_PRESETS: { value: number; label: string }[] = [
+  { value: 15, label: '15 seconds' },
+  { value: 30, label: '30 seconds' },
+  { value: 60, label: '1 minute' },
+  { value: 120, label: '2 minutes' },
+  { value: 300, label: '5 minutes' },
+  { value: 600, label: '10 minutes' },
+];
+const SHUFFLE_DEFAULT = 60;
 
 export default function App() {
   const appVersion = __APP_VERSION__;
@@ -154,7 +50,22 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
     const viz = new URLSearchParams(window.location.search).get('viz');
-    return viz && viz in visualizerComponents ? (viz as VisualizerType) : 'polysphere';
+    return isVisualizerType(viz) ? viz : 'polysphere';
+  });
+  const [showPicker, setShowPicker] = useState(false);
+  const [shuffleEnabled, setShuffleEnabled] = useState(() =>
+    new URLSearchParams(window.location.search).get('shuffle') === '1');
+  const [shuffleInterval, setShuffleInterval] = useState<number>(() => {
+    const v = parseInt(new URLSearchParams(window.location.search).get('shuffleTime') ?? '', 10);
+    return SHUFFLE_PRESETS.some(p => p.value === v) ? v : SHUFFLE_DEFAULT;
+  });
+  const [shufflePool, setShufflePool] = useState<VisualizerType[]>(() => [...new Set(
+    (new URLSearchParams(window.location.search).get('shufflePool') ?? '')
+      .split(',').filter(isVisualizerType)
+  )]);
+  const [transitionMode, setTransitionMode] = useState<TransitionMode>(() => {
+    const t = new URLSearchParams(window.location.search).get('transition');
+    return t && (TRANSITION_MODES as readonly string[]).includes(t) ? (t as TransitionMode) : 'crossfade';
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -209,9 +120,32 @@ export default function App() {
     setOrDelete('scale', settings.scale, 1.0);
     if (activeSkin !== 'modern') params.set('skin', activeSkin);
     else params.delete('skin');
+    if (shuffleEnabled) params.set('shuffle', '1');
+    else params.delete('shuffle');
+    if (shuffleEnabled && shuffleInterval !== SHUFFLE_DEFAULT) params.set('shuffleTime', String(shuffleInterval));
+    else params.delete('shuffleTime');
+    if (shufflePool.length > 0) params.set('shufflePool', shufflePool.join(','));
+    else params.delete('shufflePool');
+    if (transitionMode !== 'crossfade') params.set('transition', transitionMode);
+    else params.delete('transition');
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [activeVisualizer, settings, activeSkin]);
+  }, [activeVisualizer, settings, activeSkin, shuffleEnabled, shuffleInterval, shufflePool, transitionMode]);
+
+  useEffect(() => {
+    if (!shuffleEnabled || !stream) return;
+    const id = window.setInterval(() => {
+      setActiveVisualizer(current => {
+        const pool = shufflePool.length ? shufflePool : visualizerIds;
+        const others = pool.filter(v => v !== current);
+        if (!others.length) return current;
+        const next = others[Math.floor(Math.random() * others.length)];
+        (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Shuffle', next]);
+        return next;
+      });
+    }, shuffleInterval * 1000);
+    return () => window.clearInterval(id);
+  }, [shuffleEnabled, shuffleInterval, stream, shufflePool]);
 
   useEffect(() => {
     // Allow layout to settle, then notify visualizers of the size change
@@ -389,18 +323,6 @@ export default function App() {
     }
   };
 
-  const visualizerElement = useMemo(() => {
-    if (!stream) return null;
-    const Visualizer = visualizerComponents[activeVisualizer];
-    if (!Visualizer) return null;
-
-    return (
-      <Suspense fallback={<div className="w-full h-full" />}>
-        <Visualizer stream={stream} settings={settings} sendspinMetadata={sendspin.metadata} />
-      </Suspense>
-    );
-  }, [stream, activeVisualizer, settings, sendspin.metadata]);
-
   return (
     <div className={skin.root}>
       {/* Mobile hint */}
@@ -427,73 +349,16 @@ export default function App() {
               </div>
 
               {stream && (
-                <div className="relative">
-                  <select
-                    value={activeVisualizer}
-                    onChange={(e) => {
-                      const value = e.target.value as VisualizerType;
-                      setActiveVisualizer(value);
-                      (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Select', value]);
-                    }}
-                    className={skin.select}
-                  >
-                    <option value="dutchgrid" className={skin.selectOption}>Dutch Grid</option>
-                    <option value="dutchgridwebgl" className={skin.selectOption}>Dutch Grid (WebGL)</option>
-                    <option value="glitchbackground" className={skin.selectOption}>Glitch Background</option>
-                    <option value="glitchdatabend" className={skin.selectOption}>Glitch Databend</option>
-                    <option value="yourlogo" className={skin.selectOption}>Your Logo</option>
-                    <option value="icons" className={skin.selectOption}>Icons</option>
-                    <option value="glowsphere" className={skin.selectOption}>Glow Sphere</option>
-                    <option value="crtterminal" className={skin.selectOption}>CRT Terminal</option>
-                    <option value="cosmicparticles" className={skin.selectOption}>Cosmic Particles</option>
-                    <option value="neonwave" className={skin.selectOption}>Neon Wave</option>
-                    <option value="sheetmusic" className={skin.selectOption}>Sheet Music</option>
-                    <option value="tunnel" className={skin.selectOption}>Tunnel</option>
-                    <option value="particlesstream" className={skin.selectOption}>Particles Stream</option>
-                    <option value="circular" className={skin.selectOption}>Circular</option>
-                    <option value="cybermatrix" className={skin.selectOption}>Cyber Matrix</option>
-                    <option value="cybergridcanvas" className={skin.selectOption}>Cyber Grid Canvas</option>
-                    <option value="bars" className={skin.selectOption}>Bars</option>
-                    <option value="polysphere" className={skin.selectOption}>Poly Sphere</option>
-                    <option value="psychedelicskull" className={skin.selectOption}>Psychedelic Skull</option>
-                    <option value="ghostrainbow" className={skin.selectOption}>Ghost Rainbow</option>
-                    <option value="neonhextunnel" className={skin.selectOption}>Neon Hex Tunnel</option>
-                    <option value="fluidsmoke" className={skin.selectOption}>Fluid Smoke</option>
-                    <option value="3dequalizer" className={skin.selectOption}>3D Equalizer</option>
-                    <option value="festivalstage" className={skin.selectOption}>Festival Stage</option>
-                    <option value="defqonmainstage" className={skin.selectOption}>Defqon Mainstage</option>
-                    <option value="disneydroneshow" className={skin.selectOption}>Disney Drone Show</option>
-                    <option value="fireworksshow" className={skin.selectOption}>Fireworks Show</option>
-                    <option value="datadashboard" className={skin.selectOption}>Data Dashboard</option>
-                    <option value="vinyl" className={skin.selectOption}>Vinyl</option>
-                    <option value="backgroundimage" className={skin.selectOption}>Background Image</option>
-                    <option value="blurimage" className={skin.selectOption}>Blur Image</option>
-                    <option value="flame" className={skin.selectOption}>Flame</option>
-                    <option value="vumeter" className={skin.selectOption}>VU Meter</option>
-                    <option value="hexglobe" className={skin.selectOption}>Hex Globe</option>
-                    <option value="milkdrop" className={skin.selectOption}>MilkDrop</option>
-                    <option value="milkdropwarp" className={skin.selectOption}>MilkDrop Warp</option>
-                    <option value="aurorawaves" className={skin.selectOption}>Aurora Waves</option>
-                    <option value="msdefrag" className={skin.selectOption}>MS Defrag</option>
-                    <option value="fractalorb" className={skin.selectOption}>Fractal Orb</option>
-                    <option value="mossball" className={skin.selectOption}>Moss Ball</option>
-                    <option value="razor1911" className={skin.selectOption}>Razor 1911</option>
-                    <option value="ascii" className={skin.selectOption}>ASCII</option>
-                    <option value="cybercity" className={skin.selectOption}>Cyber City</option>
-                    <option value="audiodebug" className={skin.selectOption}>Audio Debug</option>
-                    <option value="aurumleaf" className={skin.selectOption}>Aurum Leaf</option>
-                    <option value="anunakisphere" className={skin.selectOption}>Anunaki Sphere</option>
-                    <option value="trailsstream" className={skin.selectOption}>Trails Stream</option>
-                    <option value="shambhala" className={skin.selectOption}>Shambhala</option>
-                    <option value="holoblinds" className={skin.selectOption}>Holo Blinds</option>
-                    <option value="insidequantum" className={skin.selectOption}>Inside Quantum</option>
-                    <option value="sungalizer" className={skin.selectOption}>Sungalizer</option>
-                    <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
-                    <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
-                    <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
-                  </select>
-                  <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${activeSkin === 'win95' ? 'text-black' : activeSkin === 'winamp' ? 'text-[#00ff00]/50' : activeSkin === 'crt' ? 'text-[#00ff00]/50' : 'text-white/50'}`} />
-                </div>
+                <button
+                  onClick={() => setShowPicker(true)}
+                  className={skin.pickerButton}
+                  data-testid="visualizer-picker-open"
+                  aria-haspopup="dialog"
+                >
+                  <LayoutGrid size={16} />
+                  <span>{visualizerNames[activeVisualizer]}</span>
+                  <ChevronDown size={14} />
+                </button>
               )}
             </div>
 
@@ -574,7 +439,13 @@ export default function App() {
             </div>
           ) : (
             <div className="w-full h-full absolute inset-0">
-               {visualizerElement}
+              <VisualizerStage
+                stream={stream}
+                visualizer={activeVisualizer}
+                settings={settings}
+                sendspinMetadata={sendspin.metadata}
+                transition={transitionMode}
+              />
             </div>
           )}
 
@@ -664,6 +535,54 @@ export default function App() {
                   className={skin.settingsSlider}
                 />
                 <p className={skin.settingsDescription}>Shifts the base colors across the spectrum.</p>
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-2 items-center">
+                  <label className={skin.settingsLabel}>Shuffle</label>
+                  <button
+                    onClick={() => setShuffleEnabled(!shuffleEnabled)}
+                    className={`${skin.buttonGhost} ${shuffleEnabled ? skin.sendspinButtonActive : ''}`}
+                    aria-pressed={shuffleEnabled}
+                    data-testid="viz-shuffle-toggle"
+                  >
+                    <Shuffle size={14} />
+                    <span>{shuffleEnabled ? 'On' : 'Off'}</span>
+                  </button>
+                </div>
+                <select
+                  value={shuffleInterval}
+                  onChange={e => setShuffleInterval(parseInt(e.target.value, 10))}
+                  disabled={!shuffleEnabled}
+                  className={`${skin.select} w-full disabled:opacity-40 disabled:cursor-not-allowed`}
+                  data-testid="viz-shuffle-interval"
+                >
+                  {SHUFFLE_PRESETS.map(p => (
+                    <option key={p.value} value={p.value} className={skin.selectOption}>{p.label}</option>
+                  ))}
+                </select>
+                <p className={skin.settingsDescription}>
+                  {shufflePool.length
+                    ? `Shuffling ${shufflePool.length} of ${visualizers.length} visualizers — edit the selection in the gallery.`
+                    : 'Automatically switch to a random visualizer at this interval.'}
+                </p>
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className={skin.settingsLabel}>Transition</label>
+                </div>
+                <select
+                  value={transitionMode}
+                  onChange={e => setTransitionMode(e.target.value as TransitionMode)}
+                  className={`${skin.select} w-full`}
+                  data-testid="viz-transition"
+                >
+                  <option value="crossfade" className={skin.selectOption}>Crossfade</option>
+                  <option value="quickcut" className={skin.selectOption}>Quick cut</option>
+                  <option value="instant" className={skin.selectOption}>Instant</option>
+                </select>
+                <p className={skin.settingsDescription}>How visualizer switches blend. Crossfade is smoothest; Quick cut and Instant use less GPU on weak hardware.</p>
               </div>
 
               <button
@@ -826,6 +745,22 @@ export default function App() {
             <X size={16} />
           </button>
         </div>
+      )}
+
+      {showPicker && (
+        <VisualizerPicker
+          active={activeVisualizer}
+          skin={skin}
+          shufflePool={shufflePool}
+          onTogglePool={(id) => setShufflePool(pool =>
+            pool.includes(id) ? pool.filter(p => p !== id) : [...pool, id]
+          )}
+          onClose={() => setShowPicker(false)}
+          onSelect={(id) => {
+            setActiveVisualizer(id);
+            (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Select', id]);
+          }}
+        />
       )}
 
       {showSendspinDialog && (

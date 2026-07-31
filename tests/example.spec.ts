@@ -63,8 +63,8 @@ test.describe('VoltViz – landing page (no stream)', () => {
     await expect(link).toHaveAttribute('href', 'https://github.com/sanderdw/voltviz');
   });
 
-  test('visualizer selector is not shown before audio starts', async ({ page }) => {
-    await expect(page.locator('select')).not.toBeVisible();
+  test('visualizer picker is not shown before audio starts', async ({ page }) => {
+    await expect(page.getByTestId('visualizer-picker-open')).not.toBeVisible();
   });
 
   test('Settings panel is hidden on load', async ({ page }) => {

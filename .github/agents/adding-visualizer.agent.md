@@ -53,12 +53,11 @@ You are a specialized coding agent for VoltViz. Your primary role is to add new 
 
 ## Registration Rules for New Visualizers
 
-When adding a new visualizer, update `src/App.tsx` in all required places:
+Registration lives in a single manifest: `src/visualizers.ts`.
 
-1. Add a new string literal to the `VisualizerType` union.
-2. Add a matching entry in the `visualizerComponents` Record with a `lazy(() => import(...))` call.
-3. Add a new `<option>` in the visualizer selector `<select>`.
-4. If you see an unused React import, you can safely remove it.
+1. Add one entry to the `visualizers` array: `{ id, name, load: () => import('./components/visualizers/<Component>') }`. The `VisualizerType` union, lazy component map, and picker labels/order are all derived from it.
+2. Generate the picker preview thumbnail: `npm run capture:previews -- <id>` (writes `src/images/previews/<id>.jpg`). Until it exists, the picker shows a placeholder card.
+3. If you see an unused React import, you can safely remove it.
 
 ### Settings Mapping
 
