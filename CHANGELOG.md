@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0] - 2026-07-25
+
+### Added
+- Sungalizer visualizer – retro amber-phosphor CRT quad analyzer: 2D spectrum, 3D depth-trace waterfall, scrolling spectrogram, and oscilloscope, plus a hardware-style side panel with reactive VU needle and knobs (Canvas 2D).
+
+### Changed
+- Dependency bumps
+
 ## [0.20.0] - 2026-06-30
 
 ### Added

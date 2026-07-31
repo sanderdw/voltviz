@@ -59,7 +59,8 @@ type VisualizerType =
   | 'shambhala'
   | 'holoblinds'
   | 'insidequantum'
-  | 'particlesstream';
+  | 'particlesstream'
+  | 'sungalizer';
 
 type VisualizerProps = {
   stream: MediaStream;
@@ -139,6 +140,7 @@ const visualizerComponents: Record<VisualizerType, React.LazyExoticComponent<Rea
   holoblinds: lazy(() => import('./components/visualizers/HoloBlinds')),
   insidequantum: lazy(() => import('./components/visualizers/InsideQuantum')),
   particlesstream: lazy(() => import('./components/visualizers/ParticlesStream')),
+  sungalizer: lazy(() => import('./components/visualizers/Sungalizer')),
 };
 
 export default function App() {
@@ -485,6 +487,7 @@ export default function App() {
                     <option value="shambhala" className={skin.selectOption}>Shambhala</option>
                     <option value="holoblinds" className={skin.selectOption}>Holo Blinds</option>
                     <option value="insidequantum" className={skin.selectOption}>Inside Quantum</option>
+                    <option value="sungalizer" className={skin.selectOption}>Sungalizer</option>
                     <option value="vinylsendspin" className={skin.selectOption}>Vinyl (Sendspin)</option>
                     <option value="glitchbackgroundsendspin" className={skin.selectOption}>Glitch Background (Sendspin)</option>
                     <option value="backgroundimagesendspin" className={skin.selectOption}>Background Image (Sendspin)</option>
