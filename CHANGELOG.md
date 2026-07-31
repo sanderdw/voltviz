@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.21.1] - 2026-08-01
+
+### Fixed
+- Built asset URLs are now relative (Vite `base: './'`), so visualizer preview thumbnails and other bundled assets load correctly when the app is served under a path prefix such as Home Assistant ingress.
+
 ## [0.21.0] - 2026-08-01
 
 ### Added

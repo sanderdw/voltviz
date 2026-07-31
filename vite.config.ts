@@ -6,6 +6,9 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   const appVersion = process.env.npm_package_version ?? 'dev';
   return {
+    // Relative base so built asset URLs work when served under a path
+    // prefix (e.g. Home Assistant ingress), not just at the site root.
+    base: './',
     plugins: [react(), tailwindcss()],
     define: {
       __APP_VERSION__: JSON.stringify(appVersion),
