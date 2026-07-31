@@ -8,14 +8,14 @@ argument-hint: '[request summary]'
 
 ## What This Skill Produces
 - A focused change set for a visualizer task in VoltViz.
-- Correct registration updates in App.tsx when a new visualizer is introduced.
+- Correct registration updates in src/visualizers.ts when a new visualizer is introduced.
 - Safe animation/audio cleanup behavior to avoid leaks.
 - Post-change validation via lint/type check.
 
 ## When To Use
 - Add a brand-new visualizer component.
 - Modify behavior or rendering of an existing visualizer.
-- Update only App.tsx registration for visualizer availability.
+- Update only src/visualizers.ts registration for visualizer availability.
 - Apply consistent mapping for sensitivity, speed, hueShift, and scale.
 
 ## Inputs
@@ -36,10 +36,10 @@ argument-hint: '[request summary]'
 ## Procedure
 1. Inspect current patterns in src/components/visualizers and App.tsx.
 2. Implement smallest viable change for requested behavior.
-3. If adding a new visualizer, update App.tsx in all required spots:
-- Add literal to VisualizerType union.
-- Add lazy import entry in visualizerComponents.
-- Add selector option in the visualizer select.
+3. If adding a new visualizer, register it in the manifest src/visualizers.ts:
+- Add one entry to the visualizers array: { id, name, load: () => import('./components/visualizers/<Component>') }.
+- The VisualizerType union, lazy component map, and picker labels/order are derived from this single list.
+- Generate the picker preview thumbnail with npm run capture:previews -- <id> (writes src/images/previews/<id>.jpg).
 4. Keep VisualizerSettings mapping consistent:
 - sensitivity scales reactivity amplitude.
 - speed scales animation rate / elapsed-time effects.
@@ -62,7 +62,7 @@ argument-hint: '[request summary]'
 ## Quality Gates
 - Validation is attempted (lint/type-check) when practical for the current task.
 - No leaked animation loops or audio resources.
-- New visualizer appears in selector and renders.
+- New visualizer appears in the gallery picker (with preview thumbnail) and renders.
 - Existing visualizer modifications preserve expected controls behavior.
 
 ## Completion Checklist

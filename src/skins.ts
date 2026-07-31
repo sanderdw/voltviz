@@ -13,6 +13,15 @@ export interface SkinDefinition {
   buttonGhost: string;
   select: string;
   selectOption: string;
+  pickerButton: string;
+  pickerPanel: string;
+  pickerTitle: string;
+  pickerClose: string;
+  pickerCard: string;
+  pickerCardActive: string;
+  pickerCardLabel: string;
+  pickerBadge: string;
+  pickerBadgeActive: string;
   settingsPanel: string;
   settingsLabel: string;
   settingsValue: string;
@@ -57,6 +66,15 @@ export const skins: Record<SkinType, SkinDefinition> = {
     buttonGhost: 'flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white text-sm cursor-pointer',
     select: 'appearance-none bg-white/10 hover:bg-white/20 border border-white/10 rounded-full pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors',
     selectOption: 'bg-gray-900',
+    pickerButton: 'flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer transition-colors',
+    pickerPanel: 'bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-5xl max-h-[85vh] mx-4 flex flex-col',
+    pickerTitle: 'text-xl font-light',
+    pickerClose: 'text-white/50 hover:text-white transition-colors cursor-pointer',
+    pickerCard: 'group rounded-xl border border-white/10 hover:border-purple-400/60 bg-white/5 text-left cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500',
+    pickerCardActive: 'border-purple-500 ring-2 ring-purple-500',
+    pickerCardLabel: 'block px-3 py-2 text-sm text-white/80',
+    pickerBadge: 'flex items-center gap-0.5 px-1.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 text-white/50 hover:text-white hover:border-white/40 cursor-pointer transition-colors',
+    pickerBadgeActive: 'flex items-center gap-0.5 px-1.5 py-1 rounded-full bg-purple-600/90 border border-purple-400/60 text-white cursor-pointer shadow-[0_0_8px_rgba(147,51,234,0.5)] transition-colors',
     settingsPanel: 'absolute top-0 right-0 bottom-0 w-80 bg-black/80 backdrop-blur-xl border-l border-white/10 p-6 transform transition-transform duration-300 z-50',
     settingsLabel: 'text-sm text-white/70',
     settingsValue: 'text-sm text-purple-400',
@@ -99,6 +117,15 @@ export const skins: Record<SkinType, SkinDefinition> = {
     buttonGhost: 'flex items-center gap-2 px-4 py-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-sm text-black cursor-pointer active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white',
     select: 'appearance-none bg-white border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white pl-2 pr-8 py-1 text-sm text-black focus:outline-none cursor-pointer',
     selectOption: 'bg-white text-black',
+    pickerButton: 'flex items-center gap-2 bg-white border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white px-2 py-1 text-sm text-black cursor-pointer',
+    pickerPanel: 'bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] p-3 w-full max-w-5xl max-h-[85vh] mx-4 flex flex-col',
+    pickerTitle: 'text-lg font-bold text-[#000080]',
+    pickerClose: 'cursor-pointer text-black',
+    pickerCard: 'bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-left cursor-pointer active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white',
+    pickerCardActive: 'outline outline-2 outline-[#000080]',
+    pickerCardLabel: 'block px-2 py-1 text-sm text-black',
+    pickerBadge: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-[#808080] cursor-pointer active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white',
+    pickerBadgeActive: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#c0c0c0] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white text-[#000080] cursor-pointer',
     settingsPanel: 'absolute top-0 right-0 bottom-0 w-80 bg-[#c0c0c0] border-l-2 border-l-white border-t-2 border-t-white p-4 transform transition-transform duration-300 z-50',
     settingsLabel: 'text-sm text-black font-bold',
     settingsValue: 'text-sm text-[#000080]',
@@ -141,6 +168,15 @@ export const skins: Record<SkinType, SkinDefinition> = {
     buttonGhost: 'flex items-center gap-2 px-4 py-2 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-sm text-[#a0a0a0] uppercase cursor-pointer active:border-t-[#1a1a2a] active:border-l-[#1a1a2a] active:border-b-[#6a6a7a] active:border-r-[#6a6a7a]',
     select: 'appearance-none bg-[#0a0a14] border-2 border-t-[#1a1a2a] border-l-[#1a1a2a] border-b-[#6a6a7a] border-r-[#6a6a7a] pl-4 pr-10 py-2 text-sm text-[#00ff00] focus:outline-none cursor-pointer',
     selectOption: 'bg-[#0a0a14] text-[#00ff00]',
+    pickerButton: 'flex items-center gap-2 bg-[#0a0a14] border-2 border-t-[#1a1a2a] border-l-[#1a1a2a] border-b-[#6a6a7a] border-r-[#6a6a7a] px-4 py-2 text-sm text-[#00ff00] cursor-pointer',
+    pickerPanel: 'bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] p-5 w-full max-w-5xl max-h-[85vh] mx-4 flex flex-col',
+    pickerTitle: 'text-lg font-bold text-[#00ff00] uppercase tracking-wider',
+    pickerClose: 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]',
+    pickerCard: 'bg-[#0a0a14] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-left cursor-pointer',
+    pickerCardActive: 'outline outline-2 outline-[#00ff00]',
+    pickerCardLabel: 'block px-2 py-1.5 text-xs text-[#00ff00] uppercase tracking-wider',
+    pickerBadge: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-[#808090] hover:text-[#d0d0d0] cursor-pointer',
+    pickerBadgeActive: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#0a0a14] border-2 border-t-[#1a1a2a] border-l-[#1a1a2a] border-b-[#6a6a7a] border-r-[#6a6a7a] text-[#00ff00] cursor-pointer',
     settingsPanel: 'absolute top-0 right-0 bottom-0 w-80 bg-[#3a3a4a] border-l-2 border-l-[#6a6a7a] p-6 transform transition-transform duration-300 z-50',
     settingsLabel: 'text-sm text-[#d0d0d0] uppercase tracking-wider',
     settingsValue: 'text-sm text-[#00ff00] font-bold',
@@ -183,6 +219,15 @@ export const skins: Record<SkinType, SkinDefinition> = {
     buttonGhost: 'flex items-center gap-2 px-3 py-1.5 bg-transparent border border-[#00ff00]/30 text-sm text-[#00ff00]/60 cursor-pointer hover:border-[#00ff00]/60 hover:text-[#00ff00]',
     select: 'appearance-none bg-[#0a0a0a] border border-[#00ff00]/50 pl-2 pr-8 py-1 text-sm text-[#00ff00] focus:outline-none focus:border-[#00ff00] focus:shadow-[0_0_6px_rgba(0,255,0,0.3)] cursor-pointer',
     selectOption: 'bg-[#0a0a0a] text-[#00ff00]',
+    pickerButton: 'flex items-center gap-2 bg-[#0a0a0a] border border-[#00ff00]/50 px-2 py-1 text-sm text-[#00ff00] hover:border-[#00ff00] hover:shadow-[0_0_6px_rgba(0,255,0,0.3)] cursor-pointer',
+    pickerPanel: 'bg-[#0a0a0a] border border-[#00ff00]/40 p-5 w-full max-w-5xl max-h-[85vh] mx-4 flex flex-col shadow-[0_0_20px_rgba(0,255,0,0.1)]',
+    pickerTitle: 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]',
+    pickerClose: 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]',
+    pickerCard: 'bg-[#0a0a0a] border border-[#00ff00]/30 hover:border-[#00ff00]/70 text-left cursor-pointer',
+    pickerCardActive: 'border-[#00ff00] shadow-[0_0_8px_rgba(0,255,0,0.4)]',
+    pickerCardLabel: 'block px-2 py-1.5 text-xs text-[#00ff00]/80 uppercase tracking-widest',
+    pickerBadge: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#0a0a0a] border border-[#00ff00]/30 text-[#00ff00]/40 hover:text-[#00ff00]/80 hover:border-[#00ff00]/60 cursor-pointer',
+    pickerBadgeActive: 'flex items-center gap-0.5 px-1 py-0.5 bg-[#0a0a0a] border border-[#00ff00] text-[#00ff00] shadow-[0_0_8px_rgba(0,255,0,0.4)] cursor-pointer',
     settingsPanel: 'absolute top-0 right-0 bottom-0 w-80 bg-[#0a0a0a] border-l border-[#00ff00]/20 p-5 transform transition-transform duration-300 z-50',
     settingsLabel: 'text-xs text-[#00ff00]/70 uppercase tracking-widest',
     settingsValue: 'text-xs text-[#00ff00] font-bold',
