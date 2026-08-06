@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.21.2] - 2026-08-06
+
+### Fixed
+- Sendspin player registration now persists `voltviz_sendspin_client_id` in browser `localStorage` across page reloads and reconnects, ensuring each client re-registers as the same player on the Sendspin / Music Assistant server.
+- Fixed TypeScript build errors with `@sendspin/sendspin-js` 4.0.0 by removing deprecated `playerId` from `SendspinPlayerConfig` and using `player.clientId`.
+- Added `player.unlock()` call before connecting in `startSendspin()` to satisfy mobile browser autoplay policies and ensure seamless audio playback on mobile devices.
+
+### Changed
+- Dependency bumps
+
 ## [0.21.1] - 2026-08-01
 
 ### Fixed
