@@ -41,11 +41,6 @@ const SHUFFLE_DEFAULT = 60;
 
 export default function App() {
   const appVersion = __APP_VERSION__;
-  const sendspinClientIdRef = useRef(
-    `VoltViz-${typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID().slice(0, 8)
-      : Math.random().toString(36).slice(2, 10)}`
-  );
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
@@ -263,7 +258,6 @@ export default function App() {
       });
 
       const player = new SendspinPlayer({
-        playerId: sendspinClientIdRef.current,
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
@@ -294,11 +288,12 @@ export default function App() {
       });
 
       sendspinPlayerRef.current = player;
+      await player.unlock();
       await player.connect();
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
 
-      unhidePlayerInMA(sendspinClientIdRef.current);
+      unhidePlayerInMA(player.clientId);
 
       setError(null);
       updateSendspin({ active: true });
