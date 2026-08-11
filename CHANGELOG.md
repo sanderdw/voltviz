@@ -3,12 +3,25 @@
 ## [0.21.2] - 2026-08-06
 
 ### Fixed
-- Sendspin player registration is now stable across page reloads and reconnects: `@sendspin/sendspin-js` 4.0.0 persists its own X25519 identity keypair in browser `localStorage` and derives `player.clientId` from it, so each browser re-registers as the same player on the Sendspin / Music Assistant server.
+- Sendspin player registration is now stable across page reloads and reconnects: `@sendspin/sendspin-js` 4.0.0 persists a long-lived Curve25519 identity keypair in browser `localStorage`, and `player.clientId` is the base64url-encoded public key (43 characters) that the protocol uses as the client id and Music Assistant uses as the player id — so each browser re-registers as the same player.
 - Fixed TypeScript build errors with `@sendspin/sendspin-js` 4.0.0 by removing deprecated `playerId` from `SendspinPlayerConfig` and using `player.clientId`.
 - Added `player.unlock()` call before connecting in `startSendspin()` to satisfy mobile browser autoplay policies and ensure seamless audio playback on mobile devices.
 
 ### Changed
 - Dependency bumps
+- `lucide-react` 1.31.0 and `@types/node` 26.2.0. Every other dependency was already at its latest release.
+- Transitive `nanoid` lifted to 3.3.18 (via `vite` → `postcss`), clearing the high-severity ReDoS advisory GHSA-2v37-7h3g-55p8. `npm audit` now reports no vulnerabilities.
+
+### Known limitations
+- `@sendspin/sendspin-js` is deliberately held at 4.0.0. The Sendspin client and server move in lockstep on the encryption/pairing spec, so the SDK version must match the `aiosendspin` version bundled by your Music Assistant build:
+
+  | Music Assistant | aiosendspin | Compatible `@sendspin/sendspin-js` |
+  | --- | --- | --- |
+  | 2.9.x stable | 6.0.5 (no encryption) | 3.x |
+  | 2.10.0b13 | 7.0.0 | **4.0.0** (shipped here) |
+  | 2.10.0b14 and later | 9.0.0 | 5.0.0 |
+
+  Sendspin mode therefore requires Music Assistant 2.10.0b13. Since 4.0.0 the SDK always performs a Noise KKpsk2 handshake with no unencrypted fallback, and server-side encryption only arrived in `aiosendspin` 7.0.0, so it cannot connect to 2.9.x stable at all. Moving to `@sendspin/sendspin-js` 5.0.0 for Music Assistant 2.10.0b14+ needs no application code changes — VoltViz uses none of the pairing APIs that changed, and the `ServerStateMetadata` and `serverState.controller` shapes it reads are identical between the two versions.
 
 ## [0.21.1] - 2026-08-01
 
