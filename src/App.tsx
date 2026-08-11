@@ -29,6 +29,10 @@ const initialSendspinState: SendspinState = {
   muted: false,
 };
 
+// How long to wait after the socket opens for the server's first state message,
+// which is the earliest proof the protocol handshake actually succeeded.
+const SENDSPIN_HANDSHAKE_TIMEOUT_MS = 8000;
+
 const SHUFFLE_PRESETS: { value: number; label: string }[] = [
   { value: 15, label: '15 seconds' },
   { value: 30, label: '30 seconds' },
@@ -257,12 +261,22 @@ export default function App() {
         }
       });
 
+      // `connect()` resolves as soon as the WebSocket opens, before the protocol
+      // handshake, and a failed handshake just closes the socket without throwing.
+      // Wait for the first `server/state` instead, so an incompatible server
+      // reports an error rather than a control bar that never plays.
+      let onServerContact!: () => void;
+      const serverContact = new Promise<void>(resolve => { onServerContact = resolve; });
+
       const player = new SendspinPlayer({
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
         correctionMode: 'quality-local',
         onStateChange: (state) => {
+          if (state.serverState && Object.keys(state.serverState).length > 0) {
+            onServerContact();
+          }
           const patch: Partial<SendspinState> = { playing: state.isPlaying };
           if (state.serverState?.metadata) {
             patch.metadata = state.serverState.metadata;
@@ -292,6 +306,19 @@ export default function App() {
       await player.connect();
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
+
+      let handshakeTimer: ReturnType<typeof setTimeout>;
+      const handshakeTimeout = new Promise<never>((_, reject) => {
+        handshakeTimer = setTimeout(
+          () => reject(new Error('Connected, but the Sendspin handshake did not complete. The server may be running an incompatible protocol version.')),
+          SENDSPIN_HANDSHAKE_TIMEOUT_MS
+        );
+      });
+      try {
+        await Promise.race([serverContact, handshakeTimeout]);
+      } finally {
+        clearTimeout(handshakeTimer!);
+      }
 
       unhidePlayerInMA(player.clientId);
 

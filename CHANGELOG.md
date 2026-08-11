@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.21.3] - 2026-08-11
+
+### Fixed
+- Sendspin connections work again against servers running the current protocol. 0.21.2 shipped `@sendspin/sendspin-js` 4.0.0, which opens every session with `client/init` followed by a mandatory Noise KKpsk2 handshake and has no unencrypted fallback — so it silently failed against any server still speaking the older, pre-encryption spec. This release moves to `@sendspin/sendspin-js` 5.0.0, matching `aiosendspin` 9.0.0 and Music Assistant 2.10.0b14 and later. It also picks up an upstream Safari/iOS playback-sync fix.
+- A failed Sendspin handshake now reports an error instead of failing silently. `connect()` resolves as soon as the WebSocket opens — before the handshake — and the SDK's failure path closes the socket without throwing, so an incompatible server produced a connected-looking control bar that never played audio and reconnected forever. `startSendspin()` now waits for the server's first state message and surfaces an error if it doesn't arrive.
+
+### Changed
+- `lucide-react` 1.31.0 and `@types/node` 26.2.0. Every other dependency was already at its latest release.
+- Transitive `nanoid` lifted to 3.3.18 (via `vite` → `postcss`), clearing the high-severity ReDoS advisory GHSA-2v37-7h3g-55p8. `npm audit` reports no vulnerabilities.
+
+### Compatibility
+- The Sendspin client and server move in lockstep on the encryption/pairing spec, so the SDK version must match the `aiosendspin` version your server bundles:
+
+  | Server | aiosendspin | Required `@sendspin/sendspin-js` |
+  | --- | --- | --- |
+  | Music Assistant 2.9.x stable | 6.0.5 (no encryption) | 3.x |
+  | Music Assistant 2.10.0b13 | 7.0.0 | 4.0.0 |
+  | Music Assistant 2.10.0b14 and later | 9.0.0 | **5.0.0** (shipped here) |
+
+  Sendspin mode therefore requires a server on `aiosendspin` 9.0.0. Server-side encryption only arrived in `aiosendspin` 7.0.0, so no 2.9.x stable server can complete the handshake regardless of which 4.x/5.x client is used.
+
 ## [0.21.2] - 2026-08-06
 
 ### Fixed
@@ -9,19 +30,6 @@
 
 ### Changed
 - Dependency bumps
-- `lucide-react` 1.31.0 and `@types/node` 26.2.0. Every other dependency was already at its latest release.
-- Transitive `nanoid` lifted to 3.3.18 (via `vite` → `postcss`), clearing the high-severity ReDoS advisory GHSA-2v37-7h3g-55p8. `npm audit` now reports no vulnerabilities.
-
-### Known limitations
-- `@sendspin/sendspin-js` is deliberately held at 4.0.0. The Sendspin client and server move in lockstep on the encryption/pairing spec, so the SDK version must match the `aiosendspin` version bundled by your Music Assistant build:
-
-  | Music Assistant | aiosendspin | Compatible `@sendspin/sendspin-js` |
-  | --- | --- | --- |
-  | 2.9.x stable | 6.0.5 (no encryption) | 3.x |
-  | 2.10.0b13 | 7.0.0 | **4.0.0** (shipped here) |
-  | 2.10.0b14 and later | 9.0.0 | 5.0.0 |
-
-  Sendspin mode therefore requires Music Assistant 2.10.0b13. Since 4.0.0 the SDK always performs a Noise KKpsk2 handshake with no unencrypted fallback, and server-side encryption only arrived in `aiosendspin` 7.0.0, so it cannot connect to 2.9.x stable at all. Moving to `@sendspin/sendspin-js` 5.0.0 for Music Assistant 2.10.0b14+ needs no application code changes — VoltViz uses none of the pairing APIs that changed, and the `ServerStateMetadata` and `serverState.controller` shapes it reads are identical between the two versions.
 
 ## [0.21.1] - 2026-08-01
 
