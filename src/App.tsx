@@ -39,24 +39,8 @@ const SHUFFLE_PRESETS: { value: number; label: string }[] = [
 ];
 const SHUFFLE_DEFAULT = 60;
 
-const getOrCreateClientId = (): string => {
-  const STORAGE_KEY = 'voltviz_sendspin_client_id';
-  try {
-    const existing = localStorage.getItem(STORAGE_KEY);
-    if (existing) return existing;
-    const newId = `VoltViz-${typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID().slice(0, 8)
-      : Math.random().toString(36).slice(2, 10)}`;
-    localStorage.setItem(STORAGE_KEY, newId);
-    return newId;
-  } catch {
-    return `VoltViz-${Math.random().toString(36).slice(2, 10)}`;
-  }
-};
-
 export default function App() {
   const appVersion = __APP_VERSION__;
-  const sendspinClientIdRef = useRef(getOrCreateClientId());
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
@@ -309,7 +293,7 @@ export default function App() {
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
 
-      unhidePlayerInMA(player.clientId || sendspinClientIdRef.current);
+      unhidePlayerInMA(player.clientId);
 
       setError(null);
       updateSendspin({ active: true });
