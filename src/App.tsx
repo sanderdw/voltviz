@@ -261,7 +261,17 @@ export default function App() {
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
+        productName: 'VoltViz',
         correctionMode: 'quality-local',
+        reconnect: {
+          maxAttempts: 10,
+          onReconnecting: (attempt) => setError(`Sendspin connection lost — reconnecting (attempt ${attempt}/10)…`),
+          onReconnected: () => setError(null),
+          onExhausted: () => {
+            setError('Sendspin connection lost — could not reconnect');
+            cleanupSendspin();
+          },
+        },
         onStateChange: (state) => {
           const patch: Partial<SendspinState> = { playing: state.isPlaying };
           if (state.serverState?.metadata) {
