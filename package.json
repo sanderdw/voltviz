@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit",
     "test": "playwright test",
     "test:install": "playwright install chromium",
-    "capture:previews": "node scripts/capture-previews.ts"
+    "capture:previews": "node scripts/capture-previews.ts",
+    "make:og-image": "node scripts/make-og-image.ts"
   },
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",

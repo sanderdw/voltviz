@@ -1,0 +1,17 @@
+/* TEAM */
+	Maker: sanderdw
+	Site: https://voltviz.com
+	GitHub: https://github.com/sanderdw
+	LinkedIn: https://www.linkedin.com/in/sanderdw
+	Location: The Netherlands
+
+/* THANKS */
+	@sabosugi - visuals (https://x.com/sabosugi)
+	Music Assistant & Sendspin - synchronized audio streaming
+	three.js - 3D rendering
+	Lucide - icons
+	Winamp - the inspiration
+
+/* TECHNOLOGY */
+	TypeScript, React, Vite, three.js, D3-geo, Tailwind CSS, Web Audio API, WebGL, Docker, nginx
+	Language: English

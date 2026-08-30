@@ -1,0 +1,28 @@
+# VoltViz
+
+> VoltViz is a free, open-source (MIT) real-time music visualizer that runs in the browser: feed it your system audio, a microphone, or a Music Assistant stream (via Sendspin) and pick from 50+ visualizations — bars, spheres, tunnels, particle systems, festival stages, retro CRT/Winamp/Win95 skins and more, rendered with Canvas, WebGL and three.js. No account, no ads, no paid features.
+
+VoltViz is a single-page app with exactly one page (/). Visualizers are chosen
+in-app or via URL parameters (`viz`, `sensitivity`, `speed`, `hueShift`,
+`scale`, `skin`, `sendspin`); there are no separate article pages to index.
+
+It is also available as a Home Assistant add-on and as a Docker image
+(ghcr.io/sanderdw/voltviz).
+
+## Links
+
+- [VoltViz](https://voltviz.com/): this site
+- [Source code](https://github.com/sanderdw/voltviz): GitHub repository (MIT)
+- [Home Assistant add-on](https://github.com/sanderdw/hassio-addons): install VoltViz in Home Assistant
+- [Changelog](https://github.com/sanderdw/voltviz/blob/main/CHANGELOG.md)
+- [Sitemap](https://voltviz.com/sitemap.xml)
+
+## About the maker
+
+- [GitHub](https://github.com/sanderdw)
+- [LinkedIn](https://www.linkedin.com/in/sanderdw)
+
+## Other
+
+- [security.txt](https://voltviz.com/.well-known/security.txt): contact for security reports
+- [humans.txt](https://voltviz.com/humans.txt): credits and technology used

@@ -1,0 +1,4 @@
+Contact: mailto:sanderdw@gmail.com
+Expires: 2027-08-31T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://voltviz.com/.well-known/security.txt
