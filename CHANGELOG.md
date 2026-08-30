@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.22.2] - 2026-08-30
+
+### Changed
+- Dependency bumps
+
+### Fixed
+- Music Assistant 2.10.x compatibility: VoltViz now advertises `productName: 'Web Player'` so MA classifies it as a standalone web player instead of a hidden `PROTOCOL` endpoint — the player and its transport controls now appear in the MA UI.
+- The player-config call runs once the player is registered (first `server/state`), verifies its result, retries up to 5 times, and sets both `hide_in_ui: false` and `expose_player_to_ha: true`.
+- "Connected" is no longer reported on a bare WebSocket open: the check now requires a non-empty `serverState` (only sent post-activation), so an incompatible server shows a clear error after 10 seconds instead of looping in a silent reconnect.
+- The visualizer no longer starts on a silent stream while the handshake is still pending; it starts when the server activates the player.
+
+### Known limitations
+- The Sendspin client and server move in lockstep on the encryption/pairing spec: `@sendspin/sendspin-js` 5.0.0 requires `aiosendspin` 9.x, i.e. Music Assistant 2.10.0b14 or newer (verified against MA 2.10.1). Older MA builds close the connection silently during the handshake.
+- MA's web-player classification is a server-side heuristic on `product_name`; if a future MA release replaces it with an explicit flag, VoltViz should adopt that instead.
+- The public demo server (`https://sendspin-demo.voltviz.com`) is being replaced by a purpose-built server on `aiosendspin` 9.x that speaks the current encrypted spec; the demo link has been broken since VoltViz 0.21.2.
+
 ## [0.22.1] - 2026-08-30
 
 ### Fixed
