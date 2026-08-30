@@ -295,7 +295,10 @@ export default function App() {
       sendspinAudioRef.current = audioEl;
 
       audioEl.addEventListener('playing', () => {
-        if (audioEl.srcObject instanceof MediaStream) {
+        // Don't start the visualizer before the server has activated the
+        // player: the element plays the SDK's (still silent) MediaStream as
+        // soon as connect() resolves, even when the handshake later fails.
+        if (sendspinActivatedRef.current && audioEl.srcObject instanceof MediaStream) {
           setStream(audioEl.srcObject);
         }
       });
@@ -321,9 +324,11 @@ export default function App() {
           },
         },
         onStateChange: (state) => {
-          // Server state is the first proof the player is actually registered:
-          // the socket opening alone doesn't mean the handshake succeeded.
-          if (state.serverState && !sendspinActivatedRef.current) {
+          // A non-empty serverState is the first proof the player is actually
+          // registered: the SDK initializes it to {} and only merges content
+          // into it from server/state messages, which the server sends only
+          // after activation. The socket opening alone proves nothing.
+          if (state.serverState && Object.keys(state.serverState).length > 0 && !sendspinActivatedRef.current) {
             sendspinActivatedRef.current = true;
             if (sendspinActivationTimeoutRef.current !== null) {
               window.clearTimeout(sendspinActivationTimeoutRef.current);
@@ -333,6 +338,12 @@ export default function App() {
             setError(null);
             updateSendspin({ active: true });
             setShowSendspinDialog(false);
+            // The audio element usually started playing before activation, so
+            // the 'playing' listener has already come and gone — pick up the
+            // stream here.
+            if (audioEl.srcObject instanceof MediaStream) {
+              setStream(audioEl.srcObject);
+            }
             configurePlayerInMA(player.clientId);
           }
           const patch: Partial<SendspinState> = { playing: state.isPlaying };

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.22.2] - 2026-08-30
+
+### Fixed
+- 0.22.1's "wait for activation" check was ineffective: the SDK initializes `serverState` to `{}` (truthy), so the UI still reported connected on a bare socket open. The check now requires a non-empty `serverState`, which only ever comes from a post-activation `server/state` message. Verified against an incompatible server: the UI now shows a clear error after 10 seconds and stops the SDK's otherwise endless silent reconnect loop (the SDK resets its retry counter on every successful socket open, so a server that accepts sockets but kills the handshake loops forever).
+- The visualizer no longer starts on a silent stream while the handshake is still pending; it starts when the server activates the player.
+
+### Known limitations
+- The public demo server (`https://sendspin-demo.voltviz.com`) runs the standalone `sendspin` CLI, which (as of its latest release, 7.5.0) still depends on `aiosendspin ~6.0.1` — the pre-encryption protocol. `@sendspin/sendspin-js` 4.x/5.x cannot connect to it, so the demo link has been incompatible since VoltViz 0.21.2. Until the `sendspin` CLI moves to `aiosendspin` 9.x, the only compatible server is Music Assistant 2.10.0b14+.
+
 ## [0.22.1] - 2026-08-30
 
 ### Fixed
