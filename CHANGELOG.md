@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.22.0] - 2026-08-30
+
+### Changed
+- Dependency bumps
+
 ## [0.21.2] - 2026-08-06
 
 ### Fixed
