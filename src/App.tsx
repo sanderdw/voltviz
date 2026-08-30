@@ -88,6 +88,9 @@ export default function App() {
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspinPlayerRef = useRef<SendspinPlayer | null>(null);
   const sendspinAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sendspinActivatedRef = useRef(false);
+  const sendspinActivationTimeoutRef = useRef<number | null>(null);
+  const [sendspinConnecting, setSendspinConnecting] = useState(false);
   const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
   const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
 
@@ -196,6 +199,12 @@ export default function App() {
   };
 
   const cleanupSendspin = () => {
+    if (sendspinActivationTimeoutRef.current !== null) {
+      window.clearTimeout(sendspinActivationTimeoutRef.current);
+      sendspinActivationTimeoutRef.current = null;
+    }
+    sendspinActivatedRef.current = false;
+    setSendspinConnecting(false);
     if (sendspinPlayerRef.current) {
       sendspinPlayerRef.current.disconnect('user_request');
       sendspinPlayerRef.current = null;
@@ -214,33 +223,67 @@ export default function App() {
     }
   };
 
-  const unhidePlayerInMA = async (playerId: string) => {
+  const saveMAPlayerConfig = (wsUrl: string, playerId: string) => new Promise<boolean>(resolve => {
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(wsUrl);
+    } catch {
+      resolve(false);
+      return;
+    }
+    let settled = false;
+    const done = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      try { ws.close(); } catch { /* already closed */ }
+      resolve(ok);
+    };
+    const timer = window.setTimeout(() => done(false), 5000);
+    const msgId = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    let commandSent = false;
+
+    ws.onmessage = (event) => {
+      let msg: any;
+      try { msg = JSON.parse(event.data); } catch { return; }
+      if (!commandSent && msg.server_version) {
+        commandSent = true;
+        ws.send(JSON.stringify({
+          message_id: msgId,
+          command: 'config/players/save',
+          args: { player_id: playerId, values: { hide_in_ui: false, expose_player_to_ha: true } }
+        }));
+      } else if (msg.message_id === msgId) {
+        done(!('error_code' in msg));
+      }
+    };
+    ws.onerror = () => done(false);
+    ws.onclose = () => done(false);
+  });
+
+  // Music Assistant registers Sendspin web players hidden and not exposed to
+  // Home Assistant; flip both so the player is usable as soon as it appears.
+  // Only possible inside the HA add-on, where run.sh publishes MA's ingress
+  // entry as ma-config.json. MA may not have finished registering the player
+  // when the first server state arrives, hence the retries.
+  const configurePlayerInMA = async (playerId: string) => {
+    let ingressPath: string;
     try {
       const configResp = await fetch(new URL('ma-config.json', window.location.href).href);
       if (!configResp.ok) return;
       const { ingress_entry } = await configResp.json();
       if (!ingress_entry) return;
+      ingressPath = ingress_entry.endsWith('/') ? ingress_entry : ingress_entry + '/';
+    } catch { /* not running in HA add-on context */
+      return;
+    }
 
-      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ingressPath = ingress_entry.endsWith('/') ? ingress_entry : ingress_entry + '/';
-      const ws = new WebSocket(`${wsProto}//${window.location.host}${ingressPath}ws`);
-      let commandSent = false;
-
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (!commandSent && msg.server_version) {
-          commandSent = true;
-          const msgId = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-          ws.send(JSON.stringify({
-            message_id: msgId,
-            command: 'config/players/save',
-            args: { player_id: playerId, values: { hide_in_ui: false } }
-          }));
-          setTimeout(() => ws.close(), 2000);
-        }
-      };
-      ws.onerror = () => ws.close();
-    } catch { /* not running in HA add-on context */ }
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProto}//${window.location.host}${ingressPath}ws`;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
+      if (await saveMAPlayerConfig(wsUrl, playerId)) return;
+    }
   };
 
   const startSendspin = async (url?: string) => {
@@ -261,7 +304,12 @@ export default function App() {
         baseUrl: serverUrl,
         audioElement: audioEl,
         clientName: 'VoltViz',
-        productName: 'VoltViz',
+        // Music Assistant only treats a client as a standalone web player when
+        // product_name is one of its known web/app values ("Web Browser",
+        // "Web Player", "Mobile Application", "PWA"). Anything else is
+        // classified as a PROTOCOL endpoint and wrapped in a hidden
+        // auto-created "universal player", making VoltViz unusable in MA.
+        productName: 'Web Player',
         correctionMode: 'quality-local',
         reconnect: {
           maxAttempts: 10,
@@ -273,6 +321,20 @@ export default function App() {
           },
         },
         onStateChange: (state) => {
+          // Server state is the first proof the player is actually registered:
+          // the socket opening alone doesn't mean the handshake succeeded.
+          if (state.serverState && !sendspinActivatedRef.current) {
+            sendspinActivatedRef.current = true;
+            if (sendspinActivationTimeoutRef.current !== null) {
+              window.clearTimeout(sendspinActivationTimeoutRef.current);
+              sendspinActivationTimeoutRef.current = null;
+            }
+            setSendspinConnecting(false);
+            setError(null);
+            updateSendspin({ active: true });
+            setShowSendspinDialog(false);
+            configurePlayerInMA(player.clientId);
+          }
           const patch: Partial<SendspinState> = { playing: state.isPlaying };
           if (state.serverState?.metadata) {
             patch.metadata = state.serverState.metadata;
@@ -298,16 +360,23 @@ export default function App() {
       });
 
       sendspinPlayerRef.current = player;
+      sendspinActivatedRef.current = false;
+      setSendspinConnecting(true);
       await player.unlock();
       await player.connect();
       // Kick-start playback on mobile where autoplay may be blocked
       audioEl.play().catch(() => {});
 
-      unhidePlayerInMA(player.clientId);
-
       setError(null);
-      updateSendspin({ active: true });
-      setShowSendspinDialog(false);
+      // A handshake failure after the socket opens closes it again without any
+      // callback, so give the server a bounded window to activate the player.
+      sendspinActivationTimeoutRef.current = window.setTimeout(() => {
+        sendspinActivationTimeoutRef.current = null;
+        if (!sendspinActivatedRef.current) {
+          setError('Connected, but the server never activated the player — check that Music Assistant is 2.10.0b14 or newer and its Sendspin pairing settings.');
+          cleanupSendspin();
+        }
+      }, 10000);
     } catch (err: any) {
       setError(err.message || 'Failed to connect to Sendspin server');
       cleanupSendspin();
@@ -806,7 +875,7 @@ export default function App() {
               type="url"
               value={sendspinUrl}
               onChange={e => setSendspinUrl(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl) startSendspin(); }}
+              onKeyDown={e => { if (e.key === 'Enter' && sendspinUrl && !sendspinConnecting) startSendspin(); }}
               placeholder="http://homeassistant.local:8927"
               className={skin.dialogInput}
               autoFocus
@@ -820,10 +889,10 @@ export default function App() {
               </button>
               <button
                 onClick={() => startSendspin()}
-                disabled={!sendspinUrl}
+                disabled={!sendspinUrl || sendspinConnecting}
                 className={skin.dialogButtonPrimary}
               >
-                Connect
+                {sendspinConnecting ? 'Connecting…' : 'Connect'}
               </button>
             </div>
           </div>
