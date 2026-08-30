@@ -16,6 +16,22 @@
 - MA's web-player classification is a server-side heuristic on `product_name`; if a future MA release replaces it with an explicit flag, VoltViz should adopt that instead.
 - The public demo server (`https://sendspin-demo.voltviz.com`) is being replaced by a purpose-built server on `aiosendspin` 9.x that speaks the current encrypted spec; the demo link has been broken since VoltViz 0.21.2.
 
+## [0.22.1] - 2026-08-30
+
+### Fixed
+- VoltViz no longer disappears as a player under Music Assistant 2.10.x: MA only treats a Sendspin client as a standalone web player when `device_info.product_name` is one of its known web/app values (`Web Browser`, `Web Player`, `Mobile Application`, `PWA`). The `productName: 'VoltViz'` introduced in 0.22.0 made MA classify VoltViz as a `PROTOCOL` endpoint instead, wrapping it in a hidden auto-created "universal player" (`up…` player ids) with no controller commands — so the player never showed up in the MA UI and the transport buttons stayed disabled. VoltViz now advertises `productName: 'Web Player'`.
+- The Music Assistant player-config call now runs when the player is actually registered (on the first `server/state`) instead of racing MA right after the WebSocket opens, verifies the command result, and retries up to 5 times. It also sets `expose_player_to_ha: true` alongside `hide_in_ui: false`, since MA registers web players hidden *and* not exposed to Home Assistant by default.
+- "Connected" is no longer reported on a bare WebSocket open: the SDK closes the socket silently on a failed Noise handshake or activation, which previously left the UI claiming connected with no player registered. The dialog now shows "Connecting…" until the first server state arrives and reports an error if the server does not activate the player within 10 seconds.
+
+### Known limitations
+- The Sendspin client and server still move in lockstep on the encryption/pairing spec: `@sendspin/sendspin-js` 5.0.0 requires the `aiosendspin` 9.x line, i.e. Music Assistant 2.10.0b14 or newer (verified against MA 2.10.1). Older MA builds close the connection silently during the handshake.
+- MA's web-player classification is a server-side heuristic on `product_name` (upstream TODO in `providers/sendspin/player.py`); if a future MA release replaces it with an explicit flag in the spec, VoltViz should adopt that instead.
+
+## [0.22.0] - 2026-08-30
+
+### Changed
+- Dependency bumps
+
 ## [0.21.2] - 2026-08-06
 
 ### Fixed
