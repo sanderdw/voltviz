@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Mic, MonitorUp, Square, Settings2, X, Maximize, Minimize, ChevronDown, LayoutGrid, Radio, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX } from 'lucide-react';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ServerStateMetadata, ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
+import type { ServerStateMetadata, ControllerCommand, ControllerCommands, SendspinStorage } from '@sendspin/sendspin-js';
 import githubIcon from './images/GitHub_Invertocat_White.svg';
 import { VisualizerSettings } from './types';
 import { skins, SkinType } from './skins';
@@ -27,6 +27,35 @@ const initialSendspinState: SendspinState = {
   supportedCmds: [],
   volume: 100,
   muted: false,
+};
+
+// The Sendspin SDK persists its identity keypair (whose public key is the
+// client id, which Music Assistant uses as the player id) under bare
+// localStorage keys such as `sendspin-identity-sk`. Music Assistant's own
+// frontend uses the same SDK with the same defaults, and under Home Assistant
+// Ingress both apps are same-origin, so without a prefix they share one
+// identity and collapse into a single MA player whose name flips between
+// "VoltViz" and MA's web player on every (re)connect. Prefixing every key
+// gives VoltViz its own, still persistent, identity. Access is guarded so a
+// throwing localStorage (sandboxed iframe, private mode, quota) degrades to a
+// per-session identity instead of failing player construction.
+const SENDSPIN_STORAGE_PREFIX = 'voltviz:';
+const sendspinStorage: SendspinStorage = {
+  getItem: (key) => {
+    try {
+      return window.localStorage.getItem(SENDSPIN_STORAGE_PREFIX + key);
+    } catch (err) {
+      console.warn('VoltViz: localStorage unavailable, Sendspin identity will not persist', err);
+      return null;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      window.localStorage.setItem(SENDSPIN_STORAGE_PREFIX + key, value);
+    } catch (err) {
+      console.warn('VoltViz: localStorage unavailable, Sendspin identity will not persist', err);
+    }
+  },
 };
 
 const SHUFFLE_PRESETS: { value: number; label: string }[] = [
@@ -313,6 +342,10 @@ export default function App() {
         // classified as a PROTOCOL endpoint and wrapped in a hidden
         // auto-created "universal player", making VoltViz unusable in MA.
         productName: 'Web Player',
+        // Own key namespace so VoltViz never shares its Sendspin identity (and
+        // thus its MA player id) with the Music Assistant web player when both
+        // run same-origin under HA Ingress. See sendspinStorage above.
+        storage: sendspinStorage,
         correctionMode: 'quality-local',
         reconnect: {
           maxAttempts: 10,
