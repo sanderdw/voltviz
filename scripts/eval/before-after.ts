@@ -26,7 +26,7 @@ const SLICES = ALL_SLICES.filter(s => !arg('slices', '') || arg('slices', '').sp
 const OUT = arg('out', 'docs/reports/data/before-after.json');
 const SECONDS = 30;
 const SKIP = 8; // seconds to let both apps settle
-const IDS = arg('ids', 'audiodebug,cybercity,aurumleaf,fractalorb,festivalstage,fireworksshow,defqonmainstage,razor1911,milkdrop,bars').split(',');
+const IDS = arg('ids', 'audiodebug,cybercity,aurumleaf,fractalorb,fireworksshow,defqonmainstage,razor1911,milkdrop,bars').split(',');
 const ref: { beats: number[] } = JSON.parse(readFileSync(`tests/fixtures/${EXCERPT}.reference.json`, 'utf8'));
 
 const probe = () => {

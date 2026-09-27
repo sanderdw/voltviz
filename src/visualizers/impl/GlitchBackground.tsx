@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import dummyCover from '../../../images/dummycover.png';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -26,13 +27,17 @@ const GlitchBackground: VisualizerFactory = ({ container }) => {
   let image: HTMLImageElement | null = null;
   let disposed = false;
 
+  // The standard cover until an image is uploaded; a late load never replaces a newer image.
+  let requested: string | null = null;
   const setImage = (url: string) => {
+    requested = url;
     const img = new Image();
     img.onload = () => {
-      if (!disposed) image = img;
+      if (!disposed && requested === url) image = img;
     };
     img.src = url;
   };
+  setImage(dummyCover);
 
   let glitchParams = {
     active: false,
@@ -166,14 +171,9 @@ const GlitchBackground: VisualizerFactory = ({ container }) => {
           const drawY = (h - drawH) / 2 + dy;
           context.drawImage(img, drawX, drawY, drawW, drawH);
         } else {
-          // Fallback pattern if no image
-          context.fillStyle = '#111';
+          // The cover is still loading
+          context.fillStyle = '#000';
           context.fillRect(0, 0, w, h);
-          context.fillStyle = '#333';
-          context.font = '40px monospace';
-          context.textAlign = 'center';
-          context.textBaseline = 'middle';
-          context.fillText('UPLOAD IMAGE', w/2 + dx, h/2 + dy);
         }
       };
 

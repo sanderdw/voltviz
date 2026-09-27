@@ -37,15 +37,13 @@ const ids = arg('ids', '') ? arg('ids', '').split(',') : visualizers.map(v => v.
 
 /** Visualizers whose effects are meant to hit on the beat (engine beat triggers). */
 export const BEAT_DRIVEN = new Set(['anunakisphere', 'cybercity', 'aurumleaf', 'fractalorb', 'razor1911', 'icons', 'yourlogo',
-  'festivalstage', 'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'audiodebug', 'halftonepulse']);
+  'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'audiodebug', 'halftonepulse']);
 /** Visualizers that show nothing until the user uploads something (the harness uploads). */
 const UPLOADS: Record<string, string> = {
   yourlogo: 'src/images/GitHub_Invertocat_White.svg',
-  glitchbackground: 'images/dummycover.png', // shows only an "UPLOAD IMAGE" caption without one
-  blurimage: 'images/dummycover.png', // same
 };
 
-export const DEEP = ['audiodebug', 'cybercity', 'aurumleaf', 'fractalorb', 'festivalstage', 'fireworksshow',
+export const DEEP = ['audiodebug', 'cybercity', 'aurumleaf', 'fractalorb', 'fireworksshow',
   'defqonmainstage', 'razor1911', 'milkdrop', 'bars'];
 export const SEGMENTS = [
   { name: 'steady groove', start: 20 },

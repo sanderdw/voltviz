@@ -5,57 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>How VoltViz Hears the Beat</title>
 <meta name="description" content="A visual explainer of the VoltViz audio engine: onsets, tempo, the predictive beat clock, AI Beat Tracking and Auto Gain.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wght@400;600&display=swap">
+<meta name="color-scheme" content="dark">
 <style>
+  /* voltviz.com look: black, gray-900 panels, white/10 rules, Tailwind 400 accents. Tokens stay hex: the canvases parse them. */
   :root {
-    --paper: #EDF0F3; --panel: #F8FAFB; --ink: #111722; --muted: #566072; --rule: #CDD3DC; --soft: #E1E6EC;
-    --audio: #0B7F8F; --onset: #D2431C; --beat: #2146D0; --ai: #7439CF; --gain: #A36B00; --truth: #8A93A3;
-    /* The scope is a physical screen: dark in both themes. */
-    --screen: #0A0D12; --screen-2: #121822; --screen-ink: #E6EAF1; --screen-muted: #7D8698; --screen-rule: #222A37;
-    --s-audio: #3CC8D8; --s-onset: #FF6B3D; --s-beat: #7098FF; --s-ai: #B28CFF; --s-gain: #F2B53C;
-    --display: 'Archivo', 'Arial Narrow', 'Roboto Condensed', sans-serif;
-    --body: 'Instrument Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    --mono: 'Martian Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --paper: #0C0F14; --panel: #131821; --ink: #E6EAF1; --muted: #8F98A9; --rule: #252C39; --soft: #1A202B;
-      --audio: #3CC8D8; --onset: #FF6B3D; --beat: #7098FF; --ai: #B28CFF; --gain: #F2B53C; --truth: #6E7788;
-      --screen: #07090D; --screen-2: #0F141C;
-    }
-  }
-  :root[data-theme="dark"] {
     color-scheme: dark;
-    --paper: #0C0F14; --panel: #131821; --ink: #E6EAF1; --muted: #8F98A9; --rule: #252C39; --soft: #1A202B;
-    --audio: #3CC8D8; --onset: #FF6B3D; --beat: #7098FF; --ai: #B28CFF; --gain: #F2B53C; --truth: #6E7788;
-    --screen: #07090D; --screen-2: #0F141C;
+    --paper: #000000; --panel: #0B0B0F; --ink: #FFFFFF; --muted: #9CA3AF; --rule: #1F2937; --soft: #111827;
+    --audio: #22D3EE; --onset: #FB923C; --beat: #60A5FA; --ai: #C084FC; --gain: #FBBF24; --truth: #6B7280;
+    --screen: #07070B; --screen-2: #111827; --screen-ink: #F3F4F6; --screen-muted: #9CA3AF; --screen-rule: #1F2937;
+    --s-audio: #22D3EE; --s-onset: #FB923C; --s-beat: #60A5FA; --s-ai: #C084FC; --s-gain: #FBBF24;
+    --brand: #4ADE80; --accent: #A855F7;
+    --body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+  body {
+    margin: 0; color: var(--ink); font: 17px/1.6 var(--body); -webkit-font-smoothing: antialiased;
+    background: radial-gradient(900px 560px at 14% -6%, rgba(147, 51, 234, .30), transparent 70%) no-repeat,
+      radial-gradient(820px 520px at 92% 8%, rgba(37, 99, 235, .22), transparent 70%) no-repeat, var(--paper);
+  }
   .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 20px; }
   p { margin: 0; }
   h1, h2, h3 { margin: 0; text-wrap: balance; }
-  a { color: var(--beat); }
-  :focus-visible { outline: 2px solid var(--beat); outline-offset: 3px; border-radius: 4px; }
+  a { color: #C084FC; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
   code, .mono { font-family: var(--mono); font-size: .82em; }
   .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
   /* ---------- hero ---------- */
   .hero { padding-block: 56px 28px; display: grid; gap: 22px; }
-  .eyebrow { font: 600 12px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .wordmark { font: 300 15px/1.4 var(--body); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
+  .wordmark span { font-weight: 700; color: var(--brand); }
+  .eyebrow { font: 600 12px/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
   .hero h1 {
-    font-family: var(--display); font-stretch: 62%; font-weight: 900; text-transform: uppercase;
-    font-size: clamp(58px, 12.5vw, 164px); line-height: .84; letter-spacing: -.005em;
+    font-weight: 300; text-transform: uppercase;
+    font-size: clamp(40px, 8vw, 104px); line-height: 1; letter-spacing: .06em;
   }
-  .hero h1 .beatword { display: inline-block; color: var(--beat); transform-origin: 50% 85%; will-change: transform; }
+  .hero h1 .beatword { display: inline-block; font-weight: 700; color: var(--brand); transform-origin: 50% 85%; will-change: transform; }
   .hero .lede { max-width: 62ch; font-size: 19px; color: var(--muted); }
   .hero .lede b { color: var(--ink); font-weight: 600; }
 
-  .console { display: grid; gap: 0; border-radius: 14px; overflow: hidden; background: var(--screen); color: var(--screen-ink); box-shadow: 0 1px 0 var(--rule), 0 18px 40px -24px rgba(10, 16, 30, .55); }
+  .console { display: grid; gap: 0; border-radius: 16px; overflow: hidden; background: var(--screen); color: var(--screen-ink); box-shadow: 0 0 0 1px rgba(255, 255, 255, .1), 0 24px 60px -28px rgba(147, 51, 234, .45); }
   .scope { display: block; width: 100%; height: 360px; }
   .readouts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--screen-rule); }
   .ro { padding: 12px 16px; border-right: 1px solid var(--screen-rule); min-width: 0; }
@@ -71,8 +62,12 @@
   .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
   .play {
     display: inline-flex; align-items: center; gap: 10px; font: 600 14px/1 var(--body); cursor: pointer;
-    padding: 11px 16px; border-radius: 999px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink);
+    padding: 11px 18px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .05); background: rgba(255, 255, 255, .1); color: var(--ink);
+    transition: background .2s;
   }
+  .play:hover { background: rgba(255, 255, 255, .2); }
+  .play[aria-pressed="true"] { background: rgba(147, 51, 234, .8); border-color: rgba(192, 132, 252, .3); box-shadow: 0 0 15px rgba(147, 51, 234, .3); }
+  .play[aria-pressed="true"]:hover { background: #A855F7; }
   .play svg { width: 14px; height: 14px; fill: currentColor; }
   .hint { font-size: 14px; color: var(--muted); }
 
@@ -92,9 +87,9 @@
 
   /* ---------- sections ---------- */
   section.stage { padding-block: 64px; border-top: 1px solid var(--rule); display: grid; gap: 28px; }
-  .stage-label { display: flex; align-items: center; gap: 10px; font: 600 12px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .stage-label { display: flex; align-items: center; gap: 10px; font: 600 12px/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
   .stage-label i { width: 10px; height: 10px; border-radius: 50%; }
-  section.stage h2 { font-family: var(--display); font-stretch: 70%; font-weight: 800; text-transform: uppercase; font-size: clamp(38px, 6vw, 64px); line-height: .95; }
+  section.stage h2 { font-weight: 300; font-size: clamp(32px, 4.6vw, 52px); line-height: 1.1; letter-spacing: -.01em; }
   .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: start; }
   .cols.flip { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
   .prose { display: grid; gap: 14px; max-width: 62ch; }
@@ -105,10 +100,10 @@
   .facts dt, .facts .k { color: var(--muted); }
   .facts .v { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
 
-  .fig { display: grid; gap: 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; min-width: 0; }
+  .fig { display: grid; gap: 12px; background: var(--panel); border: 1px solid rgba(255, 255, 255, .1); border-radius: 16px; padding: 16px; min-width: 0; }
   .fig canvas { display: block; width: 100%; }
   .fig figcaption, .cap { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
-  .fig.dark { background: var(--screen); border-color: var(--screen); color: var(--screen-ink); }
+  .fig.dark { background: var(--screen); color: var(--screen-ink); }
   .fig.dark .cap { color: var(--screen-muted); }
   .figbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
   .chip { display: inline-flex; align-items: center; gap: 8px; font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 7px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); }
@@ -170,7 +165,7 @@
   .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
   .stat { padding: 20px 18px 20px 0; display: grid; gap: 6px; align-content: start; }
   .stat + .stat { padding-left: 18px; border-left: 1px solid var(--rule); }
-  .stat .v { font-family: var(--display); font-stretch: 62%; font-weight: 900; font-size: clamp(44px, 6vw, 68px); line-height: .9; font-variant-numeric: tabular-nums; }
+  .stat .v { font-weight: 300; font-size: clamp(40px, 5vw, 60px); line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
   .stat .k { font-size: 14px; color: var(--muted); }
   footer { padding-block: 40px 64px; color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
 
@@ -200,7 +195,8 @@
 <body>
 <div class="wrap">
 <header class="hero">
-  <p class="eyebrow">VoltViz · the audio engine, explained</p>
+  <p class="wordmark">VoltViz<span> Music Visualizer</span></p>
+  <p class="eyebrow">The audio engine, explained</p>
   <h1>How VoltViz hears the <span class="beatword" id="beatword">beat</span></h1>
   <p class="lede">One engine listens to the music for every visualizer. It detects <b>onsets</b>, estimates the <b>tempo</b> and runs a <b>beat clock that predicts</b> the next beat, so a flash lands in the frame in which you hear the kick. The screen below simulates the engine on a 130 BPM groove with a breakdown and a drop.</p>
 
@@ -218,7 +214,7 @@
 
   <div class="controls">
     <button class="play" id="sound" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5c1 .8 1 4.2 0 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Play the groove</span></button>
-    <button class="switch ai" type="button" role="switch" aria-checked="true" data-switch="ai"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">On</span></span></button>
+    <button class="switch ai" type="button" role="switch" aria-checked="false" data-switch="ai"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">Off</span></span></button>
     <button class="switch gain" type="button" role="switch" aria-checked="false" data-switch="gain"><span class="track"><span class="knob"></span></span><span>Auto Gain <span class="state">Off</span></span></button>
     <button class="play" id="motion" type="button" hidden>Play the animation</button>
   </div>
@@ -268,10 +264,10 @@
     <div class="fig">
       <p class="stage-label" style="letter-spacing:.1em">Measured on the mix · which band points at the beat?</p>
       <div class="bands" id="bands"></div>
-      <p class="cap">Stretches of 16 beats in which a comb over that band's onsets chose the right beat phase, on the first 2-minute excerpt of the test mix.</p>
+      <p class="cap">Stretches of 16 beats in which a comb over that band's onsets chose the right beat phase, on the first 2-minute excerpt of the mix.</p>
     </div>
     <div class="prose">
-      <p>The test mix is full of traps. Rolling basslines fill the gaps between kicks, a pickup lands just before the beat, and open hats sit on the off-beat. Measured on the real audio, only the mid band pointed at the beat every time.</p>
+      <p>The mix is full of traps. Rolling basslines fill the gaps between kicks, a pickup lands just before the beat, and open hats sit on the off-beat. Measured on the real audio, only the mid band pointed at the beat every time.</p>
       <p>So the beat's <b>phase</b> comes from the mid band alone. The kick lane still drives kick effects in visualizers, and the tempo estimate also uses the broadband flux.</p>
     </div>
   </div>
@@ -331,7 +327,7 @@
   <div class="cols flip">
     <figure class="fig dark" style="margin:0">
       <div class="figbar">
-        <button class="switch ai" type="button" role="switch" aria-checked="true" data-switch="ai" style="color:var(--screen-ink)"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">On</span></span></button>
+        <button class="switch ai" type="button" role="switch" aria-checked="false" data-switch="ai" style="color:var(--screen-ink)"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">Off</span></span></button>
         <span class="chip live">Simulation</span>
       </div>
       <canvas id="aiCanvas" style="height:250px" role="img" aria-label="Timeline of the true beat, the beat clock and the AI windows with their decisions"></canvas>
@@ -346,7 +342,7 @@
         <div><dt class="k">Double, half or 3:2 tempo</dt><dd class="v">retime (two windows agree)</dd></div>
         <div><dt class="k">After a decision</dt><dd class="v">12 s lock: DSP may not jump</dd></div>
       </dl>
-      <p class="aside">Switch it off and the page toggles the same behaviour: the clock is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
+      <p class="aside">It is off by default, in the app and on this page: the clock is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. Switch it on to let the network put the clock back on the beat. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
     </div>
   </div>
 </section>
@@ -407,17 +403,17 @@ bars = audio.spectrum({ fftSize: 2048 });</pre>
 
 <section class="stage" id="proof">
   <p class="stage-label"><i style="background:var(--truth)"></i>Measured, not simulated</p>
-  <h2>On a real 52-minute DJ mix</h2>
+  <h2>On a real DJ mix</h2>
   <div class="stats">
-    <div class="stat"><span class="v">0.979</span><span class="k">beat F-measure over 13 two-minute excerpts (1.0 = every beat within ±70 ms)</span></div>
+    <div class="stat"><span class="v">0.979</span><span class="k">beat F-measure over 13 two-minute excerpts with AI Beat Tracking on (1.0 = every beat within ±70 ms); 0.818 with it off, the default</span></div>
     <div class="stat"><span class="v">4 ms</span><span class="k">median offset of beats fired in the running app</span></div>
     <div class="stat"><span class="v">0.584</span><span class="k">the best of the six old beat detectors, same audio</span></div>
-    <div class="stat"><span class="v">46/54</span><span class="k">visualizers measurably locked to the beat or following the music</span></div>
+    <div class="stat"><span class="v">42/50</span><span class="k">visualizers measurably locked to the beat or following the music</span></div>
   </div>
 </section>
 
 <footer>
-  <p>The screens on this page run a simulation of the engine's rules on a synthetic groove; the numbers above are measured on the test mix. Evidence and method: <code>docs/reports/audio-engine-report.html</code>. Engine source: <code>src/audio/</code>.</p>
+  <p>The screens on this page run a simulation of the engine's rules on a synthetic groove; the numbers above are measured on a DJ mix. Evidence and method: <code>docs/reports/audio-engine-report.html</code>. Engine source: <code>src/audio/</code>.</p>
   <p>VoltViz · github.com/sanderdw/voltviz</p>
 </footer>
 </div>
@@ -572,7 +568,7 @@ const laneIdx = (t) => mod(Math.floor(mod(t, LOOP) * FR), N);
 const J_OFF = 24.6 * T;   // just after the drop lands: the DSP comb prefers the off-beat
 const J_BACK = 41.5 * T;  // several bars later it finds its way back on its own
 const S = {
-  now: 0, ai: true, agc: false, inputDb: -18,
+  now: 0, ai: false, agc: false, inputDb: -18,
   lockedAt: 2.2, offset: 0, lockUntil: -1,
   aiStart: 0, nextReq: 4,
   fired: [], beatCount: 0, lastBeat: -1e9, lastBeatOff: false,
@@ -749,7 +745,7 @@ function rgb(hex) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 const alpha = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
-const MONO = '"Martian Mono", Menlo, monospace';
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 let dirty = true;
 
 const io = new IntersectionObserver((entries) => {
@@ -814,7 +810,7 @@ function buildFrame() {
   };
 }
 
-/* ---------- spectrogram image (rebuilt per theme) ---------- */
+/* ---------- spectrogram image (built from the colour tokens) ---------- */
 let specImg = null;
 function buildSpecImage() {
   const cv = document.createElement('canvas');
@@ -1400,7 +1396,7 @@ function drawInspector(F) {
   const bar = (v, cls = '') => `<span class="bar ${cls}" style="width:${Math.round(clamp(v, 0, 1) * 90)}px"></span>`;
   const k = (s) => `<span class="key">${s}</span>`;
   const on = F.onsets;
-  const flash = beatFlash > 0.05 ? ` style="background:rgba(112,152,255,${(0.35 * beatFlash).toFixed(2)})"` : '';
+  const flash = beatFlash > 0.05 ? ` style="background:rgba(96,165,250,${(0.35 * beatFlash).toFixed(2)})"` : '';
   inspector.innerHTML = [
     `<span${flash}>${k('beat.isBeat     ')}<span class="t">${F.isBeat}</span></span>`,
     `${k('beat.count      ')}${F.count}`,
@@ -1456,11 +1452,8 @@ motionBtn.addEventListener('click', () => {
   motionBtn.textContent = running ? 'Pause the animation' : 'Play the animation';
 });
 
-/* ---------- theme ---------- */
-function onTheme() { readColors(); buildSpecImage(); dirty = true; }
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', onTheme);
-new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-onTheme();
+/* ---------- colours ---------- */
+readColors(); buildSpecImage(); dirty = true;
 
 /* ---------- main loop ---------- */
 let running = !reduceMotion;

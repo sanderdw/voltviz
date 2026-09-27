@@ -55,6 +55,8 @@ export function Overlay({ api }: OverlayProps) { /* optional React UI (uploads),
 
 ## 3. Which audio field for which effect
 
+Open `?viz=rawaudio` (the **Raw Audio** visualizer) to see every field below live on your own music.
+
 | You want… | Use | Notes |
 |---|---|---|
 | a flash / burst / cut **on the beat** | `beatHit(audio)` (lib/audio) | predicted beat, fires in the frame the beat is **heard**; falls back to a raw kick when there is no confident tempo |

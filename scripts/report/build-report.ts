@@ -134,7 +134,7 @@ function tiles(): string {
     ${t(f3(mean(hybridFinalF)), 'Beat F-measure, unseen excerpts', `hybrid engine, ${finals.length} never-tuned 2-minute excerpts`)}
     ${t(f3(mean(hybridAllF)), 'Beat F-measure, all excerpts', `${excerpts.length} excerpts · gates passed on ${gatesPassed}/${excerpts.length}`)}
     ${t(f3(mean(baselineBest)), 'Old code, best detector', 'same excerpts, best of the 4 old detectors')}
-    ${t(liveResults.length ? `${livePass}/${liveResults.length}` : '–', 'Visualizers pass live QA', `real app, real GPU, test mix · first run ${liveFirstPass}/${liveResults.length}`)}
+    ${t(liveResults.length ? `${livePass}/${liveResults.length}` : '–', 'Visualizers pass live QA', `real app, real GPU, DJ mix · first run ${liveFirstPass}/${liveResults.length}`)}
     ${t(Number.isFinite(liveOffsetMedian) ? `${f0(liveOffsetMedian)} ms` : '–', 'Live beat timing', 'median offset of fired beats vs reference')}
   </div>`;
 }
@@ -264,6 +264,9 @@ function liveTable(): string {
     FPS measured with the probe's canvas read-back switched off. Renderer: ${esc(liveResults.find(r => r.renderer)?.renderer ?? 'n/a')}.</p>`;
 }
 
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
+
 function deepSection(): string {
   const res: Json[] = liveDeep?.results ?? [];
   if (!res.length) return '<p class="muted">Deep evaluation not run.</p>';
@@ -334,16 +337,16 @@ function agcSection(): string {
 }
 
 const css = `
-:root{color-scheme:light;--surface:#fcfcfb;--page:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);
---s1:#2a78d6;--s2:#eb6834;--s3:#898781;--good:#0ca30c;--bad:#d03b3b;--code:#f0efec}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--surface:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--s3:#898781;--code:#262624}}
-:root[data-theme="dark"]{color-scheme:dark;--surface:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--s3:#898781;--code:#262624}
-*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:980px;margin:0 auto;padding:32px 16px 80px}h1{font-size:28px;margin:0 0 4px}h2{font-size:21px;margin:48px 0 8px;padding-top:8px;border-top:1px solid var(--grid)}h3{font-size:17px;margin:28px 0 6px}h4{font-size:15px;margin:22px 0 4px}
-p{margin:8px 0;color:var(--ink2)}b,strong{color:var(--ink)}.muted{color:var(--muted)}.small{font-size:12.5px}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px}
-.card{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:16px;margin:12px 0}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:18px 0}.tile{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:14px}
-.tile-value{font-size:30px;font-weight:650;letter-spacing:-.5px}.tile-label{font-weight:600;font-size:13.5px;margin-top:2px}.tile-sub{font-size:12px;color:var(--muted)}
+:root{color-scheme:dark;--surface:#111827;--page:#000;--ink:#fff;--ink2:#d1d5db;--muted:#9ca3af;--grid:#1f2937;--axis:#374151;--ring:rgba(255,255,255,.10);
+--s1:#a855f7;--s2:#fb923c;--s3:#6b7280;--good:#4ade80;--bad:#f87171;--code:#1f2937}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+background:radial-gradient(900px 520px at 12% -8%,rgba(147,51,234,.28),transparent 70%) no-repeat,radial-gradient(800px 480px at 96% 2%,rgba(37,99,235,.2),transparent 70%) no-repeat,var(--page)}
+main{max-width:980px;margin:0 auto;padding:40px 16px 80px}.wordmark{margin:0 0 12px;font-size:14px;font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}.wordmark span{font-weight:700;color:#4ade80}
+h1{font-size:32px;font-weight:300;line-height:1.2;margin:0 0 4px}h2{font-size:21px;font-weight:400;margin:48px 0 8px;padding-top:8px;border-top:1px solid var(--grid)}h3{font-size:17px;font-weight:500;margin:28px 0 6px}h4{font-size:15px;font-weight:500;margin:22px 0 4px}
+p{margin:8px 0;color:var(--ink2)}b,strong{color:var(--ink)}.muted{color:var(--muted)}.small{font-size:12.5px}code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:var(--code);padding:1px 6px;border-radius:6px;font-size:12.5px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:16px;padding:16px;margin:12px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:18px 0}.tile{background:var(--surface);border:1px solid var(--ring);border-radius:16px;padding:14px}
+.tile-value{font-size:30px;font-weight:300;letter-spacing:-.5px}.tile-label{font-weight:600;font-size:13.5px;margin-top:2px}.tile-sub{font-size:12px;color:var(--muted)}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}th,td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:left;vertical-align:top}th{color:var(--ink2);font-weight:600;white-space:nowrap}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}td.strong{font-weight:650}table.compact td,table.compact th{padding:4px 6px;font-size:12.5px}
 .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid currentColor}.badge.good{color:var(--good)}.badge.bad{color:var(--bad)}
@@ -353,10 +356,9 @@ p{margin:8px 0;color:var(--ink2)}b,strong{color:var(--ink)}.muted{color:var(--mu
 .dot{stroke:var(--surface);stroke-width:2}.dot.s1{fill:var(--s1)}.dot.s2{fill:var(--s2)}.dot.s3{fill:var(--s3)}.hit{fill:transparent}.hit:hover{fill:var(--grid);opacity:.35}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2);margin:6px 0 2px}.key{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.key.s1{background:var(--s1)}.key.s2{background:var(--s2)}.key.s3{background:var(--s3)}
 .diagram .box rect{fill:var(--surface);stroke:var(--axis)}.diagram .engine rect{fill:none;stroke-dasharray:none}.diagram text{fill:var(--ink2);font-size:12px;text-anchor:middle}.diagram .bt{fill:var(--ink);font-weight:650;font-size:13px}.diagram .muted{fill:var(--muted)}.diagram .flow{stroke:var(--s1);stroke-width:2;fill:none}.diagram .arrowhead{fill:var(--s1)}
-.shot{width:100%;border-radius:8px;border:1px solid var(--ring);margin:8px 0}.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.multiple{margin:0;background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:10px}
+.shot{width:100%;border-radius:8px;border:1px solid var(--ring);margin:8px 0}.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.multiple{margin:0;background:var(--surface);border:1px solid var(--ring);border-radius:16px;padding:10px}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pair span{display:block;font-size:11.5px;color:var(--muted);text-align:center}.thumb{width:100%;border-radius:6px;display:block;background:#000}
 details summary{cursor:pointer;color:var(--ink2);font-size:13px;margin:6px 0}#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--ring);border-radius:6px;padding:4px 8px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:10;max-width:320px}
-.toggle{position:fixed;top:12px;right:12px;background:var(--surface);color:var(--ink2);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
 table.history{width:auto}table.history td.num{text-align:left;padding-right:24px}
 ul{color:var(--ink2);padding-left:20px}li{margin:4px 0}
 @media (max-width:640px){.tile-value{font-size:24px}}`;
@@ -364,11 +366,12 @@ ul{color:var(--ink2);padding-left:20px}li{margin:4px 0}
 const refInfo = existsSync('tests/fixtures/uto-0-120.reference.json') ? JSON.parse(readFileSync('tests/fixtures/uto-0-120.reference.json', 'utf8')) : null;
 
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>VoltViz Audio Engine Report</title><style>${css}</style></head><body>
-<button class="toggle" onclick="const r=document.documentElement;r.dataset.theme=(r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches))?'light':'dark'">Theme</button>
 <main>
-<h1>VoltViz audio engine rewrite — evidence report</h1>
-<p class="muted">Generated ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC, built on commit <code>${commit}</code> · test material: <i>${esc(manifest.source.name)}</i> (52 min DJ mix, 2-minute excerpts) · rebuild with <code>npm run report</code>.</p>
+<p class="wordmark">VoltViz<span> Music Visualizer</span></p>
+<h1>Audio engine rewrite — evidence report</h1>
+<p class="muted">Generated ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC, built on commit <code>${commit}</code> · test material: a DJ mix (2-minute excerpts) · rebuild with <code>npm run report</code>.</p>
 ${tiles()}
 <div class="card"><p><b>Verdict.</b> The new engine finds the beat on this mix far more reliably than the old per-visualizer detectors: mean beat F-measure
 <b>${f3(mean(hybridAllF))}</b> over all ${excerpts.length} excerpts (DSP-only fallback ${f3(mean(dspAllF))}) against <b>${f3(mean(baselineBest))}</b> for the best old detector, and
@@ -406,10 +409,10 @@ ${historyTable()}
 ${neuralSection()}
 
 <h2>4. Visualizers in the running app</h2>
-<p>Every registered visualizer was run in the real app (Chrome, real GPU, 1280 × 720) on the break → drop slice of the mix via the dev-only test source, with a probe that reads the rendered frame in the same task as the render. (These browser runs used engine v3.1; v3.2 only changed when the AI arbiter may confirm a re-time — see the history above.) Measured: the beats the engine fired on screen against the reference, whether the picture changes on the beat, whether it follows the audio level, frame rate and console errors.</p>
+<p>Each visualizer below was run in the real app (Chrome, real GPU, 1280 × 720) on the break → drop slice of the mix via the dev-only test source, with a probe that reads the rendered frame in the same task as the render. (These browser runs used engine v3.1; v3.2 only changed when the AI arbiter may confirm a re-time — see the history above.) Measured: the beats the engine fired on screen against the reference, whether the picture changes on the beat, whether it follows the audio level, frame rate and console errors.</p>
 ${liveTable()}
 
-<h3>Deep dive: ten beat-heavy visualizers, three sections of the mix</h3>
+<h3>Deep dive: ${countWord(new Set((liveDeep?.results ?? []).map((r: Json) => r.id)).size)} beat-heavy visualizers, ${countWord(new Set((liveDeep?.results ?? []).map((r: Json) => r.segment)).size)} sections of the mix</h3>
 <p>Curves: frame-to-frame motion folded onto the reference beats (0 = the beat, 0.5 = half-way), relative to its mean. A flat line at 1 means the picture ignores the beat; a peak means it moves on the beat. Snapshots were captured in the exact render frame in which a beat fired, and half-way between beats.</p>
 ${deepSection()}
 
@@ -431,7 +434,7 @@ ${skillProof ? `<p>${esc(skillProof.summary).replace(/`([^`]+)`/g, '<code>$1</co
 <li>DSP-only mode (AI beat tracking off or unavailable) still locks onto the off-beat or a pickup in some rolling-bass sections (see the DSP columns); the neural arbiter exists for exactly these cases.</li>
 <li>The network runs every ~5 s on a 10 s window; after a start or a hard cut the beat can take several seconds to become confident (the report's live runs start mid-song).</li>
 <li>Slow music (&lt; 90 BPM) is tracked at double time by design (dance-music tempo prior); the beat stays in time.</li>
-<li>Frame rates depend on the GPU. On the integrated GPU used here several visualizers run below 30 fps in both the old and the new app (e.g. Sheet Music ~8, Fractal Orb ~9, Neon Hex Tunnel ~12, Tunnel ~17, Cyber City ~19): their cost is their own drawing (large canvas shadow blurs, raymarched shaders). Replacing canvas <code>shadowBlur</code> with a cheaper glow would help a lot but changes the look, so it was left for a follow-up.</li>
+<li>Frame rates depend on the GPU. On the integrated GPU used here several visualizers run below 30 fps in both the old and the new app (e.g. Sheet Music ~8, Fractal Orb ~9, Tunnel ~17, Cyber City ~19): their cost is their own drawing (large canvas shadow blurs, raymarched shaders). Replacing canvas <code>shadowBlur</code> with a cheaper glow would help a lot but changes the look, so it was left for a follow-up.</li>
 <li>${liveResults.length - livePass} visualizers do not meet the live criteria: ${liveResults.filter(r => !r.pass).map(r => esc(r.id)).join(', ')}. They render without errors, but within 20–40 s of music their picture either reacts in ways this measurement cannot resolve (random glitch triggers, slow block-by-block animation, few frames per second) or reacts weakly; the before/after measurements show the same behaviour in the old app.</li>
 <li>Some visualizers keep pre-existing quirks on purpose (unchanged look), e.g. audio-modulated speeds multiplied by elapsed time in AnunakiSphere, AuroraWaves, CyberCity, Shambhala and HexGlobe clouds.</li>
 </ul>

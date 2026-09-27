@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import dummyCover from '../../../images/dummycover.png';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
 type VinylApi = { setImage(url: string): void };
@@ -23,13 +24,17 @@ const Vinyl: VisualizerFactory = ({ container }) => {
   let currentImage: HTMLImageElement | null = null;
   let disposed = false;
 
+  // The standard cover until an image is uploaded; a late load never replaces a newer image.
+  let requested: string | null = null;
   const setImage = (url: string) => {
+    requested = url;
     const img = new Image();
     img.onload = () => {
-      if (!disposed) currentImage = img;
+      if (!disposed && requested === url) currentImage = img;
     };
     img.src = url;
   };
+  setImage(dummyCover);
 
   return {
     resize(w, h) {

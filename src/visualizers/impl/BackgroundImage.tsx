@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import dummyCover from '../../../images/dummycover.png';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -31,6 +32,8 @@ const BackgroundImage: VisualizerFactory = ({ container }) => {
     }
     bgDiv.style.backgroundImage = `url(${url})`;
   };
+  // The standard cover until an image is uploaded
+  setImage(dummyCover);
 
   return {
     resize: (w, h, dpr) => c.resize(w, h, dpr),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
+import dummyCover from '../../../images/dummycover.png';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -25,13 +26,17 @@ const BlurImage: VisualizerFactory = ({ container }) => {
   let image: HTMLImageElement | null = null;
   let disposed = false;
 
+  // The standard cover until an image is uploaded; a late load never replaces a newer image.
+  let requested: string | null = null;
   const setImage = (url: string) => {
+    requested = url;
     const img = new Image();
     img.onload = () => {
-      if (!disposed) image = img;
+      if (!disposed && requested === url) image = img;
     };
     img.src = url;
   };
+  setImage(dummyCover);
 
   let time = 0;
   let smoothedIntensity = 0;
@@ -48,12 +53,6 @@ const BlurImage: VisualizerFactory = ({ container }) => {
       const drawX = (targetW - drawW) / 2 + dx;
       const drawY = (targetH - drawH) / 2 + dy;
       context.drawImage(img, drawX, drawY, drawW, drawH);
-    } else {
-      context.fillStyle = '#ffffff';
-      context.font = `bold ${Math.max(14, Math.floor(targetW / 12))}px sans-serif`;
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText('UPLOAD IMAGE', targetW / 2 + dx, targetH / 2 + dy);
     }
   };
 

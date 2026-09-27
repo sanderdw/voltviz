@@ -138,7 +138,7 @@ export function createBaselines(sampleRate: number): Detector[] {
   let beatTimer = 0;
   let lastNow = 0;
   const fireworks: Detector = {
-    name: 'FireworksShow/FestivalStage',
+    name: 'FireworksShow',
     description: 'bass (bins 0-5 of 512/0.7) / 255 > 0.8 x (1.5 - sensitivity) with 0.4 s cooldown',
     analyser: fwAnalyser, data: fwData, events: [],
     step(now) {
