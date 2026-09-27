@@ -211,7 +211,7 @@ export default function App() {
           {!showControls && running && (
             <button
               onClick={() => setShowControls(true)}
-              className="absolute top-6 right-6 p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all cursor-pointer z-50 group"
+              className="absolute top-3 right-3 md:top-6 md:right-6 p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all cursor-pointer z-50 group"
               title="Show UI"
             >
               <Minimize size={20} className="group-hover:scale-90 transition-transform" />
@@ -238,6 +238,7 @@ export default function App() {
             setAutoGain={setAutoGain}
             aiBeat={aiBeat}
             setAiBeat={setAiBeat}
+            bottomInset={sendspin.active}
           />
 
           <div className={skin.versionLabel}>

@@ -16,7 +16,7 @@ export default function SendspinBar({ skin, sendspin, sendspinCommand, updateSen
       <div className={skin.sendspinBar} data-testid="sendspin-controls">
         {/* Track info */}
         {sendspin.metadata?.title && (
-          <div className="flex items-center gap-3 mr-2 min-w-0">
+          <div className="flex items-center gap-3 mr-2 min-w-0 max-sm:basis-full max-sm:justify-center max-sm:mr-0">
             {sendspin.metadata.artwork_url && (
               <img src={sendspin.metadata.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
             )}

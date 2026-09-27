@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X, Shuffle, Gauge, BrainCircuit } from 'lucide-react';
 import type { SkinDefinition, SkinType } from '../skins';
 import type { VisualizerSettings } from '../types';
@@ -24,16 +25,29 @@ interface SettingsPanelProps {
   setAutoGain: (v: boolean) => void;
   aiBeat: boolean;
   setAiBeat: (v: boolean) => void;
+  /** Leave room at the bottom for the fixed Sendspin bar. */
+  bottomInset: boolean;
 }
 
 export default function SettingsPanel({ skin, activeSkin, showSettings, showControls, setShowSettings, settings, setSettings,
   shuffleEnabled, setShuffleEnabled, shuffleInterval, setShuffleInterval, shufflePool, transitionMode, setTransitionMode,
-  autoGain, setAutoGain, aiBeat, setAiBeat }: SettingsPanelProps) {
+  autoGain, setAutoGain, aiBeat, setAiBeat, bottomInset }: SettingsPanelProps) {
+  const open = showSettings && showControls;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSettings(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, setShowSettings]);
+
   return (
-    <div className={`${skin.settingsPanel} ${showSettings && showControls ? 'translate-x-0' : 'translate-x-full'}`}>
+    <div className={`${skin.settingsPanel} ${open ? 'translate-x-0' : 'translate-x-full'} ${bottomInset ? 'pb-28' : ''}`}>
       <div className="flex justify-between items-center mb-8">
         <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
-        <button onClick={() => setShowSettings(false)} className={activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}>
+        <button onClick={() => setShowSettings(false)} aria-label="Close panel" className={`p-2 -m-2 ${activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}`}>
           <X size={20} />
         </button>
       </div>
