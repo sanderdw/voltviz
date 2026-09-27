@@ -275,10 +275,8 @@ export class BeatTracker {
   /** Shift the clock phase by `frames` (neural arbiter); keeps the next beat in the future. */
   shiftPhase(frames: number, now: number): void {
     if (this.period <= 0) return;
-    let nb = this.nextBeat + frames;
-    while (nb <= now + 0.1 * this.period) nb += this.period;
-    while (nb - this.period > now + 0.1 * this.period) nb -= this.period;
-    this.nextBeat = nb;
+    this.nextBeat += frames;
+    this.normalizeNext(now);
     this.pending.length = 0;
     this.relockVotes = 0;
   }
@@ -286,14 +284,18 @@ export class BeatTracker {
   /** Replace period and phase (neural arbiter: octave error or tempo change). */
   retime(period: number, nextBeat: number, now: number): void {
     this.period = period;
-    let nb = nextBeat;
-    while (nb <= now + 0.1 * period) nb += period;
-    this.nextBeat = nb;
+    this.nextBeat = nextBeat;
     this.locked = true;
+    this.normalizeNext(now);
     this.pending.length = 0;
     this.relockVotes = 0;
     this.tempoVotes = 0;
     this.forceRelock = false;
+  }
+
+  private normalizeNext(now: number): void {
+    while (this.nextBeat <= now + 0.1 * this.period) this.nextBeat += this.period;
+    while (this.nextBeat - this.period > now + 0.1 * this.period) this.nextBeat -= this.period;
   }
 
   /** Advance to newest frame h; appends beats whose predicted position has been reached. */

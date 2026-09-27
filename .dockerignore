@@ -6,3 +6,5 @@ Dockerfile
 README.md
 *.log
 example_code
+.cache
+docs/reports

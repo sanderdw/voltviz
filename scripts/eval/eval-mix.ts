@@ -90,7 +90,7 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid') {
   if (neural && !model) model = await createBeatModel(ort as never, new Uint8Array(readFileSync(modelPath)));
   const analyzer = new Analyzer(sampleRate, { neural });
   const baseline = sampleRate === 44100 && (mode === 'dsp' || !modes.includes('dsp')) ? new BaselineRunner(sampleRate) : null;
-  const pendingNeural: { applyAt: number; t0: number; act: Float32Array }[] = [];
+  const pendingNeural: { applyAt: number; t0: number; validFrom: number; act: Float32Array }[] = [];
   const decisions: { t: number; kind: string }[] = [];
   let neuralMs = 0;
   let neuralRuns = 0;
@@ -107,11 +107,11 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid') {
         const act = await model.run(req.frames);
         neuralMs += performance.now() - t;
         neuralRuns++;
-        pendingNeural.push({ applyAt: analyzer.state.time + NEURAL_LATENCY_S, t0: req.t0, act });
+        pendingNeural.push({ applyAt: analyzer.state.time + NEURAL_LATENCY_S, t0: req.t0, validFrom: req.validFrom, act });
       }
       while (pendingNeural.length && pendingNeural[0].applyAt <= analyzer.state.time) {
         const p = pendingNeural.shift()!;
-        const d = analyzer.applyNeural(p.t0, p.act);
+        const d = analyzer.applyNeural(p.t0, p.act, p.validFrom);
         if (d) decisions.push({ t: +analyzer.state.time.toFixed(2), kind: d.kind });
       }
     }

@@ -67,6 +67,7 @@ export class MelFrontend {
   readonly capacity: number;
   /** Absolute index of the next mel frame; frame i is centred at time i / MODEL_FPS. */
   frames = 0;
+  private resetAt = 0;
 
   private readonly resampler: Resampler | null;
   private readonly fft = new FFT(N_FFT);
@@ -85,6 +86,22 @@ export class MelFrontend {
     this.ring = new Float32Array(capacityFrames * N_MELS);
     this.resampler = inputRate === MODEL_SR ? null : new Resampler(inputRate, MODEL_SR);
     this.emitFn = v => this.pushModelRate(v);
+  }
+
+  /** Forget the retained frames (after a pause); frame numbering continues. */
+  reset(): void {
+    this.ring.fill(0);
+    this.resetAt = this.frames;
+  }
+
+  /** Absolute index of the oldest frame computed since the last reset. */
+  get firstAvailableFrame(): number {
+    return this.resetAt;
+  }
+
+  /** Frames available since the last reset. */
+  private get available(): number {
+    return this.frames - this.resetAt;
   }
 
   push(input: ArrayLike<number>, length: number = input.length): void {
@@ -126,6 +143,23 @@ export class MelFrontend {
       }
       this.ring[out + m] = Math.log1p(1000 * acc);
     }
+  }
+
+  /**
+   * Like `latest`, but when fewer than `n` frames exist the older part of the window is
+   * zero-filled (the model reads that as silence). Returns the absolute index of the first
+   * row, which is negative when padded.
+   */
+  latestPadded(n: number, out: Float32Array): number {
+    const have = Math.min(this.available, n, this.capacity);
+    const pad = n - have;
+    out.fill(0, 0, pad * N_MELS);
+    const first = this.frames - have;
+    for (let i = 0; i < have; i++) {
+      const src = ((first + i) % this.capacity) * N_MELS;
+      out.set(this.ring.subarray(src, src + N_MELS), (pad + i) * N_MELS);
+    }
+    return first - pad;
   }
 
   /**
