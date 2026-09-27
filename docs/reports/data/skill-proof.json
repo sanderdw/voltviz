@@ -1,0 +1,28 @@
+{
+ "generated": "2026-09-27T12:04:32.789Z",
+ "command": "npm run new:viz -- skilltest \"Skill Test\" --template canvas2d --beat",
+ "steps": [
+  {
+   "step": "scaffold",
+   "ok": true
+  },
+  {
+   "step": "npm run lint",
+   "ok": true
+  },
+  {
+   "step": "npm run test:unit (29 tests)",
+   "ok": true
+  },
+  {
+   "step": "npm run eval:live -- --ids skilltest",
+   "ok": true,
+   "detail": "beat lock x4.61 (p=0.005), audio r=0.78, 60 fps, 0 errors"
+  },
+  {
+   "step": "playwright all-visualizers -g skilltest",
+   "ok": true
+  }
+ ],
+ "summary": "Following .github/skills/adding-visualizer/SKILL.md end to end: `npm run new:viz -- skilltest \"Skill Test\" --template canvas2d --beat` produced a module and registry entry that passed lint, the unit tests, the e2e mount test and the live quality check out of the box (beat lock x4.61, p=0.005; correlation with the music 0.78; 60 fps; no errors). The three.js and shader templates were also generated with and without --beat and type-checked. The throwaway visualizer was removed afterwards."
+}

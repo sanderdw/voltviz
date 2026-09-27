@@ -164,6 +164,25 @@ const FireworksShow: VisualizerFactory = ({ container, width: w, height: h, dpr 
       const midNorm = mid / 255;
       const trebleNorm = treble / 255;
 
+      // Rockets burst on the beat: their flight time (launch -> apex -> explosion) is snapped to the
+      // upcoming beat closest to their natural flight time, so every explosion lands on a beat.
+      // Without a confident tempo the original free flight is kept.
+      const timeScale0 = currentSettings.speed;
+      const beatPeriod = audio.beat.confidence >= 0.3 ? audio.beat.period : 0;
+      const toNextBeat = (1 - audio.beat.phase) * beatPeriod;
+      const onBeatVy = (vy: number, g: number) => {
+        if (beatPeriod <= 0) return vy;
+        const natural = vy / g / timeScale0; // real seconds to apex
+        let best = toNextBeat;
+        for (let m = 0; m < 16; m++) {
+          const e = toNextBeat + m * beatPeriod;
+          if (e < 0.3) continue;
+          if (Math.abs(e - natural) < Math.abs(best - natural) || best < 0.3) best = e;
+        }
+        best = Math.min(natural * 1.25, Math.max(natural * 0.8, best)); // keep apex heights close to the original
+        return best * timeScale0 * g;
+      };
+
       // --- Spawning Logic ---
       // Spawn on (predicted) beats, gated by loudness so quiet passages don't fire
       if (beatHit(audio) && bassNorm > 0.25 * (1.5 - currentSettings.sensitivity) && beatTimer <= 0) {
@@ -179,7 +198,7 @@ const FireworksShow: VisualizerFactory = ({ container, width: w, height: h, dpr 
 
           // Calculate vy to reach targetY (v^2 = u^2 + 2as -> u = sqrt(-2as))
           const gravity = -40;
-          const vy = Math.sqrt(-2 * gravity * targetY);
+          const vy = onBeatVy(Math.sqrt(-2 * gravity * targetY), -gravity);
           const vx = (Math.random() - 0.5) * 15;
           const vz = (Math.random() - 0.5) * 15;
 
@@ -200,7 +219,7 @@ const FireworksShow: VisualizerFactory = ({ container, width: w, height: h, dpr 
         const startX = (Math.random() - 0.5) * 120;
         const startZ = (Math.random() - 0.5) * 60 - 30;
         const targetY = 40 + Math.random() * 40;
-        const vy = Math.sqrt(2 * 40 * targetY);
+        const vy = onBeatVy(Math.sqrt(2 * 40 * targetY), 40);
         const hue = Math.random();
         const color = new THREE.Color().setHSL(hue, 1.0, 0.6);
         spawnParticle(startX, 0, startZ, (Math.random()-0.5)*10, vy, (Math.random()-0.5)*10, color.r, color.g, color.b, vy/40, 1, 4.0);

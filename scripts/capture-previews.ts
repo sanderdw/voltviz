@@ -3,7 +3,7 @@
 //   npm run capture:previews            # all visualizers
 //   npm run capture:previews -- bars    # only the given ids
 //
-// Requires no running server (spawns `vite` if port 3000 is free) and no real
+// Requires no running server (spawns `vite` on PREVIEW_PORT, default 3100, if nothing answers there) and no real
 // audio hardware: Chromium's fake-media flags feed a generated WAV into
 // getUserMedia so every visualizer has a lively signal to react to.
 import { chromium } from 'playwright';
@@ -15,7 +15,9 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { visualizers } from '../src/visualizers.ts';
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'images', 'previews');
-const BASE_URL = process.env.PREVIEW_BASE_URL ?? 'http://localhost:3000';
+// Own port with --strictPort so another local service on a common port is never captured.
+const PORT = Number(process.env.PREVIEW_PORT ?? 3100);
+const BASE_URL = process.env.PREVIEW_BASE_URL ?? `http://127.0.0.1:${PORT}`;
 const WARMUP_MS = 3500;
 
 // Extra query params for visualizers that need tweaking to screenshot well.
@@ -79,7 +81,7 @@ async function serverIsUp(): Promise<boolean> {
 
 async function ensureServer(): Promise<() => void> {
   if (await serverIsUp()) return () => {};
-  const child: ChildProcess = spawn('npx', ['vite', '--port', '3000'], {
+  const child: ChildProcess = spawn('npx', ['vite', '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'], {
     cwd: join(dirname(fileURLToPath(import.meta.url)), '..'),
     stdio: 'ignore',
   });

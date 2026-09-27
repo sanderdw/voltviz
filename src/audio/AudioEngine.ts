@@ -80,7 +80,17 @@ export class AudioEngine {
     if (input.kind === 'element') source.connect(ctx.destination);
     const engine = new AudioEngine(ctx, source, options);
     await engine.startHost();
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+      // Stricter autoplay policies only allow resuming inside a user gesture.
+      const resume = () => {
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        window.removeEventListener('pointerdown', resume);
+        window.removeEventListener('keydown', resume);
+      };
+      window.addEventListener('pointerdown', resume);
+      window.addEventListener('keydown', resume);
+    }
     return engine;
   }
 

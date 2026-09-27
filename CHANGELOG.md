@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **New audio engine.** All audio analysis moved out of the visualizers into one engine: one AudioContext per session (previously one per visualizer, two during a crossfade), analysis on the audio thread in an AudioWorklet (ScriptProcessor fallback on insecure origins), kick/snare/hat onsets, tempo tracking and a predictive beat clock that fires beats in the frame in which they are heard.
+- **AI Beat Tracking** (Settings, on by default, `?aibeat=0` to disable): a small neural beat model (beat_this small0, MIT) runs locally in a Web Worker and keeps the beat clock on the beat instead of the off-beat or a pickup. Falls back to DSP-only tracking when unavailable.
+- **Auto Gain** (Settings, off by default, `?agc=1`): normalizes the input level so a quiet microphone reacts like loud system audio.
+- Beat-driven visualizers now use the engine's beats: Anunaki Sphere, Cyber City, Aurum Leaf, Fractal Orb, Razor 1911, Icons, Your Logo, Festival Stage, Fireworks Show, Defqon Mainstage, Moss Ball, MS Defrag, Disney Drone Show. Audio Debug shows the engine (onset function, predicted beats, BPM, confidence, onsets, AI status, Auto Gain).
+- Evidence report on a real DJ mix (`docs/reports/audio-engine-report.html`) and the evaluation harness behind it (`scripts/eval`, reference beats from madmom + beat_this).
+- `npm run new:viz` scaffold with Canvas 2D / three.js / shader templates, and a rewritten adding-visualizer skill.
+- Unit tests for the audio engine (vitest) and e2e tests for the engine settings, a single AudioContext across crossfades and every visualizer mounting without errors.
+
+### Changed
+- Visualizers are framework-free renderer modules (`src/visualizers/impl/`) driven by one render loop; `App.tsx` split into shell components (`src/app/`).
+- Several visualizers no longer rebuild their audio graph when settings, scale or artwork change (Data Dashboard, Hex Globe, Particles Stream, Blur Image, Glitch Background, Your Logo).
+- Playwright and preview capture use their own strict port (default 3100) instead of 3000.
+
+### Fixed
+- Data Dashboard's canvas scale compounded on every resize.
+- Several visualizers leaked GPU resources (materials, textures, render targets) when switching.
+
 ## [0.22.3] - 2026-08-31
 
 ### Added

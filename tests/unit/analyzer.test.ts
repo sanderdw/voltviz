@@ -162,6 +162,7 @@ describe('neural arbiter', () => {
     const w = act(beatsAt(0.46, 0.0));
     const clock = { period: 0.92, nextBeatTime: 10.12 };
     expect(arb.decide(w, clock, 10).kind).toBe('none');
+    expect(arb.decide(w, clock, 12.5).kind).toBe('none'); // overlapping window: not independent evidence
     expect(arb.decide(w, clock, 15).kind).toBe('retime');
   });
 });

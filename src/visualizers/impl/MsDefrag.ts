@@ -1,3 +1,4 @@
+import { beatHit } from '../lib/audio';
 import type { VisualizerFactory } from '../runtime/types';
 
 type CellBase = 'empty' | 'used' | 'bad' | 'unmovable';
@@ -337,9 +338,9 @@ const MsDefrag: VisualizerFactory = ({ container, settings: initialSettings }) =
 
       const sens = cur.sensitivity;
       const speed = cur.speed;
-      // Beat-driven: a kick onset adds a burst of writes (the old positive sBass delta
-      // peaked around 0.1-0.3 on kicks; sens/speed are applied in writeCount below).
-      const bassKick = audio.onsets.kick.hit ? 0.3 : 0;
+      // Beat-driven: every beat writes a visible burst of blocks on top of the continuous,
+      // bass-driven writing (sens/speed are applied in writeCount below).
+      const bassKick = beatHit(audio) ? 1.5 : 0;
 
       // --- Audio-driven events ---
       const writeCount = Math.floor((sBass * 18 + bassKick * 60) * sens * speed);

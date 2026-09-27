@@ -84,6 +84,10 @@ http://localhost:8080
 | `npm run lint` | Check TypeScript for errors |
 | `npm run test` | Run the Playwright smoke tests |
 | `npm run test:install` | Download the Playwright Chromium browser |
+| `npm run test:unit` | Run the audio engine unit tests (vitest) |
+| `npm run new:viz -- <id> "<Name>"` | Scaffold a new visualizer (see `.github/skills/adding-visualizer/SKILL.md`) |
+| `npm run eval:prepare` / `eval:mix` / `eval:live` | Beat-tracking evaluation on the test mix |
+| `npm run report` | Rebuild `docs/reports/audio-engine-report.html` |
 
 ---
 
@@ -110,15 +114,27 @@ http://localhost:8080
 
 ```
 src/
-├── components/
-│   └── visualizers/        # 40+ visualization components
+├── audio/                  # Audio engine (no React, no visuals)
+│   ├── core/               # Pure DSP: onsets, tempo, predictive beat clock, levels, neural arbiter
+│   ├── neural/             # Log-mel front end + ONNX beat model (runs in a Web Worker)
+│   ├── host/               # AudioWorklet host (ScriptProcessor fallback), shared analyser pool
+│   ├── sources/            # Microphone, system audio, Sendspin, dev-only test audio
+│   ├── AudioEngine.ts      # One AudioContext per session -> one AudioFrame per animation frame
+│   └── types.ts            # AudioFrame: beats, onsets, bands, spectrum, waveform, stereo
+├── visualizers/
+│   ├── impl/               # 56 visualizers as framework-free renderer modules
+│   ├── runtime/            # VisualizerHost (single rAF loop, resize, errors), contract, QA probe
+│   ├── lib/                # Canvas 2D / three.js / audio helpers
+│   └── registry.ts         # Single source of truth: ids, names, picker order
+├── app/                    # React shell: header, settings, Sendspin bar/dialog, stage, URL state
+├── components/             # Visualizer picker
 ├── data/                   # Static data (geographic, etc.)
-├── images/                 # Asset images
-├── App.tsx                 # Main app component
-├── main.tsx                # Entry point
-├── types.ts                # TypeScript definitions
-└── index.css               # Global styles
+└── images/                 # Asset images and picker previews
 
+public/models/              # AI beat-tracking model (beat_this small0, MIT) – see NOTICE.md
+scripts/eval/               # Beat-tracking evaluation on the test mix (offline, live, before/after)
+scripts/templates/          # Templates for `npm run new:viz`
+docs/reports/               # Audio engine evidence report (HTML) and its data
 nginx/
 └── default.conf            # Nginx configuration for production
 ```
@@ -128,9 +144,11 @@ nginx/
 ## 🎯 How It Works
 
 1. **Audio Capture**: VoltViz captures audio from your microphone, system audio, or a [Sendspin](https://www.sendspin-audio.com) server
-2. **Frequency Analysis**: Uses Web Audio API to analyze frequency data in real-time
-3. **Visualization**: Renders synchronized visualizations using Three.js and Canvas
+2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat.
+3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
+
+How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html).
 
 ---
 
@@ -157,6 +175,8 @@ http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1
 | `hueShift` | Color shift in degrees (0–360) | `0` |
 | `scale` | Element scale multiplier (0.5–3.0) | `1.0` |
 | `skin` | UI theme: `modern`, `win95`, `winamp`, or `crt` | `modern` |
+| `agc` | `1` enables Auto Gain (normalizes quiet inputs such as a microphone) | off |
+| `aibeat` | `0` disables AI Beat Tracking (saves CPU on slow devices) | on |
 
 The URL updates automatically as you change the visualizer or adjust settings in the UI, so you can share or bookmark your current configuration at any time. Only non-default settings are included to keep URLs clean.
 

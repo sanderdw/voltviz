@@ -40,6 +40,8 @@ const SHIFT_MIN_FRACTION = 0.13;
 const OCTAVE_RATIOS = [2, 0.5, 1.5, 2 / 3];
 const OCTAVE_TOL = 0.06;
 const SAME_PERIOD = 0.04;
+/** Minimum time between a proposal and the window that confirms it (s). */
+const MIN_CONFIRM_GAP_S = 4.5;
 
 /** Parabolic-interpolated activation peaks above threshold, as times (s). */
 export function activationPeaks(w: NeuralWindow): { times: number[]; strengths: number[] } {
@@ -137,6 +139,7 @@ export class NeuralArbiter {
   lockUntil = -1;
   last: ArbiterDecision | null = null;
   private pending: ArbiterDecision | null = null;
+  private pendingAt = 0;
   readonly lockSeconds: number;
 
   constructor(lockSeconds = 12) {
@@ -157,13 +160,19 @@ export class NeuralArbiter {
     }
     // a single very consistent window may shift phase; a retime always needs two windows
     const strong = d.kind === 'shift' && d.consistency >= 0.9 && d.beats >= 8;
-    const agrees = this.pending !== null && this.pending.kind === d.kind && sameDecision(this.pending, d, clock.period);
+    const same = this.pending !== null && this.pending.kind === d.kind && sameDecision(this.pending, d, clock.period);
+    // The confirming window must contain mostly new audio: windows are 10 s long but can come
+    // every 2.5 s, and two heavily overlapping windows are nearly the same evidence twice.
+    const agrees = same && now - this.pendingAt >= MIN_CONFIRM_GAP_S;
     if (strong || agrees) {
       this.pending = null;
       this.lockUntil = now + this.lockSeconds;
       return d;
     }
-    this.pending = d;
+    if (!same) {
+      this.pending = d;
+      this.pendingAt = now;
+    }
     return { kind: 'none', reason: `awaiting confirmation of ${d.kind}`, beats: d.beats };
   }
 }

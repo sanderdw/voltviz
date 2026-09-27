@@ -1,91 +1,103 @@
 # Audio Reactivity Patterns for Visualizers
 
-Lessons learned from fixing time-dependent audio drift in shader-based visualizers.
+How to make visuals react to music so that they look right on real tracks, for the whole
+session. All examples use the `AudioFrame` that every visualizer receives in `frame()` (see
+`.github/skills/adding-visualizer/SKILL.md` for the full API).
 
-## The Core Problem: Audio × Time Drift
+## 1. Beats: use the engine, not a bass threshold
 
-When audio-modulated values are **multiplied by elapsed time**, the visual impact of the same audio input grows unboundedly as the session continues.
+The engine runs a predictive beat tracker (DSP beat clock + optional neural phase arbiter) on
+the audio thread. `audio.beat.isBeat` is true in the frame in which a beat becomes *audible*,
+so effects land exactly on the beat instead of one detection delay late.
+
+```ts
+import { beatHit } from '../lib/audio';
+if (beatHit(audio)) pulse = 1;          // confident beat, or a raw kick when there is no tempo
+pulse *= Math.exp(-dt / 0.15);          // frame-rate independent decay
+```
+
+Why not `if (bass > threshold)`? On real dance music the loudest low-frequency events are often
+*not* the beat: rolling basslines fill the off-beats, pickups sit 75 ms before the beat, and
+the kick body peaks ~50 ms after its attack. The old per-visualizer detectors fired on those
+(beat F-measure 0.3–0.65 on the test mix); see `docs/reports/audio-engine-report.html`.
+
+For motion that should follow the tempo continuously, use `audio.beat.phase` (0 → 1 between
+beats) and `audio.beat.barBeat` (0–3).
+
+## 2. The core problem of continuous reactivity: audio × time drift
+
+When audio-modulated values are **multiplied by elapsed time**, the visual impact of the same
+audio input grows unboundedly as the session continues.
 
 ```glsl
 // BAD: audio-modulated speed × growing time = drift
 float t = uTime * uSpeed;          // uTime grows forever
-rotation = rot(t * uTwistSpeed);   // same audio fluctuation has bigger effect at t=600s vs t=10s
+rotation = rot(t * uTwistSpeed);   // same fluctuation has a bigger effect at t=600s than at t=10s
 ```
 
-## The Fix: Phase Accumulators
+### The fix: phase accumulators
 
-Accumulate phase on the JS side. Audio modulates the **rate of change per frame**, not a multiplier on total elapsed time.
+Accumulate phase on the JS side. Audio modulates the **rate of change per frame**, not a
+multiplier on total elapsed time.
 
-```typescript
-// GOOD: accumulate phase incrementally
-globalPhase += delta * currentSpeed;  // only this frame's contribution
-twistPhase += delta * currentSpeed * twistRate * audioBoost;
-
-uniforms.uPhase.value = globalPhase;
-uniforms.uTwistPhase.value = twistPhase;
+```ts
+phase += dt * settings.speed * (0.3 + level);   // only this frame's contribution
+uniforms.uPhase.value = phase;
 ```
 
-```glsl
-// Shader uses pre-accumulated phase directly
-rotation = rot(uPhase * rotationFactor);
-twist = rot(vertexY * twistAmount + uTwistPhase);
+A bass hit at t=10s and t=600s both add the same `dt * boost` increment — the visual effect is
+identical regardless of session duration.
+
+### Direct audio-reactive offsets (time-independent)
+
+For instant "punch", add a **bounded direct offset** that maps audio to a visual parameter
+without any time multiplication:
+
+```ts
+uniforms.uTwistReact.value = level * 3.0 + pulse * 1.5;
 ```
 
-**Why this works:** A bass hit at t=10s and t=600s both add the same `delta * boost` increment — the visual effect is identical regardless of session duration.
+## Safe vs unsafe modulation targets
 
-## Direct Audio-Reactive Offsets (Time-Independent)
-
-For instant "punch" response to audio, add a **direct offset** uniform that maps audio energy to a visual parameter without any time multiplication:
-
-```typescript
-// Direct offset: audio -> visual, no time involved
-uniforms.uTwistReact.value = smoothedMids * 3.0 + smoothedBass * 1.5;
-```
-
-```glsl
-// Added directly to rotation angles
-q.xz *= rot(q.y * uTwist + uTwistPhase + uTwistReact);
-```
-
-This provides immediate, bounded reactivity that stays constant over time.
-
-## Safe vs Unsafe Audio Modulation Targets
-
-| Target | Safe Pattern | Unsafe Pattern |
+| Target | Safe pattern | Unsafe pattern |
 |--------|-------------|----------------|
-| Rotation/twist angles | Phase accumulator (`+= delta * rate`) | `elapsedTime * audioSpeed` |
-| Object size/radius | Additive offset (`base + audio * scale`) | — |
-| Thickness/detail | Additive offset (`base + audio * scale`) | — |
-| Particle spawn rate | Direct threshold check | — |
+| Rotation / twist angles | Phase accumulator (`+= dt * rate`) | `elapsedTime * audioSpeed` |
+| Object size / radius | Additive offset (`base + level * scale`) | — |
+| Flashes / bursts | `beatHit(audio)` + decay | bass threshold + cooldown |
+| Particle spawn | `beatHit` / onset `.hit`, or a rate from `bands` | per-frame `if (bass > x)` spam |
 | Color shift | Direct mapping | — |
-| Animation speed | Drives phase accumulation rate | Multiplied by growing time |
+| Animation speed | Drives the phase accumulation rate | Multiplied by growing time |
 
-**Rule of thumb:** If a parameter is multiplied by something that grows monotonically (time, frame count), it must NOT be audio-modulated directly. Instead, audio should modulate the *rate of growth* via a phase accumulator.
+## Smoothing
 
-## PolySphere as Reference Implementation
+Use `dt` so smoothing does not depend on the frame rate:
 
-`PolySphere.tsx` naturally avoids this bug because:
-- `time += 0.01 * speed` — speed is user-controlled, not audio-modulated
-- Audio only affects additive properties: radius pulse, face detach offset, particle spawn
-- None of these are multiplied by the growing `time` variable
-
-## Smoothing Best Practices
-
-```typescript
-// Exponential smoothing (EMA) — good defaults
-smoothedBass += (bass - smoothedBass) * 0.15;   // fast response
-smoothedMids += (mids - smoothedMids) * 0.12;   // medium
-smoothedHighs += (highs - smoothedHighs) * 0.10; // slower (less jitter)
+```ts
+level += (audio.bands.bass - level) * Math.min(1, dt * 10);   // ~100 ms response
 ```
 
-- Higher alpha = faster response, more jitter
-- Lower alpha = smoother, more latency
-- `analyser.smoothingTimeConstant = 0.8` provides additional FFT-level smoothing
+`audio.spectrum({ fftSize, smoothing })` additionally applies the AnalyserNode's own smoothing
+(`smoothing` 0.8 is a good default; 0.2–0.5 for snappy spectra).
 
-## Checklist for New Visualizers
+## Sensitivity and Auto Gain
 
-1. **Never multiply audio-modulated values by elapsed time** — use phase accumulators
-2. **Add direct audio offsets** for instant reactivity (twist, scale, glow)
-3. **Keep offsets bounded** — `smoothedValue` is already 0–1 range (with sensitivity=1)
-4. **Test at 5+ minutes** — compare visual intensity to the first 10 seconds
-5. **Sensitivity slider** scales raw band energy before smoothing — works naturally with both patterns
+- `settings.sensitivity` scales audio amplitudes (bands, spectrum values, pulse sizes) — apply
+  it once, then clamp.
+- **Auto Gain** (a Settings toggle, off by default) normalizes the input level in the engine's
+  display path so a quiet microphone and loud system audio look alike. Visualizers must not add
+  their own gain normalization.
+
+## Checklist for new visualizers
+
+1. Beat effects via `beatHit(audio)` / `audio.beat` / `audio.onsets` — never a bass threshold.
+2. Never multiply audio-modulated values by elapsed time — use phase accumulators.
+3. Use `dt` for smoothing and decays.
+4. Keep offsets bounded (bands are 0–1 at sensitivity 1).
+5. Prove it: `npm run eval:live -- --ids <id>` must PASS (beat response / level coupling on the
+   test mix, no errors).
+
+## Known offenders (kept unchanged in the rewrite to preserve their look)
+
+AnunakiSphere (rotation/light speed × uTime), AuroraWaves (timeScale/waveSpeed), CyberCity
+(scanSpeed), Shambhala (u_speed) and HexGlobe (cloud rotation `t * cloudSpeed`) still multiply
+audio-modulated speeds by elapsed time. Fix them with phase accumulators if they are revisited.

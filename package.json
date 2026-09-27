@@ -14,8 +14,12 @@
     "test:install": "playwright install chromium",
     "capture:previews": "node scripts/capture-previews.ts",
     "make:og-image": "node scripts/make-og-image.ts",
+    "new:viz": "node scripts/new-viz.ts",
     "eval:prepare": "node scripts/eval/prepare-audio.ts",
-    "eval:mix": "node scripts/eval/eval-mix.ts"
+    "eval:mix": "node scripts/eval/eval-mix.ts",
+    "eval:live": "node scripts/eval/live.ts",
+    "eval:before-after": "node scripts/eval/before-after.ts",
+    "report": "node scripts/report/build-report.ts"
   },
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",

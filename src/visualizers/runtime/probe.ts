@@ -23,6 +23,9 @@ export interface ProbeSample {
   motion: number; // 0..1
   bass: number; // audio.bands.bass
   level: number; // audio.level.rms
+  gain: number; // Auto Gain factor applied to the display path
+  spec: number; // mean of the 1024/0.8 byte spectrum (0..1): how much of the spectrum is lit
+  kickEnv: number; // kick onset envelope
 }
 
 export interface ProbeShot {
@@ -30,6 +33,12 @@ export interface ProbeShot {
   media: number;
   t: number;
   dataUrl: string;
+}
+
+function meanSpectrum(s: Uint8Array): number {
+  let t = 0;
+  for (let i = 0; i < s.length; i++) t += s[i];
+  return t / s.length / 255;
 }
 
 const W = 32;
@@ -40,6 +49,8 @@ export class Probe {
   readonly shots: ProbeShot[] = [];
   /** Set by the harness: capture this many exact-frame snapshots per kind after this media time. */
   shotPlan: { after: number; perKind: number } | null = null;
+  /** Canvas readback costs GPU time; the harness turns it off to measure clean frame rates. */
+  canvasSampling = true;
   private shotCanvas: HTMLCanvasElement | null = null;
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -65,6 +76,7 @@ export class Probe {
   sample(now: number, audio: AudioFrame, layers: { id: string; container: HTMLDivElement; fps: number }[]): void {
     const top = layers[layers.length - 1];
     if (!top) return;
+    if (!this.canvasSampling) return;
     const ctx = this.ctx;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
@@ -102,6 +114,9 @@ export class Probe {
       motion: motion / (W * H),
       bass: audio.bands.bass,
       level: audio.level.rms,
+      gain: audio.gain,
+      spec: meanSpectrum(audio.spectrum({ fftSize: 1024, smoothing: 0.8 })),
+      kickEnv: audio.onsets.kick.envelope,
     });
     const plan = this.shotPlan;
     const media = el ? el.currentTime : -1;
