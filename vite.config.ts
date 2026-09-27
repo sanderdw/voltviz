@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import {defineConfig, loadEnv, type Plugin} from 'vite';
 import {createReadStream, existsSync, readFileSync, readdirSync, statSync} from 'node:fs';
-import {join, normalize} from 'node:path';
+import {isAbsolute, join, normalize, relative} from 'node:path';
 
 /**
  * Development only: serves evaluation audio from .cache/test-audio at /__testaudio/<file>
@@ -17,15 +17,25 @@ function testAudio(): Plugin {
     configureServer(server) {
       server.middlewares.use('/__testaudio', (req, res, next) => {
         const file = normalize(join(root, decodeURIComponent((req.url ?? '/').split('?')[0])));
-        if (!file.startsWith(root) || !existsSync(file) || !statSync(file).isFile()) return next();
+        // Inside root only: a plain prefix check would also accept siblings such as ../test-audio-private
+        const rel = relative(root, file);
+        if (!rel || rel.startsWith('..') || isAbsolute(rel) || !existsSync(file) || !statSync(file).isFile()) return next();
         const size = statSync(file).size;
         const type = file.endsWith('.wav') ? 'audio/wav' : file.endsWith('.mp3') ? 'audio/mpeg' : 'application/octet-stream';
-        const range = /bytes=(\d*)-(\d*)/.exec(req.headers.range ?? '');
+        const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? '');
         res.setHeader('Accept-Ranges', 'bytes');
         res.setHeader('Content-Type', type);
-        if (range) {
-          const start = range[1] ? parseInt(range[1], 10) : 0;
-          const end = range[2] ? Math.min(parseInt(range[2], 10), size - 1) : size - 1;
+        if (range && (range[1] || range[2])) {
+          // "bytes=-N" is the last N bytes; "bytes=N-" runs to the end
+          const suffix = !range[1];
+          const start = suffix ? Math.max(0, size - parseInt(range[2], 10)) : parseInt(range[1], 10);
+          const end = suffix || !range[2] ? size - 1 : Math.min(parseInt(range[2], 10), size - 1);
+          if (start >= size || start > end || (suffix && parseInt(range[2], 10) === 0)) {
+            res.statusCode = 416;
+            res.setHeader('Content-Range', `bytes */${size}`);
+            res.end();
+            return;
+          }
           res.statusCode = 206;
           res.setHeader('Content-Range', `bytes ${start}-${end}/${size}`);
           res.setHeader('Content-Length', end - start + 1);

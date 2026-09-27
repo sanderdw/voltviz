@@ -34,18 +34,10 @@ export class NeuralClient {
         this.pending.get(m.id)?.(m.activation);
         this.pending.delete(m.id);
       } else if (m.type === 'error') {
-        console.warn('VoltViz: beat model unavailable, falling back to DSP-only beat tracking:', m.message);
-        this.error = m.message;
-        this.status = 'error';
-        this.busy = false;
-        for (const cb of this.pending.values()) cb(null);
-        this.pending.clear();
+        this.fail(m.message);
       }
     };
-    worker.onerror = ev => {
-      this.status = 'error';
-      this.error = ev.message;
-    };
+    worker.onerror = ev => this.fail(ev.message || 'worker error');
     const modelUrl = new URL('models/beat_this_small0.onnx', document.baseURI).href;
     worker.postMessage({ type: 'init', modelUrl, wasmUrl: new URL(wasmUrl, document.baseURI).href });
   }
@@ -59,6 +51,16 @@ export class NeuralClient {
       this.pending.set(id, resolve);
       this.worker!.postMessage({ type: 'run', id, frames }, [frames.buffer]);
     });
+  }
+
+  /** The model can't run: fall back to DSP-only tracking and release every waiting request. */
+  private fail(message: string): void {
+    console.warn('VoltViz: beat model unavailable, falling back to DSP-only beat tracking:', message);
+    this.error = message;
+    this.status = 'error';
+    this.busy = false;
+    for (const cb of this.pending.values()) cb(null);
+    this.pending.clear();
   }
 
   stop(): void {

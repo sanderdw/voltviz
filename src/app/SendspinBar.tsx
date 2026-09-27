@@ -11,6 +11,8 @@ interface SendspinBarProps {
 }
 
 export default function SendspinBar({ skin, sendspin, sendspinCommand, updateSendspin }: SendspinBarProps) {
+  const repeat = sendspin.metadata?.repeat ?? 'off';
+  const nextRepeat: ControllerCommand = repeat === 'off' ? 'repeat_all' : repeat === 'all' ? 'repeat_one' : 'repeat_off';
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
       <div className={skin.sendspinBar} data-testid="sendspin-controls">
@@ -132,12 +134,8 @@ export default function SendspinBar({ skin, sendspin, sendspinCommand, updateSen
             <Shuffle size={16} />
           </button>
           <button
-            onClick={() => {
-              const current = sendspin.metadata?.repeat ?? 'off';
-              const next: ControllerCommand = current === 'off' ? 'repeat_all' : current === 'all' ? 'repeat_one' : 'repeat_off';
-              sendspinCommand(next);
-            }}
-            disabled={!sendspin.supportedCmds.includes('repeat_off')}
+            onClick={() => sendspinCommand(nextRepeat)}
+            disabled={!sendspin.supportedCmds.includes(nextRepeat)}
             className={`${skin.sendspinButton} ${sendspin.metadata?.repeat && sendspin.metadata.repeat !== 'off' ? skin.sendspinButtonActive : ''}`}
             title={`Repeat: ${sendspin.metadata?.repeat ?? 'off'}`}
             data-testid="sendspin-repeat"

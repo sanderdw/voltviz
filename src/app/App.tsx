@@ -125,8 +125,14 @@ export default function App() {
       onConnecting: setSendspinConnecting,
       onActivated: () => setShowSendspinDialog(false),
       onClosed: () => {
-        if (sendspinRef.current === controller) sendspinRef.current = null;
+        // A newer source (or controller) has already taken over: leave its stream alone
+        if (sendspinRef.current !== controller) return;
+        sendspinRef.current = null;
+        setSendspinConnecting(false);
+        setSendspin(initialSendspinState);
         removeUrlParam('sendspin');
+        // The connection is gone for good: back to the source selection instead of a dead stream
+        setStream(null);
       },
     });
     sendspinRef.current = controller;

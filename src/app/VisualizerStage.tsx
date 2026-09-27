@@ -26,18 +26,22 @@ interface LayerProps {
   settings: VisualizerSettings;
   metadata: ServerStateMetadata | null;
   onReady: () => void;
+  /** The module failed to load or start: nothing to show. */
+  onFailed: () => void;
 }
 
 /** One visualizer layer: loads the module, mounts it through the host, renders its overlay. */
-function VisualizerLayer({ id, host, settings, metadata, onReady }: LayerProps) {
+function VisualizerLayer({ id, host, settings, metadata, onReady, onFailed }: LayerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const handleRef = useRef<LayerHandle | null>(null);
   const settingsRef = useRef(settings);
   const metadataRef = useRef(metadata);
   const onReadyRef = useRef(onReady);
+  const onFailedRef = useRef(onFailed);
   settingsRef.current = settings;
   metadataRef.current = metadata;
   onReadyRef.current = onReady;
+  onFailedRef.current = onFailed;
   const [api, setApi] = useState<OverlayProps['api']>(null);
   const [Overlay, setOverlay] = useState<ComponentType<OverlayProps> | null>(null);
 
@@ -51,12 +55,17 @@ function VisualizerLayer({ id, host, settings, metadata, onReady }: LayerProps) 
       handleRef.current = handle;
       handle.ready.then(inst => {
         if (cancelled) return;
-        setApi(inst?.api ?? null);
+        if (!inst) {
+          onFailedRef.current();
+          return;
+        }
+        setApi(inst.api ?? null);
         onReadyRef.current();
       });
     }).catch(err => {
+      if (cancelled) return;
       console.error(`VoltViz: failed to load visualizer "${id}"`, err);
-      onReadyRef.current();
+      onFailedRef.current();
     });
     return () => {
       cancelled = true;
@@ -126,6 +135,16 @@ export default function VisualizerStage({ host, visualizer, settings, sendspinMe
     }, WARMUP_MS));
   };
 
+  // A layer that failed while fading in is dropped so the previous visualizer stays on screen.
+  // A layer that is already visible (the first one, or after an instant switch) has nothing to fall
+  // back to and stays; the host has logged the error.
+  const dropFailed = (key: number) => {
+    setLayers(prev => {
+      const idx = prev.findIndex(l => l.key === key);
+      return idx > 0 && !prev[idx].visible ? prev.filter(l => l.key !== key) : prev;
+    });
+  };
+
   const metadata = sendspinMetadata ?? null;
   return (
     <>
@@ -142,6 +161,7 @@ export default function VisualizerStage({ host, visualizer, settings, sendspinMe
             settings={settings}
             metadata={metadata}
             onReady={() => { if (!l.visible) beginFade(l.key); }}
+            onFailed={() => dropFailed(l.key)}
           />
         </div>
       ))}

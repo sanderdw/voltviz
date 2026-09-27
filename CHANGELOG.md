@@ -20,6 +20,8 @@
 ### Fixed
 - Switching visualizers no longer slowly leaks memory.
 - Data Dashboard is drawn at the right size again after resizing the window.
+- When a Sendspin connection is lost for good, VoltViz goes back to the start screen instead of showing a frozen visualizer.
+- The Sendspin repeat button no longer stays greyed out on servers that support repeat.
 
 ### Removed
 - The Ghost Rainbow, Neon Hex Tunnel, Festival Stage and ASCII visualizers. Links to them now open the default visualizer.
