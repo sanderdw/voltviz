@@ -136,6 +136,7 @@ scripts/eval/               # Beat-tracking evaluation on the test mix (offline,
 scripts/templates/          # Templates for `npm run new:viz`
 docs/reports/               # Audio engine evidence report (HTML) and its data
 docs/presentation/          # Conference talk about the rewrite (HTML slides)
+docs/explainer/             # Animated explainer of the audio engine (HTML)
 nginx/
 └── default.conf            # Nginx configuration for production
 ```
@@ -149,7 +150,7 @@ nginx/
 3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
 
-How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
+An animated walk-through of the engine, including the Auto Gain and AI Beat Tracking switches, is in [How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html). How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
 
 ---
 
