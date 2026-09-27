@@ -18,7 +18,7 @@ VoltViz comes with **50+ stunning visualization styles** to choose from:
 - **Particle Effects**: Cosmic Particles, Fireworks Show, Trails Stream
 - **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Cyber City, Neon Hex Tunnel, Neon Wave, Aurora Waves, Shambhala
 - **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb, Anunaki Sphere, Aurum Leaf
-- **Retro Styles**: CRT Terminal, ASCII, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
+- **Retro Styles**: CRT Terminal, ASCII, Halftone Pulse, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
 - **Festival Vibes**: Festival Stage, Defqon Mainstage, Disney Drone Show
 - **Organic Effects**: Fluid Smoke, Ghost Rainbow, Psychedelic Skull, Flame
 - **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard, Audio Debug

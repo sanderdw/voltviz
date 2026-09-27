@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { visualizers } from '../src/visualizers.ts';
+import { visualizers } from '../src/visualizers/registry.ts';
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'images', 'previews');
 // Own port with --strictPort so another local service on a common port is never captured.

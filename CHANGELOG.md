@@ -11,6 +11,7 @@
 - Animated explainer of the audio engine (`docs/explainer/how-voltviz-hears-the-beat.html`): onsets, tempo, the predictive beat clock, AI Beat Tracking and Auto Gain, with the two switches working on a simulated groove.
 - Conference talk about the rewrite (`docs/presentation/ai-as-audio-engineer.html`): 21 slides with speaker notes and a presenter view.
 - `npm run new:viz` scaffold with Canvas 2D / three.js / shader templates, and a rewritten adding-visualizer skill.
+- **Halftone Pulse** visualizer, a live take on sabosugi's "Dither / ASCII Effect Pro" pen: a grid of shapes (26 shapes plus ASCII glyphs, 23 luma modes) sampling an uploaded image, the Sendspin artwork or a generated spectrum sun. Shapes swell and glow on the beat, a shockwave rolls through the source, random modes reshuffle per beat, and in Auto the mode × shape look changes every 8 bars with a radial wipe. Rendered as instanced WebGL sprites (60 fps at ~5k shapes on an Intel iGPU).
 - Unit tests for the audio engine (vitest) and e2e tests for the engine settings, a single AudioContext across crossfades and every visualizer mounting without errors.
 
 ### Changed
@@ -21,6 +22,7 @@
 ### Fixed
 - Data Dashboard's canvas scale compounded on every resize.
 - Several visualizers leaked GPU resources (materials, textures, render targets) when switching.
+- `npm run capture:previews` failed to start under Node's TypeScript loader (extensionless registry import).
 
 ## [0.22.3] - 2026-08-31
 

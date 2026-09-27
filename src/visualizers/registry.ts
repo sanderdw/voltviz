@@ -63,6 +63,7 @@ export const visualizers = [
   { id: 'vinylsendspin', name: 'Vinyl (Sendspin)', module: 'VinylSendspin' },
   { id: 'glitchbackgroundsendspin', name: 'Glitch Background (Sendspin)', module: 'GlitchBackgroundSendspin' },
   { id: 'backgroundimagesendspin', name: 'Background Image (Sendspin)', module: 'BackgroundImageSendspin' },
+  { id: 'halftonepulse', name: 'Halftone Pulse', module: 'HalftonePulse' },
 ] as const satisfies readonly VisualizerEntry[];
 
 export type VisualizerType = (typeof visualizers)[number]['id'];

@@ -37,7 +37,7 @@ const ids = arg('ids', '') ? arg('ids', '').split(',') : visualizers.map(v => v.
 
 /** Visualizers whose effects are meant to hit on the beat (engine beat triggers). */
 export const BEAT_DRIVEN = new Set(['anunakisphere', 'cybercity', 'aurumleaf', 'fractalorb', 'razor1911', 'icons', 'yourlogo',
-  'festivalstage', 'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'audiodebug']);
+  'festivalstage', 'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'audiodebug', 'halftonepulse']);
 /** Visualizers that show nothing until the user uploads something (the harness uploads). */
 const UPLOADS: Record<string, string> = {
   yourlogo: 'src/images/GitHub_Invertocat_White.svg',
