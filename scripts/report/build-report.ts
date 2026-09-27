@@ -179,7 +179,7 @@ function excerptChart(): string {
   return groupedBars(cats, [
     { name: 'Old code (best of 4 detectors)', cls: 's3', values: excerpts.map(e => Math.max(...(resultOf(e, 'dsp', 44100)?.baselines ?? []).map((b: Json) => b.fMeasure))) },
     { name: 'New engine, DSP only (AI off)', cls: 's2', values: excerpts.map(e => resultOf(e, 'dsp', 44100)?.beats.confident.fMeasure ?? null) },
-    { name: 'New engine, hybrid (default)', cls: 's1', values: excerpts.map(e => resultOf(e, 'hybrid', 44100)?.beats.confident.fMeasure ?? null) },
+    { name: 'New engine, hybrid (AI on)', cls: 's1', values: excerpts.map(e => resultOf(e, 'hybrid', 44100)?.beats.confident.fMeasure ?? null) },
   ], { yMax: 1, yTicks: [0, 0.2, 0.4, 0.6, 0.8, 1], title: 'Beat F-measure per excerpt' });
 }
 

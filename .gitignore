@@ -6,7 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
-example_code
 
 # Playwright
 /test-results/

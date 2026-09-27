@@ -8,7 +8,7 @@
 
 ## 🎨 Features
 
-![VoltViz](https://img.shields.io/badge/React-19.2.6-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.184-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.0.12-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
+![VoltViz](https://img.shields.io/badge/React-19.3-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.186-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.3-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
 [![Voltviz](images/voltviz.png)](https://voltviz.com)
 ---
@@ -39,8 +39,8 @@ VoltViz comes with **50+ stunning visualization styles** to choose from:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js** (v18 or higher)
-- **npm** or **yarn**
+- **Node.js** 22.18 or newer (CI and Docker use Node 26)
+- **npm**
 
 ### Local Development
 
@@ -82,7 +82,7 @@ http://localhost:8080
 | `npm run preview` | Preview production build locally |
 | `npm run clean` | Remove build artifacts |
 | `npm run lint` | Check TypeScript for errors |
-| `npm run test` | Run the Playwright smoke tests |
+| `npm run test` | Run the Playwright e2e tests |
 | `npm run test:install` | Download the Playwright Chromium browser |
 | `npm run test:unit` | Run the audio engine unit tests (vitest) |
 | `npm run new:viz -- <id> "<Name>"` | Scaffold a new visualizer (see `.github/skills/adding-visualizer/SKILL.md`) |
@@ -98,7 +98,8 @@ http://localhost:8080
 - **TypeScript** - Type-safe development
 - **Vite** - Next-gen build tool
 - **Three.js** - 3D graphics
-- **D3.js** - Data visualization
+- **d3-geo** - Map projections (Dutch Grid)
+- **ONNX Runtime Web** - Runs the AI beat-tracking model in the browser
 - **Tailwind CSS** - Utility-first styling
 - **Lucide React** - Icon library
 - **[@sendspin/sendspin-js](https://www.sendspin-audio.com)** - Synchronized audio streaming client
@@ -122,7 +123,7 @@ src/
 │   ├── AudioEngine.ts      # One AudioContext per session -> one AudioFrame per animation frame
 │   └── types.ts            # AudioFrame: beats, onsets, bands, spectrum, waveform, stereo
 ├── visualizers/
-│   ├── impl/               # 56 visualizers as framework-free renderer modules
+│   ├── impl/               # 55 visualizers as framework-free renderer modules
 │   ├── runtime/            # VisualizerHost (single rAF loop, resize, errors), contract, QA probe
 │   ├── lib/                # Canvas 2D / three.js / audio helpers
 │   └── registry.ts         # Single source of truth: ids, names, picker order
@@ -171,14 +172,18 @@ http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `viz` | Visualizer name (e.g. `tunnel`, `polysphere`, `fractalorb`) | `polysphere` |
+| `viz` | Visualizer name (e.g. `tunnel`, `polysphere`, `fractalorb`) | `halftonepulse` |
 | `sensitivity` | Audio reactivity multiplier (0.1–3.0) | `1.0` |
 | `speed` | Animation speed multiplier (0.1–3.0) | `1.0` |
 | `hueShift` | Color shift in degrees (0–360) | `0` |
 | `scale` | Element scale multiplier (0.5–3.0) | `1.0` |
 | `skin` | UI theme: `modern`, `win95`, `winamp`, or `crt` | `modern` |
 | `agc` | `1` enables Auto Gain (normalizes quiet inputs such as a microphone) | off |
-| `aibeat` | `0` disables AI Beat Tracking (saves CPU on slow devices) | on |
+| `aibeat` | `1` enables AI Beat Tracking (keeps beat effects on the beat; uses extra CPU) | off |
+| `shuffle` | `1` switches to a random visualizer at an interval | off |
+| `shuffleTime` | Shuffle interval in seconds: `15`, `30`, `60`, `120`, `300` or `600` | `60` |
+| `shufflePool` | Comma-separated visualizer ids to shuffle between | all |
+| `transition` | How visualizers switch: `crossfade`, `quickcut` or `instant` | `crossfade` |
 
 The URL updates automatically as you change the visualizer or adjust settings in the UI, so you can share or bookmark your current configuration at any time. Only non-default settings are included to keep URLs clean.
 
@@ -192,19 +197,15 @@ http://localhost:8080/?sendspin=http://homeassistant.local:8927
 
 This opens the connect dialog automatically with the URL pre-filled — just click **Connect** to start.
 
-You can combine both: `/?sendspin=http://homeassistant.local:8927&viz=vinylplayer&hueShift=90`
+You can combine both: `/?sendspin=http://homeassistant.local:8927&viz=vinylsendspin&hueShift=90`
 
 > **_NOTE:_** Mixed content is not supported in most browsers so it only works on local networks. So if you access Home Assistant by `http://homeassistant.local:8123` it works by using `http://homeassistant.local:8927` as Sendspin URL.
 
-### Try with a local Sendspin Server
+### Sendspin server requirements
 
-You can also quickly start a local Sendspin server using [uvx](https://docs.astral.sh/uv/):
-
-```bash
-uvx sendspin serve https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3
-```
-
-Then in VoltViz, click **Sendspin** and enter `http://localhost:8095` to connect.
+VoltViz uses `@sendspin/sendspin-js` 5.x, which speaks the encrypted Sendspin protocol of
+`aiosendspin` 9.x: use Music Assistant 2.10.0b14 or newer. The `sendspin` CLI test server
+(`uvx sendspin serve`, 7.5 at the time of writing) still uses `aiosendspin` 6.x and cannot connect.
 
 The easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
 
@@ -212,20 +213,12 @@ The easiest way is to run the [Docker version](#docker-deployment) of VoltViz on
 
 ## 🔧 Development
 
-### Lint TypeScript
-```bash
-npm run lint
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks to run before a pull request.
 
-### Build for Production
-```bash
-npm run build
-npm run preview  # Test production build locally
-```
-
-### Run Smoke Tests
+### Run the tests
 ```bash
 npm run test:install
+npm run test:unit
 npm run test
 ```
 
@@ -234,10 +227,6 @@ On Linux, Playwright may also need system browser libraries:
 ```bash
 npx playwright install-deps chromium
 ```
-
-### Environment Setup
-
-The app requires **microphone or display-capture permissions** to function properly. When you first load VoltViz, you'll be prompted to grant these permissions.
 
 ---
 
@@ -248,18 +237,18 @@ VoltViz includes a GitHub Actions workflow that automatically builds and publish
 ### Automatic Deployment
 
 The workflow triggers on:
-- **Push to main/master branches**: Builds and publishes with `latest` tag
-- **Git tags** (e.g., `1.0.0`): Publishes with semantic version tags
-- **Pull requests**: Builds images for testing (doesn't push)
-- **Manual trigger**: Via GitHub Actions UI
+- **Push to `main`**: builds and publishes, including the `latest` tag
+- **Push to a release branch** (named like `0.23.0`): builds and publishes that branch
+- **Pull requests**: builds the image for testing (doesn't push)
+- **Manual trigger**: via the GitHub Actions UI
 
 ### Image Tags
 
 Images are automatically tagged as:
-- `ghcr.io/sanderdw/voltviz:latest` (on main branch)
-- `ghcr.io/sanderdw/voltviz:1.0.0` (on version tags)
+- `ghcr.io/sanderdw/voltviz:latest` (on `main`)
+- `ghcr.io/sanderdw/voltviz:0.23.0` (the version in `package.json`)
 - `ghcr.io/sanderdw/voltviz:main` (branch name)
-- `ghcr.io/sanderdw/voltviz:sha-abc123def` (commit SHA)
+- `ghcr.io/sanderdw/voltviz:sha-abc123d` (commit SHA)
 
 ### Pull Docker Image
 
@@ -268,35 +257,25 @@ docker pull ghcr.io/sanderdw/voltviz:latest
 docker run -p 8080:80 ghcr.io/sanderdw/voltviz:latest
 ```
 
-### Manual Build & Push
-
-```bash
-# Build locally
-docker build -t ghcr.io/sanderdw/voltviz:latest .
-
-# Push to registry (requires authentication)
-docker push ghcr.io/sanderdw/voltviz:latest
-```
-
-For authentication, follow the [GitHub Container Registry documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+To push images by hand, authenticate first: see the [GitHub Container Registry documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 
 ---
 
 ## 📝 License
 
-MIT © 2026 VoltViz
+MIT © 2026 VoltViz Contributors, see [LICENSE](LICENSE). Some visualizer shaders keep their own (non-commercial) license, and bundled libraries, the beat model and map data are credited in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Whether you want to add new visualizations, improve performance, or fix bugs, feel free to open a pull request.
+Contributions are welcome! Whether you want to add new visualizations, improve performance, or fix bugs, read [CONTRIBUTING.md](CONTRIBUTING.md) and open a pull request. Security issues: see [SECURITY.md](SECURITY.md).
 
 ---
 
 ## 🎨 Credits
 
-Special shoutout to [@sabosugi](https://x.com/sabosugi) for the nice visuals.
+Special shoutout to [@sabosugi](https://x.com/sabosugi) for the nice visuals. Moss Ball uses shaders from [imoss](https://github.com/ledhieu/imoss) by ledhieu, Flame a shader by kuvkar, and AI Beat Tracking the [Beat This!](https://github.com/CPJKU/beat_this) model by JKU Linz. Full credits: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 

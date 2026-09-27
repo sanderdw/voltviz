@@ -4,7 +4,8 @@
 
 VoltViz is a single-page app with exactly one page (/). Visualizers are chosen
 in-app or via URL parameters (`viz`, `sensitivity`, `speed`, `hueShift`,
-`scale`, `skin`, `sendspin`); there are no separate article pages to index.
+`scale`, `skin`, `agc`, `aibeat`, `shuffle`, `shuffleTime`, `shufflePool`,
+`transition`, `sendspin`); there are no separate article pages to index.
 
 It is also available as a Home Assistant add-on and as a Docker image
 (ghcr.io/sanderdw/voltviz).
@@ -26,3 +27,4 @@ It is also available as a Home Assistant add-on and as a Docker image
 
 - [security.txt](https://voltviz.com/.well-known/security.txt): contact for security reports
 - [humans.txt](https://voltviz.com/humans.txt): credits and technology used
+- [Third-party notices](https://voltviz.com/third-party-notices.txt): licenses of bundled libraries, adapted code, the beat model and map data

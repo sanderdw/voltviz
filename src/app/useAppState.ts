@@ -26,7 +26,7 @@ const params = () => new URLSearchParams(window.location.search);
 export function useAppState() {
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
     const viz = params().get('viz');
-    return isVisualizerType(viz) ? viz : 'polysphere';
+    return isVisualizerType(viz) ? viz : 'halftonepulse';
   });
   const [shuffleEnabled, setShuffleEnabled] = useState(() => params().get('shuffle') === '1');
   const [shuffleInterval, setShuffleInterval] = useState<number>(() => {
@@ -60,7 +60,7 @@ export function useAppState() {
     return s && s in skins ? (s as SkinType) : 'modern';
   });
   const [autoGain, setAutoGain] = useState(() => params().get('agc') === '1');
-  const [aiBeat, setAiBeat] = useState(() => params().get('aibeat') !== '0');
+  const [aiBeat, setAiBeat] = useState(() => params().get('aibeat') === '1');
 
   useEffect(() => {
     const p = params();
@@ -85,7 +85,7 @@ export function useAppState() {
     else p.delete('transition');
     if (autoGain) p.set('agc', '1');
     else p.delete('agc');
-    if (!aiBeat) p.set('aibeat', '0');
+    if (aiBeat) p.set('aibeat', '1');
     else p.delete('aibeat');
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);

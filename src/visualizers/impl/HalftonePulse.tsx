@@ -14,7 +14,7 @@
  */
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { ImagePlus, Eye, EyeOff, Palette, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ImagePlus, Eye, EyeOff, Palette, SlidersHorizontal } from 'lucide-react';
 import * as THREE from 'three';
 import { beatHit } from '../lib/audio';
 import { createRenderer, disposeObject, disposeRenderer } from '../lib/three';
@@ -947,21 +947,32 @@ export function Overlay({ api }: OverlayProps) {
 
   const pill = 'px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm text-white cursor-pointer transition-colors';
   const field = 'w-full px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm text-white cursor-pointer outline-none transition-colors';
+  // appearance-none + dark options: Chrome on Windows paints the native option list with the
+  // select's own (translucent white) background, which left white text on a near-white list.
+  const select = `${field} appearance-none pl-4 pr-9 focus-visible:ring-2 focus-visible:ring-purple-500`;
+  const option = 'bg-gray-900 text-white';
+  const chevron = 'pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70';
 
   return (
     <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-20">
       {showUI && styleOpen && (
         <div className="w-64 max-w-[calc(100vw-3rem)] flex flex-col gap-2 p-3 bg-black/60 backdrop-blur-sm border border-white/20 rounded-2xl">
-          <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as Mode | 'auto')}
-            className={field} style={{ colorScheme: 'dark' }}>
-            <option value="auto">Mode: Auto (every 8 bars)</option>
-            {Object.entries(MODES).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-          </select>
-          <select aria-label="Shape" value={shape} onChange={e => setShape(e.target.value as Shape | 'auto')}
-            className={field} style={{ colorScheme: 'dark' }}>
-            <option value="auto">Shape: Auto</option>
-            {Object.entries(SHAPES).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-          </select>
+          <div className="relative">
+            <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as Mode | 'auto')}
+              className={select} style={{ colorScheme: 'dark' }}>
+              <option value="auto" className={option}>Mode: Auto (every 8 bars)</option>
+              {Object.entries(MODES).map(([id, label]) => <option key={id} value={id} className={option}>{label}</option>)}
+            </select>
+            <ChevronDown className={chevron} />
+          </div>
+          <div className="relative">
+            <select aria-label="Shape" value={shape} onChange={e => setShape(e.target.value as Shape | 'auto')}
+              className={select} style={{ colorScheme: 'dark' }}>
+              <option value="auto" className={option}>Shape: Auto</option>
+              {Object.entries(SHAPES).map(([id, label]) => <option key={id} value={id} className={option}>{label}</option>)}
+            </select>
+            <ChevronDown className={chevron} />
+          </div>
           <button
             onClick={() => setNeon(!neon)}
             className={`flex items-center justify-center gap-2 ${field} ${neon ? 'bg-fuchsia-500/20 border-fuchsia-400/50 text-fuchsia-200' : ''}`}

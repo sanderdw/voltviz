@@ -98,6 +98,6 @@ level += (audio.bands.bass - level) * Math.min(1, dt * 10);   // ~100 ms respons
 
 ## Known offenders (kept unchanged in the rewrite to preserve their look)
 
-AnunakiSphere (rotation/light speed × uTime), AuroraWaves (timeScale/waveSpeed), CyberCity
-(scanSpeed), Shambhala (u_speed) and HexGlobe (cloud rotation `t * cloudSpeed`) still multiply
+AnunakiSphere (rotation/light speed × uTime), AuroraWaves (timeScale/waveSpeed), Shambhala
+(u_speed) and HexGlobe (cloud rotation `t * cloudSpeed`) still multiply
 audio-modulated speeds by elapsed time. Fix them with phase accumulators if they are revisited.

@@ -96,7 +96,7 @@ never write into them.
 **Auto Gain** (Settings, off by default) normalizes the input level for the display path, so
 `spectrum`, `bands` and `level` are comparable between a quiet microphone and loud system
 audio. You don't need to do anything for it — just don't add your own gain normalization.
-**AI Beat Tracking** (on by default) only affects how reliable `audio.beat` is.
+**AI Beat Tracking** (off by default) only affects how reliable `audio.beat` is.
 
 ## 6. Prove it works (required before you're done)
 

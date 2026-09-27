@@ -69,7 +69,7 @@ async function capture(browser: Browser, id: string, start: number, shots: boole
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
   try {
-    await page.goto(`${BASE}/?viz=${id}&testAudio=/__testaudio/${EXCERPT}.wav&testAudioStart=${start}&probe=1&transition=instant`);
+    await page.goto(`${BASE}/?viz=${id}&testAudio=/__testaudio/${EXCERPT}.wav&testAudioStart=${start}&probe=1&transition=instant&aibeat=1`);
     await page.waitForFunction(() => (window as any).__voltviz?.probe?.samples?.length > 5, null, { timeout: 30000 });
     if (UPLOADS[id]) await page.locator('input[type=file]').first().setInputFiles(UPLOADS[id]);
     await page.locator('header').getByRole('button', { name: 'Hide UI' }).click().catch(() => {});

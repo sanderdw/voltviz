@@ -40,30 +40,30 @@ test.describe('VoltViz – audio engine settings', () => {
     await expect(page.getByTestId('viz-autogain-toggle')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('AI beat tracking is on by default; turning it off is persisted as aibeat=0', async ({ page }) => {
+  test('AI beat tracking is off by default; turning it on is persisted as aibeat=1', async ({ page }) => {
     await page.goto('/');
     await startMicrophone(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     const toggle = page.getByTestId('viz-aibeat-toggle');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await expect(page).not.toHaveURL(/aibeat/);
     await toggle.click();
-    await expect(page).toHaveURL(/[?&]aibeat=0/);
+    await expect(page).toHaveURL(/[?&]aibeat=1/);
   });
 
   test('Reset to Defaults also resets Auto Gain and AI beat tracking', async ({ page }) => {
-    await page.goto('/?agc=1&aibeat=0&sensitivity=2');
+    await page.goto('/?agc=1&aibeat=1&sensitivity=2');
     await startMicrophone(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('button', { name: 'Reset to Defaults' }).click();
     await expect(page.getByTestId('viz-autogain-toggle')).toHaveAttribute('aria-pressed', 'false');
-    await expect(page.getByTestId('viz-aibeat-toggle')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('viz-aibeat-toggle')).toHaveAttribute('aria-pressed', 'false');
     await expect(page).not.toHaveURL(/agc=|aibeat=|sensitivity=/);
   });
 
   test('one AudioContext for the whole session, also across a crossfade', async ({ page }) => {
     await page.addInitScript(countContexts);
-    await page.goto('/?viz=bars&aibeat=0');
+    await page.goto('/?viz=bars');
     await startMicrophone(page);
     await page.getByTestId('visualizer-picker-open').click();
     await page.getByTestId('viz-card-circular').click();

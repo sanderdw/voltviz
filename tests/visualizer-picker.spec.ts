@@ -16,7 +16,7 @@ test.describe('VoltViz – visualizer picker', () => {
   test('picker button appears after starting audio and shows the active visualizer', async ({ page }) => {
     await page.goto('/');
     await startMicrophone(page);
-    await expect(page.getByTestId('visualizer-picker-open')).toContainText('Poly Sphere');
+    await expect(page.getByTestId('visualizer-picker-open')).toContainText('Halftone Pulse');
   });
 
   test('modal opens with a card per visualizer and marks the active one', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('VoltViz – visualizer picker', () => {
     await page.getByTestId('visualizer-picker-open').click();
     await expect(page.getByTestId('visualizer-picker')).toBeVisible();
     await expect(page.getByTestId('visualizer-picker').getByRole('button', { pressed: true }))
-      .toHaveAttribute('data-testid', 'viz-card-polysphere');
+      .toHaveAttribute('data-testid', 'viz-card-halftonepulse');
     expect(await page.getByTestId('visualizer-picker').locator('[data-testid^="viz-card-"]').count())
       .toBe(visualizers.length);
   });
@@ -47,7 +47,7 @@ test.describe('VoltViz – visualizer picker', () => {
     await expect(page.getByTestId('visualizer-picker')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('visualizer-picker')).not.toBeVisible();
-    await expect(page.getByTestId('visualizer-picker-open')).toContainText('Poly Sphere');
+    await expect(page.getByTestId('visualizer-picker-open')).toContainText('Halftone Pulse');
   });
 
   test('switching visualizers crossfades through a temporary second layer', async ({ page }) => {

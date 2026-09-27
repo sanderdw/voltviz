@@ -62,7 +62,8 @@ const vertexShader = /* glsl */ `
 `;
 
 // ---------------------------------------------------------------------------
-// Fragment shader – adapted from @kuvkar's flame (shadertoy.com/view/4tXXRn)
+// Fragment shader – adapted from @kuvkar's flame (https://www.shadertoy.com/view/4tXXRn).
+// Shadertoy code without an explicit license is CC BY-NC-SA 3.0 — see THIRD_PARTY_NOTICES.md.
 // Audio uniforms: uAudioLevel (0-1 overall), uBassLevel (0-1 bass energy)
 // ---------------------------------------------------------------------------
 const fragmentShader = /* glsl */ `

@@ -12,10 +12,9 @@ describe('visualizer registry', () => {
     }
   });
 
-  it('every module in impl/ is registered (except intentionally unlisted ones)', () => {
-    const unlisted = new Set(['WaveTerrain', 'DataCloud']); // present before the rewrite, never registered
+  it('every module in impl/ is registered', () => {
     const modules = readdirSync('src/visualizers/impl').map(f => f.replace(/\.tsx?$/, ''));
     const registered = new Set<string>(visualizers.map(v => v.module));
-    expect(modules.filter(m => !registered.has(m) && !unlisted.has(m))).toEqual([]);
+    expect(modules.filter(m => !registered.has(m))).toEqual([]);
   });
 });

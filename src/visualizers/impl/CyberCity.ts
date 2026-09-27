@@ -20,8 +20,10 @@ const fragmentShader = `
   uniform vec3 u_buildingColor;
   uniform float u_dotDensity;
   uniform float u_fogDensity;
-  uniform float u_scanSpeed;
+  uniform float u_scanPhase;
   uniform float u_scanPulse;
+  uniform float u_lightFlash;
+  uniform float u_planeFlash;
 
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -85,7 +87,7 @@ const fragmentShader = `
     vec3 fogColor = u_dotColor * 0.7;
     vec3 color = fogColor - uv.y * 0.2;
 
-    float cycle = mod(u_time * u_scanSpeed, 6.0);
+    float cycle = u_scanPhase;
     float scanY = (cycle < 4.0) ? (6.0 - cycle * 1.75) : -100.0;
     float scanEnvelope = smoothstep(0.0, 0.5, cycle) * smoothstep(4.0, 3.5, cycle);
     scanEnvelope *= u_scanPulse;
@@ -133,7 +135,10 @@ const fragmentShader = `
       float scanCore = smoothstep(0.1, 0.0, distToScanner);
       float scanGlow = smoothstep(1.5, 0.0, distToScanner);
 
-      vec3 dotBaseColor = u_dotColor * dotPattern;
+      // Window lights flash on the beat; each building gets its own weight so some light up more
+      vec2 buildingId = floor(p.xz - normal.xz * 0.01);
+      float lit = step(0.35, hash(buildingId + 7.0));
+      vec3 dotBaseColor = u_dotColor * dotPattern * (1.0 + u_lightFlash * (0.6 + 2.4 * lit));
       vec3 materialColor = u_buildingColor + dotBaseColor;
 
       materialColor += u_scanColor * scanCore * 4.0 * scanEnvelope;
@@ -151,12 +156,15 @@ const fragmentShader = `
     if (tPlane > 0.0 && tPlane < min(distance, 100.0)) {
       vec3 planeHit = rayOrigin + rayDir * tPlane;
 
-      float gridX = smoothstep(0.8, 1.0, fract(planeHit.x * 2.0));
-      float gridZ = smoothstep(0.8, 1.0, fract(planeHit.z * 2.0));
+      // On the beat the grid lines thicken and burn hot, and the whole plate lights up
+      float lineStart = 0.8 - 0.15 * u_planeFlash;
+      float gridX = smoothstep(lineStart, 1.0, fract(planeHit.x * 2.0));
+      float gridZ = smoothstep(lineStart, 1.0, fract(planeHit.z * 2.0));
       float planeGrid = max(gridX, gridZ);
 
-      vec3 planeLayerColor = u_scanColor * (0.1 + planeGrid * 0.9);
-      float planeAlpha = smoothstep(100.0, 0.0, tPlane) * 0.5 * scanEnvelope;
+      vec3 planeLayerColor = u_scanColor * (0.1 + planeGrid * 0.9 + u_planeFlash * 0.25)
+        + vec3(planeGrid * u_planeFlash * 0.5);
+      float planeAlpha = smoothstep(100.0, 0.0, tPlane) * (0.5 + u_planeFlash * 1.0) * scanEnvelope;
 
       color += planeLayerColor * planeAlpha;
     }
@@ -205,8 +213,10 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
     u_buildingColor: { value: baseBuilding.clone() },
     u_dotDensity: { value: BASE_DOT_DENSITY },
     u_fogDensity: { value: BASE_FOG },
-    u_scanSpeed: { value: BASE_SCAN_SPEED },
+    u_scanPhase: { value: 0.0 },
     u_scanPulse: { value: 1.0 },
+    u_lightFlash: { value: 0.0 },
+    u_planeFlash: { value: 0.0 },
   };
 
   const material = new THREE.ShaderMaterial({
@@ -224,6 +234,8 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
   let smoothedBass = 0;
   let smoothedMids = 0;
   let smoothedHighs = 0;
+  let scanPhase = 0;
+  let planeFlash = 0;
 
   return {
     resize(width, height, d) {
@@ -271,11 +283,16 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       uniforms.u_time.value += delta * s.speed;
       uniforms.u_flightSpeed.value = BASE_FLIGHT * s.speed;
 
-      // Scanner cycles faster with mids
-      uniforms.u_scanSpeed.value = BASE_SCAN_SPEED * s.speed * (1.0 + smoothedMids * 1.4);
+      // Scanner cycles faster with mids (phase accumulator, so the sweep never jumps)
+      scanPhase = (scanPhase + delta * BASE_SCAN_SPEED * s.speed * (1.0 + smoothedMids * 1.4)) % 6.0;
+      uniforms.u_scanPhase.value = scanPhase;
 
-      // Scanner intensity pulses on kicks for an audio-reactive sweep
+      // Lights react on the beat: the scanner and the window lights flash, the buildings stay put
       uniforms.u_scanPulse.value = 0.85 + kickFlash * 1.4 + smoothedHighs * 0.3;
+      uniforms.u_lightFlash.value = kickFlash;
+      // The scan plate carries the beat: a hard hit with a slightly longer tail than the windows
+      planeFlash = isKick ? 1 : planeFlash * Math.exp(-dt / 0.18);
+      uniforms.u_planeFlash.value = Math.min(1.5, planeFlash * s.sensitivity);
 
       // Fog thins with bass to reveal more of the skyline
       uniforms.u_fogDensity.value = Math.max(0.005, BASE_FOG - smoothedBass * 0.018);
@@ -283,8 +300,7 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       // Dot density tightens with highs (more detail in busy mixes)
       uniforms.u_dotDensity.value = BASE_DOT_DENSITY + smoothedHighs * 6.0;
 
-      // Subtle camera dip on kicks for impact
-      uniforms.u_camPosY.value = BASE_CAM_Y - kickFlash * 1.5;
+      uniforms.u_camPosY.value = BASE_CAM_Y;
       uniforms.u_camPitch.value = BASE_CAM_PITCH + smoothedMids * 0.05;
 
       // Scale: a smaller scale lifts the camera higher; larger drops in close

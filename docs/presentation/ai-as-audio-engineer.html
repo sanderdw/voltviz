@@ -411,7 +411,7 @@
 </div>
 </div>
 <p style="font-family:'Space Grotesk', Arial, sans-serif; font-size:40px; font-weight:500; line-height:1.3; color:#F4F5F8">The network chooses <span style="color:#C6F54E">which</span> beat; the DSP clock decides <span style="color:#7AA2FF">when</span>.</p>
-<aside>The final engine splits the problem. The DSP clock runs on the audio thread, predicts beats and keeps timing within milliseconds; it is fast but can be fooled about which of several consistent events is the beat. A 2.1 million parameter model, beat_this small0, MIT licensed, runs every five seconds on the last ten seconds in a Web Worker and only arbitrates the metrical phase: confirm, shift, or fix an octave error. It never sets the timing itself. The human made this call when the DSP-only design failed, after the AI laid out the trade-offs; it sits behind a Settings toggle, on by default.</aside>
+<aside>The final engine splits the problem. The DSP clock runs on the audio thread, predicts beats and keeps timing within milliseconds; it is fast but can be fooled about which of several consistent events is the beat. A 2.1 million parameter model, beat_this small0, MIT licensed, runs every five seconds on the last ten seconds in a Web Worker and only arbitrates the metrical phase: confirm, shift, or fix an octave error. It never sets the timing itself. The human made this call when the DSP-only design failed, after the AI laid out the trade-offs; it sits behind a Settings toggle, off by default so slow devices don't pay for it.</aside>
 </section>
 
 <!-- 15 · results -->

@@ -14,7 +14,7 @@ test.describe('VoltViz – every visualizer mounts and runs', () => {
       const errors: string[] = [];
       page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
       page.on('pageerror', e => errors.push(String(e)));
-      await page.goto(`/?viz=${v.id}&aibeat=0`);
+      await page.goto(`/?viz=${v.id}`);
       await page.getByRole('button', { name: 'Microphone' }).click();
       await expect(page.locator('[data-testid="viz-canvas-root"] canvas').first()).toBeAttached({ timeout: 15000 });
       await page.waitForTimeout(1500);

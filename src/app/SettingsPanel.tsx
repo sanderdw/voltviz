@@ -188,7 +188,7 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
         </div>
 
         <button
-          onClick={() => { setSettings(DEFAULT_SETTINGS); setAutoGain(false); setAiBeat(true); }}
+          onClick={() => { setSettings(DEFAULT_SETTINGS); setAutoGain(false); setAiBeat(false); }}
           className={skin.settingsButton}
         >
           Reset to Defaults

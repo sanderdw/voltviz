@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
-// Adapted from https://github.com/ledhieu/imoss (MIT) — shaders kept as-is,
-// host code rewritten to plain Three.js with audio-reactive uniforms.
+// Adapted from https://github.com/ledhieu/imoss by ledhieu, licensed CC BY-NC 4.0
+// (https://creativecommons.org/licenses/by-nc/4.0/) — NOT MIT, see THIRD_PARTY_NOTICES.md.
+// Changes: shaders kept as-is, host code rewritten to plain Three.js with audio-reactive uniforms.
 
 const vertexShader = `
   uniform float uTime;

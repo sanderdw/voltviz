@@ -2,9 +2,11 @@
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-09-27
+
 ### Added
 - **New audio engine.** All audio analysis moved out of the visualizers into one engine: one AudioContext per session (previously one per visualizer, two during a crossfade), analysis on the audio thread in an AudioWorklet (ScriptProcessor fallback on insecure origins), kick/snare/hat onsets, tempo tracking and a predictive beat clock that fires beats in the frame in which they are heard.
-- **AI Beat Tracking** (Settings, on by default, `?aibeat=0` to disable): a small neural beat model (beat_this small0, MIT) runs locally in a Web Worker and keeps the beat clock on the beat instead of the off-beat or a pickup. Falls back to DSP-only tracking when unavailable.
+- **AI Beat Tracking** (Settings, off by default, `?aibeat=1` to enable): a small neural beat model (beat_this small0, MIT) runs locally in a Web Worker and keeps the beat clock on the beat instead of the off-beat or a pickup. Falls back to DSP-only tracking when unavailable.
 - **Auto Gain** (Settings, off by default, `?agc=1`): normalizes the input level so a quiet microphone reacts like loud system audio.
 - Beat-driven visualizers now use the engine's beats: Anunaki Sphere, Cyber City, Aurum Leaf, Fractal Orb, Razor 1911, Icons, Your Logo, Festival Stage, Fireworks Show, Defqon Mainstage, Moss Ball, MS Defrag, Disney Drone Show. Audio Debug shows the engine (onset function, predicted beats, BPM, confidence, onsets, AI status, Auto Gain).
 - Evidence report on a real DJ mix (`docs/reports/audio-engine-report.html`) and the evaluation harness behind it (`scripts/eval`, reference beats from madmom + beat_this).
@@ -13,8 +15,13 @@
 - `npm run new:viz` scaffold with Canvas 2D / three.js / shader templates, and a rewritten adding-visualizer skill.
 - **Halftone Pulse** visualizer, a live take on sabosugi's "Dither / ASCII Effect Pro" pen: a grid of shapes (26 shapes plus ASCII glyphs, 23 luma modes) sampling an uploaded image, the Sendspin artwork or a generated spectrum sun. Shapes swell and glow on the beat, a shockwave rolls through the source, random modes reshuffle per beat, and in Auto the mode × shape look changes every 8 bars with a radial wipe. Rendered as instanced WebGL sprites (60 fps at ~5k shapes on an Intel iGPU).
 - Unit tests for the audio engine (vitest) and e2e tests for the engine settings, a single AudioContext across crossfades and every visualizer mounting without errors.
+- `THIRD_PARTY_NOTICES.md`, and a `third-party-notices.txt` written by the production build with the license texts of every bundled npm package (the minified bundle drops their license comments). `CONTRIBUTING.md` (checks, rules for third-party code) and `SECURITY.md`.
 
 ### Changed
+- Halftone Pulse is the default visualizer (was Poly Sphere).
+- Dependency bumps: React 19.3, three.js 0.186, Vite 8.3, lucide-react 1.48, Playwright 1.63; nginx 1.31.6 image; `actions/checkout` and `actions/setup-node` v7.
+- README: current requirements (Node.js 22.18+), all URL parameters (`shuffle`, `shuffleTime`, `shufflePool`, `transition`), the actual CI image tags, and Sendspin server requirements instead of the `uvx sendspin serve` instructions, which no longer work with sendspin-js 5.
+- Cyber City: the descending scan plate lights up on the beat (thicker, hotter grid lines) and the window lights flash with it, instead of the camera dipping, so the skyline no longer jumps on every kick; the scanner sweep uses a phase accumulator.
 - Visualizers are framework-free renderer modules (`src/visualizers/impl/`) driven by one render loop; `App.tsx` split into shell components (`src/app/`).
 - Several visualizers no longer rebuild their audio graph when settings, scale or artwork change (Data Dashboard, Hex Globe, Particles Stream, Blur Image, Glitch Background, Your Logo).
 - Playwright and preview capture use their own strict port (default 3100) instead of 3000.
@@ -23,6 +30,14 @@
 - Data Dashboard's canvas scale compounded on every resize.
 - Several visualizers leaked GPU resources (materials, textures, render targets) when switching.
 - `npm run capture:previews` failed to start under Node's TypeScript loader (extensionless registry import).
+- Halftone Pulse: the Mode and Shape menus were unreadable in Chrome on Windows (white text on a near-white option list); they now use the app's select style with a dark list.
+- Moss Ball's source comment called the adapted imoss shaders MIT; they are CC BY-NC 4.0, now stated in the file and in `THIRD_PARTY_NOTICES.md`. Flame's Shadertoy origin is documented the same way.
+- The pull request template linked to a non-existent `AGENTS.md`.
+
+### Removed
+- `metadata.json` (an unused Google AI Studio leftover).
+- The unregistered Data Cloud and Wave Terrain visualizer modules (never reachable in the app).
+- The Docker workflow's `{{major}}.{{minor}}` semver tag rule, which could never fire (the workflow has no tag trigger).
 
 ## [0.22.3] - 2026-08-31
 
