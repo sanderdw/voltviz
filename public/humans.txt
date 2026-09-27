@@ -10,8 +10,11 @@
 	Music Assistant & Sendspin - synchronized audio streaming
 	three.js - 3D rendering
 	Lucide - icons
+	ledhieu - imoss shaders (Moss Ball)
+	kuvkar - flame shader (Flame)
+	JKU Linz - Beat This! beat-tracking model
 	Winamp - the inspiration
 
 /* TECHNOLOGY */
-	TypeScript, React, Vite, three.js, D3-geo, Tailwind CSS, Web Audio API, WebGL, Docker, nginx
+	TypeScript, React, Vite, three.js, d3-geo, Tailwind CSS, ONNX Runtime Web, Web Audio API, WebGL, Docker, nginx
 	Language: English

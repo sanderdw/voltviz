@@ -52,11 +52,11 @@ export default function VisualizerPicker({ active, skin, shufflePool, onTogglePo
       <div className={skin.pickerPanel} onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h3 className={skin.pickerTitle}>Visualizers</h3>
-          <button onClick={onClose} className={skin.pickerClose} aria-label="Close">
+          <button onClick={onClose} className={`p-2 -m-2 ${skin.pickerClose}`} aria-label="Close">
             <X size={20} />
           </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto p-1 pr-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 overflow-y-auto overscroll-contain p-1 pr-2">
           {visualizers.map(v => {
             const url = previewFor(v.id);
             const isActive = v.id === active;

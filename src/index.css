@@ -118,3 +118,27 @@
   animation: crt-flicker 8s infinite;
 }
 
+
+/* Bigger slider thumbs on touch screens */
+@media (pointer: coarse) {
+  .skin-90s input[type="range"]::-webkit-slider-thumb {
+    width: 16px;
+  }
+
+  .skin-winamp input[type="range"],
+  .skin-crt input[type="range"] {
+    height: 24px;
+  }
+
+  .skin-winamp input[type="range"]::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -10px;
+  }
+
+  .skin-crt input[type="range"]::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -9px;
+  }
+}

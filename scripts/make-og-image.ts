@@ -24,7 +24,7 @@ const BG = '#0f0f1a';
 const ACCENT = '#4ade80';
 
 // Preview thumbnails shown in the 2x3 grid, left-to-right, top-to-bottom.
-const THUMBNAILS = ['polysphere', 'hexglobe', 'holoblinds', 'psychedelicskull', 'trailsstream', 'festivalstage'];
+const THUMBNAILS = ['polysphere', 'hexglobe', 'holoblinds', 'psychedelicskull', 'trailsstream', 'defqonmainstage'];
 
 const FONT_STACK =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif';

@@ -1,7 +1,7 @@
 {
   "name": "voltviz",
   "private": true,
-  "version": "0.22.3",
+  "version": "0.23.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -10,29 +10,47 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "playwright test",
+    "test:unit": "vitest run",
     "test:install": "playwright install chromium",
     "capture:previews": "node scripts/capture-previews.ts",
-    "make:og-image": "node scripts/make-og-image.ts"
+    "make:og-image": "node scripts/make-og-image.ts",
+    "new:viz": "node scripts/new-viz.ts",
+    "eval:prepare": "node scripts/eval/prepare-audio.ts",
+    "eval:mix": "node scripts/eval/eval-mix.ts",
+    "eval:live": "node scripts/eval/live.ts",
+    "eval:before-after": "node scripts/eval/before-after.ts",
+    "report": "node scripts/report/build-report.ts"
   },
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",
     "d3-geo": "^3.1.1",
-    "lucide-react": "^1.37.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "three": "^0.185.1"
+    "lucide-react": "^1.48.0",
+    "onnxruntime-web": "^1.30.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/d3-geo": "^3.1.1",
-    "@types/node": "^26.4.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
-    "@types/three": "^0.185.4",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
-  }
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  },
+  "allowScripts": {
+    "protobufjs@7.6.6": true
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanderdw/voltviz.git"
+  },
+  "homepage": "https://voltviz.com"
 }

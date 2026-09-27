@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased]
+
+## [0.23.0] - 2026-09-27
+
+### Added
+- **New audio engine.** Visualizers now react on the beat you hear instead of slightly early, follow the tempo of the music, and use less CPU: one audio pipeline for the whole app instead of one per visualizer.
+- **AI Beat Tracking** (Settings, off by default): a small AI model that runs on your own device and keeps the beat in time on tricky music, such as rolling basslines or off-beat hi-hats. Uses extra CPU.
+- **Auto Gain** (Settings, off by default): a quiet microphone now reacts as strongly as loud system audio.
+- **Halftone Pulse** visualizer, now the default: a grid of shapes built from your image, the Sendspin artwork or a generated scene, which swells and glows on the beat.
+- **Raw Audio** visualizer: shows everything the audio engine hears (beat, tempo, kicks, snares, hi-hats, loudness, frequency bands) live.
+
+### Changed
+- Beat-driven visualizers (such as Cyber City, Fireworks Show, Defqon Mainstage, Fractal Orb and Razor 1911) now flash on the beat. Cyber City's skyline no longer jumps on every kick.
+- Audio Debug shows the new engine: the detected BPM, the predicted beats and the AI status.
+- Glitch Background, Blur Image, Background Image and Vinyl show the standard cover until you upload an image.
+- Better fit on phones and small screens: the header, the Settings panel and the visualizer picker no longer overflow, and Escape closes Settings.
+
+### Fixed
+- Switching visualizers no longer slowly leaks memory.
+- Data Dashboard is drawn at the right size again after resizing the window.
+- When a Sendspin connection is lost for good, VoltViz goes back to the start screen instead of showing a frozen visualizer.
+- The Sendspin repeat button no longer stays greyed out on servers that support repeat.
+
+### Removed
+- The Ghost Rainbow, Neon Hex Tunnel, Festival Stage and ASCII visualizers. Links to them now open the default visualizer.
+
 ## [0.22.3] - 2026-08-31
 
 ### Added

@@ -1,0 +1,1494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How VoltViz Hears the Beat</title>
+<meta name="description" content="A visual explainer of the VoltViz audio engine: onsets, tempo, the predictive beat clock, AI Beat Tracking and Auto Gain.">
+<meta name="color-scheme" content="dark">
+<style>
+  /* voltviz.com look: black, gray-900 panels, white/10 rules, Tailwind 400 accents. Tokens stay hex: the canvases parse them. */
+  :root {
+    color-scheme: dark;
+    --paper: #000000; --panel: #0B0B0F; --ink: #FFFFFF; --muted: #9CA3AF; --rule: #1F2937; --soft: #111827;
+    --audio: #22D3EE; --onset: #FB923C; --beat: #60A5FA; --ai: #C084FC; --gain: #FBBF24; --truth: #6B7280;
+    --screen: #07070B; --screen-2: #111827; --screen-ink: #F3F4F6; --screen-muted: #9CA3AF; --screen-rule: #1F2937;
+    --s-audio: #22D3EE; --s-onset: #FB923C; --s-beat: #60A5FA; --s-ai: #C084FC; --s-gain: #FBBF24;
+    --brand: #4ADE80; --accent: #A855F7;
+    --body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--ink); font: 17px/1.6 var(--body); -webkit-font-smoothing: antialiased;
+    background: radial-gradient(900px 560px at 14% -6%, rgba(147, 51, 234, .30), transparent 70%) no-repeat,
+      radial-gradient(820px 520px at 92% 8%, rgba(37, 99, 235, .22), transparent 70%) no-repeat, var(--paper);
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 20px; }
+  p { margin: 0; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+  a { color: #C084FC; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  code, .mono { font-family: var(--mono); font-size: .82em; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- hero ---------- */
+  .hero { padding-block: 56px 28px; display: grid; gap: 22px; }
+  .wordmark { font: 300 15px/1.4 var(--body); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
+  .wordmark span { font-weight: 700; color: var(--brand); }
+  .eyebrow { font: 600 12px/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .hero h1 {
+    font-weight: 300; text-transform: uppercase;
+    font-size: clamp(40px, 8vw, 104px); line-height: 1; letter-spacing: .06em;
+  }
+  .hero h1 .beatword { display: inline-block; font-weight: 700; color: var(--brand); transform-origin: 50% 85%; will-change: transform; }
+  .hero .lede { max-width: 62ch; font-size: 19px; color: var(--muted); }
+  .hero .lede b { color: var(--ink); font-weight: 600; }
+
+  .console { display: grid; gap: 0; border-radius: 16px; overflow: hidden; background: var(--screen); color: var(--screen-ink); box-shadow: 0 0 0 1px rgba(255, 255, 255, .1), 0 24px 60px -28px rgba(147, 51, 234, .45); }
+  .scope { display: block; width: 100%; height: 360px; }
+  .readouts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--screen-rule); }
+  .ro { padding: 12px 16px; border-right: 1px solid var(--screen-rule); min-width: 0; }
+  .ro:last-child { border-right: 0; }
+  .ro .k { font: 600 10.5px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--screen-muted); }
+  .ro .v { font: 600 22px/1.35 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ro .v small { font-size: 12px; color: var(--screen-muted); font-weight: 400; }
+  .bar4 { display: flex; gap: 6px; padding-top: 8px; }
+  .bar4 i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--screen-rule); transition: background .08s, border-color .08s; }
+  .bar4 i.on { background: var(--s-beat); border-color: var(--s-beat); box-shadow: 0 0 14px var(--s-beat); }
+  .bar4 i.off { background: var(--s-onset); border-color: var(--s-onset); box-shadow: 0 0 14px var(--s-onset); }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+  .play {
+    display: inline-flex; align-items: center; gap: 10px; font: 600 14px/1 var(--body); cursor: pointer;
+    padding: 11px 18px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .05); background: rgba(255, 255, 255, .1); color: var(--ink);
+    transition: background .2s;
+  }
+  .play:hover { background: rgba(255, 255, 255, .2); }
+  .play[aria-pressed="true"] { background: rgba(147, 51, 234, .8); border-color: rgba(192, 132, 252, .3); box-shadow: 0 0 15px rgba(147, 51, 234, .3); }
+  .play[aria-pressed="true"]:hover { background: #A855F7; }
+  .play svg { width: 14px; height: 14px; fill: currentColor; }
+  .hint { font-size: 14px; color: var(--muted); }
+
+  /* the same two switches as in VoltViz's Settings panel */
+  .switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; background: none; border: 0; padding: 4px 0; color: var(--ink); font: 600 15px/1.2 var(--body); text-align: left; }
+  .switch .track { position: relative; width: 50px; height: 28px; border-radius: 999px; background: var(--soft); border: 1px solid var(--rule); transition: background .2s, border-color .2s; flex: none; }
+  .switch .knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform .22s cubic-bezier(.3, 1.4, .5, 1), background .2s; }
+  .switch[aria-checked="true"] .knob { transform: translateX(22px); background: #fff; }
+  .switch.ai[aria-checked="true"] .track { background: var(--ai); border-color: var(--ai); }
+  .switch.gain[aria-checked="true"] .track { background: var(--gain); border-color: var(--gain); }
+  .switch .state { font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- legend ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding-block: 8px 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .legend i { width: 22px; height: 4px; border-radius: 2px; }
+
+  /* ---------- sections ---------- */
+  section.stage { padding-block: 64px; border-top: 1px solid var(--rule); display: grid; gap: 28px; }
+  .stage-label { display: flex; align-items: center; gap: 10px; font: 600 12px/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .stage-label i { width: 10px; height: 10px; border-radius: 50%; }
+  section.stage h2 { font-weight: 300; font-size: clamp(32px, 4.6vw, 52px); line-height: 1.1; letter-spacing: -.01em; }
+  .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: start; }
+  .cols.flip { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .prose { display: grid; gap: 14px; max-width: 62ch; }
+  .prose p { color: var(--ink); }
+  .prose .aside { color: var(--muted); font-size: 15px; }
+  .facts { display: grid; gap: 0; border-top: 1px solid var(--rule); margin-top: 6px; }
+  .facts div { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 12fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+  .facts dt, .facts .k { color: var(--muted); }
+  .facts .v { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  .fig { display: grid; gap: 12px; background: var(--panel); border: 1px solid rgba(255, 255, 255, .1); border-radius: 16px; padding: 16px; min-width: 0; }
+  .fig canvas { display: block; width: 100%; }
+  .fig figcaption, .cap { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .fig.dark { background: var(--screen); color: var(--screen-ink); }
+  .fig.dark .cap { color: var(--screen-muted); }
+  .figbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 7px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); }
+  .chip.live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--onset); animation: blink 1.2s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+
+  /* signal map */
+  .map { width: 100%; height: auto; display: block; }
+  .map-scroll { overflow-x: auto; }
+  .map .node rect { fill: var(--panel); stroke: var(--rule); stroke-width: 1.5; }
+  .map .node text { fill: var(--ink); font: 600 15px var(--body); }
+  .map .node .sub { fill: var(--muted); font: 400 12px var(--mono); }
+  .map .wire { fill: none; stroke-width: 2.5; stroke-linecap: round; }
+  .map .zone { fill: none; stroke: var(--rule); stroke-dasharray: 4 6; }
+  .map .zone-label { fill: var(--muted); font: 600 11px var(--mono); letter-spacing: .12em; }
+
+  /* band score (real data) */
+  .bands { display: grid; gap: 8px; }
+  .band { display: grid; grid-template-columns: 116px minmax(0, 1fr) 64px; gap: 10px; align-items: center; font-size: 14px; }
+  .band .track { height: 12px; background: var(--soft); border-radius: 3px; overflow: hidden; }
+  .band .fill { height: 100%; border-radius: 3px; background: var(--truth); }
+  .band.best .fill { background: var(--onset); }
+  .band .n { font-family: var(--mono); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* AI log */
+  .log { display: grid; gap: 6px; font: 12.5px/1.45 var(--mono); min-height: 128px; align-content: start; }
+  .log div { display: grid; grid-template-columns: 58px 84px minmax(0, 1fr); gap: 10px; color: var(--screen-muted); }
+  .log b { font-weight: 600; }
+  .log .confirm b { color: var(--s-ai); }
+  .log .shift b { color: var(--s-beat); }
+  .log .veto b { color: var(--s-gain); }
+  .log .jump b { color: var(--s-onset); }
+  .log .info b { color: var(--screen-ink); }
+
+  /* Auto Gain */
+  .agc { display: grid; gap: 14px; }
+  .agc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+  .agc label { font-size: 14px; color: var(--muted); display: grid; gap: 6px; flex: 1 1 240px; }
+  .agc input[type=range] { width: 100%; accent-color: var(--gain); }
+  .meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .meter { background: var(--soft); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
+  .meter .k { font: 600 10.5px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .meter .v { font: 600 20px/1.2 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .meter .v.gain { color: var(--gain); }
+
+  /* AudioFrame inspector */
+  .inspector { font: 12.5px/1.75 var(--mono); font-variant-numeric: tabular-nums; white-space: pre; overflow-x: auto; margin: 0; color: var(--screen-ink); }
+  .inspector .key { color: var(--screen-muted); }
+  .inspector .t { color: var(--s-beat); font-weight: 600; }
+  .inspector .o { color: var(--s-onset); }
+  .inspector .g { color: var(--s-gain); }
+  .inspector .a { color: var(--s-ai); }
+  .inspector .bar { display: inline-block; height: 8px; vertical-align: middle; border-radius: 2px; background: var(--s-audio); }
+  pre.code { margin: 0; font: 13px/1.65 var(--mono); background: var(--soft); border-radius: 10px; padding: 14px 16px; overflow-x: auto; color: var(--ink); }
+  pre.code .c { color: var(--muted); }
+  pre.code .k { color: var(--beat); }
+
+  /* results */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .stat { padding: 20px 18px 20px 0; display: grid; gap: 6px; align-content: start; }
+  .stat + .stat { padding-left: 18px; border-left: 1px solid var(--rule); }
+  .stat .v { font-weight: 300; font-size: clamp(40px, 5vw, 60px); line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .stat .k { font-size: 14px; color: var(--muted); }
+  footer { padding-block: 40px 64px; color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
+
+  @media (max-width: 860px) {
+    .cols, .cols.flip { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .readouts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ro:nth-child(3) { border-right: 0; }
+    .ro:nth-child(-n+3) { border-bottom: 1px solid var(--screen-rule); }
+    .scope { height: 280px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat:nth-child(3) { padding-left: 0; border-left: 0; }
+    .stat:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+  }
+  @media (max-width: 480px) {
+    .ro { padding: 10px 12px; }
+    .ro .v { font-size: 18px; }
+    .ro .v small { display: none; }
+    .meters { grid-template-columns: minmax(0, 1fr); }
+    .band { grid-template-columns: 96px minmax(0, 1fr) 54px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .switch .knob, .switch .track, .bar4 i { transition: none; }
+    .chip.live::before { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="wordmark">VoltViz<span> Music Visualizer</span></p>
+  <p class="eyebrow">The audio engine, explained</p>
+  <h1>How VoltViz hears the <span class="beatword" id="beatword">beat</span></h1>
+  <p class="lede">One engine listens to the music for every visualizer. It detects <b>onsets</b>, estimates the <b>tempo</b> and runs a <b>beat clock that predicts</b> the next beat, so a flash lands in the frame in which you hear the kick. The screen below simulates the engine on a 130 BPM groove with a breakdown and a drop.</p>
+
+  <div class="console">
+    <canvas class="scope" id="scope" role="img" aria-label="Scrolling view of the simulated engine: spectrogram, mid-band onset function with its adaptive threshold, fired beats in the past and predicted beats in the future"></canvas>
+    <div class="readouts">
+      <div class="ro"><div class="k">Tempo</div><div class="v" id="ro-bpm">—</div></div>
+      <div class="ro"><div class="k">Bar</div><div class="bar4" id="ro-bar"><i></i><i></i><i></i><i></i></div></div>
+      <div class="ro"><div class="k">Confidence</div><div class="v" id="ro-conf">—</div></div>
+      <div class="ro"><div class="k">Next beat</div><div class="v" id="ro-next">—</div></div>
+      <div class="ro"><div class="k">AI Beat</div><div class="v" id="ro-ai">—</div></div>
+      <div class="ro"><div class="k">Section</div><div class="v" id="ro-sec">—</div></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="play" id="sound" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5c1 .8 1 4.2 0 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Play the groove</span></button>
+    <button class="switch ai" type="button" role="switch" aria-checked="false" data-switch="ai"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">Off</span></span></button>
+    <button class="switch gain" type="button" role="switch" aria-checked="false" data-switch="gain"><span class="track"><span class="knob"></span></span><span>Auto Gain <span class="state">Off</span></span></button>
+    <button class="play" id="motion" type="button" hidden>Play the animation</button>
+  </div>
+  <div class="legend" aria-label="Colour key">
+    <span><i style="background:var(--audio)"></i>Audio</span>
+    <span><i style="background:var(--onset)"></i>Onsets</span>
+    <span><i style="background:var(--beat)"></i>Beat clock</span>
+    <span><i style="background:var(--ai)"></i>AI Beat Tracking</span>
+    <span><i style="background:var(--gain)"></i>Auto Gain</span>
+    <span><i style="background:var(--truth)"></i>The true beat</span>
+  </div>
+</header>
+
+<section class="stage" id="flow">
+  <p class="stage-label"><i style="background:var(--audio)"></i>The signal path</p>
+  <h2>One engine feeds every visualizer</h2>
+  <div class="prose">
+    <p>A session has one AudioContext. The source splits in two. The <b>analysis path</b> goes straight into an AudioWorklet on the audio thread, which finds onsets, tempo and beats. The <b>display path</b> goes through the Auto Gain stage into shared analysers that provide the spectra and waveforms visualizers draw.</p>
+    <p>Once per animation frame the engine packs everything into one <code>AudioFrame</code>. Every visualizer reads that frame, and none of them touch Web Audio. Before the rewrite, each visualizer built its own audio graph and guessed the beat in its own way.</p>
+  </div>
+  <div class="fig">
+    <div class="map-scroll"><svg class="map" id="map" viewBox="0 0 1120 470" style="min-width:760px" role="img" aria-label="Signal flow: source to Auto Gain and display analysers, and to the AudioWorklet with onsets, tempo and the beat clock; the AI beat model in a Web Worker arbitrates the clock; everything meets in the AudioFrame that the visualizers read"></svg></div>
+    <p class="cap">Dots travel at the pace of the simulation: blue pulses are fired beats, violet ones are AI decisions. The Auto Gain wire lights up when the switch is on.</p>
+  </div>
+</section>
+
+<section class="stage" id="onsets">
+  <p class="stage-label"><i style="background:var(--onset)"></i>Stage 1 · every 5.8 ms</p>
+  <h2>Onsets: what just started to sound</h2>
+  <div class="cols">
+    <div class="prose">
+      <p>Every 5.8 ms the worklet takes a new hop of samples, runs a 1024-point FFT and splits the spectrum into quarter-octave bands. An <b>onset</b> is a sudden rise in energy, so the engine measures how much each band grew compared with 11.6 ms earlier. It measures on a log scale, which makes the result the same for quiet and loud input.</p>
+      <p>Three onset functions come out: <b>kick</b> (35–150 Hz, measured on the waveform because an FFT this size has only three bins down there), <b>mid</b> (150 Hz–6 kHz: kick clicks, claps, snares) and <b>hat</b> (6 kHz and up). A peak counts when it tops the median of the last half second by 1.5 to 2 mean deviations, so the threshold follows the music.</p>
+      <dl class="facts">
+        <div><dt class="k">Analysis rate</dt><dd class="v">172 hops/s</dd></div>
+        <div><dt class="k">Peak decision delay</dt><dd class="v">2 hops · 11.6 ms</dd></div>
+        <div><dt class="k">Minimum gap</dt><dd class="v">kick 100 · snare 80 · hat 50 ms</dd></div>
+      </dl>
+    </div>
+    <figure class="fig dark" style="margin:0">
+      <div class="figbar"><span class="chip live">Simulation</span><span class="cap">dashed: adaptive threshold</span></div>
+      <canvas id="onsetCanvas" style="height:330px" role="img" aria-label="Three onset lanes, kick, mid and hat, scrolling, with thresholds and detected peaks"></canvas>
+      <p class="cap">In the drop a pickup hits 75 ms before every other beat. The kick lane (orange rings) fires on it; the mid lane stays on the beat.</p>
+    </figure>
+  </div>
+  <div class="cols flip">
+    <div class="fig">
+      <p class="stage-label" style="letter-spacing:.1em">Measured on the mix · which band points at the beat?</p>
+      <div class="bands" id="bands"></div>
+      <p class="cap">Stretches of 16 beats in which a comb over that band's onsets chose the right beat phase, on the first 2-minute excerpt of the mix.</p>
+    </div>
+    <div class="prose">
+      <p>The mix is full of traps. Rolling basslines fill the gaps between kicks, a pickup lands just before the beat, and open hats sit on the off-beat. Measured on the real audio, only the mid band pointed at the beat every time.</p>
+      <p>So the beat's <b>phase</b> comes from the mid band alone. The kick lane still drives kick effects in visualizers, and the tempo estimate also uses the broadband flux.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="tempo">
+  <p class="stage-label"><i style="background:var(--beat)"></i>Stage 2 · four times a second</p>
+  <h2>Tempo: how often does it repeat?</h2>
+  <div class="cols flip">
+    <figure class="fig dark" style="margin:0">
+      <div class="figbar"><span class="chip live">Computed live from the simulated onsets</span><span class="cap num" id="tempoPick"></span></div>
+      <canvas id="tempoCanvas" style="height:300px" role="img" aria-label="Tempo score from 60 to 200 BPM: the autocorrelation score, the tempo prior and the chosen tempo"></canvas>
+      <p class="cap">Faint: the raw score. Solid: after the prior. Dotted curve: the prior around 128 BPM.</p>
+    </figure>
+    <div class="prose">
+      <p>Four times a second the engine compares the last 8 seconds of onsets with delayed copies of themselves (an autocorrelation). A delay that lines the onsets up again is a candidate beat period.</p>
+      <p>A candidate earns extra support when its 2×, 3× and 4× multiples line up too, and when something happens halfway between its beats. Dance music is ambiguous between 65, 130 and 260 BPM, so a gentle prior around 128 BPM breaks the tie.</p>
+      <dl class="facts">
+        <div><dt class="k">Search range</dt><dd class="v">60–200 BPM</dd></div>
+        <div><dt class="k">Prior</dt><dd class="v">128 BPM, 0.7 octave wide</dd></div>
+        <div><dt class="k">Octave jump needs</dt><dd class="v">12 agreeing updates (~3 s)</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="clock">
+  <p class="stage-label"><i style="background:var(--beat)"></i>Stage 3 · the beat clock</p>
+  <h2>Predict the beat, then correct</h2>
+  <div class="cols">
+    <div class="prose">
+      <p>A detector can only react after it has heard an onset, so its flash always comes late. The VoltViz beat clock works like a metronome that listens. It fires each beat at the <b>predicted</b> time, then checks the onsets around that moment and moves its phase a quarter of the error (a phase-locked loop).</p>
+      <p>Four times a second a comb over the last 32 beats scores every possible phase. When the comb keeps disagreeing with the clock, the clock re-locks. A jump of half a beat, onto the off-beat, needs twice as much evidence, because off-beat hats and basslines are the classic trap.</p>
+      <p>The engine converts beat times to what the speakers are playing right now, so <code>beat.isBeat</code> is true in the frame in which you hear the beat.</p>
+      <dl class="facts">
+        <div><dt class="k">PLL search window</dt><dd class="v">±8% of a beat</dd></div>
+        <div><dt class="k">Re-lock</dt><dd class="v">8 votes (~2 s), off-beat 16 (~4 s)</dd></div>
+        <div><dt class="k">Fired only above</dt><dd class="v">confidence 0.3</dd></div>
+      </dl>
+    </div>
+    <div style="display:grid;gap:16px;min-width:0">
+      <figure class="fig dark" style="margin:0">
+        <div class="figbar"><span class="chip live">Simulation</span><span class="cap">one turn = one beat</span></div>
+        <canvas id="dialCanvas" style="height:330px" role="img" aria-label="Phase dial: the hand turns once per beat; onsets land as dots near the top and nudge the clock"></canvas>
+      </figure>
+      <figure class="fig dark" style="margin:0">
+        <canvas id="predictCanvas" style="height:150px" role="img" aria-label="Timeline comparing a reactive detector that flashes after the onset with the predictive clock that flashes on the beat"></canvas>
+        <p class="cap">Top: a detector reacts after the onset. Bottom: the clock fires on the prediction.</p>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="ai">
+  <p class="stage-label"><i style="background:var(--ai)"></i>Stage 4 · Settings → AI Beat Tracking</p>
+  <h2>A neural network decides which beat</h2>
+  <div class="cols flip">
+    <figure class="fig dark" style="margin:0">
+      <div class="figbar">
+        <button class="switch ai" type="button" role="switch" aria-checked="false" data-switch="ai" style="color:var(--screen-ink)"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">Off</span></span></button>
+        <span class="chip live">Simulation</span>
+      </div>
+      <canvas id="aiCanvas" style="height:250px" role="img" aria-label="Timeline of the true beat, the beat clock and the AI windows with their decisions"></canvas>
+      <div class="log" id="aiLog" aria-live="polite"></div>
+    </figure>
+    <div class="prose">
+      <p>The DSP clock keeps time within milliseconds, but it can settle confidently on the wrong element, such as the off-beat hats. The network knows which element is the beat.</p>
+      <p>Every 5 seconds (every 2.5 s while it settles in) the worklet sends the last 10 seconds of audio, as a 128-band log-mel spectrogram at 50 frames per second, to <b>beat_this small0</b> (2.1 M parameters, MIT licence). The model runs in a Web Worker, on your device. The arbiter compares the beats it finds with the clock:</p>
+      <dl class="facts">
+        <div><dt class="k">Same phase</dt><dd class="v">confirm, nudge ½ if &gt; 15 ms</dd></div>
+        <div><dt class="k">Off by ≥ 13% of a beat</dt><dd class="v">shift the phase</dd></div>
+        <div><dt class="k">Double, half or 3:2 tempo</dt><dd class="v">retime (two windows agree)</dd></div>
+        <div><dt class="k">After a decision</dt><dd class="v">12 s lock: DSP may not jump</dd></div>
+      </dl>
+      <p class="aside">It is off by default, in the app and on this page: the clock is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. Switch it on to let the network put the clock back on the beat. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="agc">
+  <p class="stage-label"><i style="background:var(--gain)"></i>Stage 5 · Settings → Auto Gain</p>
+  <h2>Auto Gain: loud looks from a quiet mic</h2>
+  <div class="cols">
+    <div class="prose">
+      <p>Visualizers draw the byte spectrum of an AnalyserNode, which maps −100…−30 dBFS onto 0…255. A microphone across the room delivers much less level than system audio, so the same song draws smaller bars.</p>
+      <p>With Auto Gain on, the engine tracks the loudness of the input and turns a gain stage in front of the display analysers towards a target of <b>−14 dBFS</b>. When the music gets louder the gain comes down within about half a second; when it gets quieter the gain climbs back over several seconds, so breakdowns keep their shape. During silence the gain is frozen and never amplifies the noise floor.</p>
+      <p>Beat detection sits before the gain and works on a log scale, so the switch never changes where beats fire. It is off by default, so every visualizer looks exactly as it was tuned until you turn it on.</p>
+      <dl class="facts">
+        <div><dt class="k">Gain range</dt><dd class="v">−6 … +24 dB</dd></div>
+        <div><dt class="k">Loudness follows</dt><dd class="v">up 0.4 s · down 3 s</dd></div>
+        <div><dt class="k">Measured, −18 dB mic</dt><dd class="v">+16.0 dB applied</dd></div>
+      </dl>
+    </div>
+    <figure class="fig" style="margin:0">
+      <div class="agc">
+        <div class="agc-row">
+          <button class="switch gain" type="button" role="switch" aria-checked="false" data-switch="gain"><span class="track"><span class="knob"></span></span><span>Auto Gain <span class="state">Off</span></span></button>
+          <label for="inputLevel">Input level: <span class="num" id="inputLevelOut">−18 dB (quiet microphone)</span>
+            <input id="inputLevel" type="range" min="-30" max="0" step="1" value="-18"></label>
+        </div>
+        <canvas id="barsCanvas" style="height:220px" role="img" aria-label="A bar visualizer drawing the display spectrum; bars grow when Auto Gain lifts a quiet input"></canvas>
+        <div class="meters">
+          <div class="meter"><span class="k">Input loudness</span><span class="v" id="m-in">—</span></div>
+          <div class="meter"><span class="k">Auto Gain</span><span class="v gain" id="m-gain">—</span></div>
+          <div class="meter"><span class="k">Display level</span><span class="v" id="m-out">—</span></div>
+        </div>
+        <p class="cap">The lamps under the bars are the fired beats. They do not change when you move the slider or flip the switch.</p>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="stage" id="frame">
+  <p class="stage-label"><i style="background:var(--audio)"></i>Stage 6 · once per animation frame</p>
+  <h2>What a visualizer receives</h2>
+  <div class="cols flip">
+    <figure class="fig dark" style="margin:0">
+      <div class="figbar"><span class="chip live">AudioFrame, live from the simulation</span></div>
+      <pre class="inspector" id="inspector" aria-label="Live values of the AudioFrame"></pre>
+    </figure>
+    <div class="prose">
+      <p>A visualizer is a small module with a <code>frame()</code> function. It gets the same <code>AudioFrame</code> as every other layer, including both layers during a crossfade.</p>
+      <pre class="code"><span class="c">// fire on the beat, glide on the phase</span>
+<span class="k">if</span> (audio.beat.isBeat) flash = 1;
+flash *= 0.9;
+ring.rotation = audio.beat.phase * Math.PI * 2;
+kickPulse = audio.onsets.kick.envelope;
+bars = audio.spectrum({ fftSize: 2048 });</pre>
+      <p class="aside"><code>isBeat</code> is true in one frame per beat. <code>phase</code> runs from 0 to 1 between beats for smooth motion. Onset envelopes decay with a 150 ms time constant. <code>gain</code> reports what Auto Gain applies.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="proof">
+  <p class="stage-label"><i style="background:var(--truth)"></i>Measured, not simulated</p>
+  <h2>On a real DJ mix</h2>
+  <div class="stats">
+    <div class="stat"><span class="v">0.979</span><span class="k">beat F-measure over 13 two-minute excerpts with AI Beat Tracking on (1.0 = every beat within ±70 ms); 0.818 with it off, the default</span></div>
+    <div class="stat"><span class="v">4 ms</span><span class="k">median offset of beats fired in the running app</span></div>
+    <div class="stat"><span class="v">0.584</span><span class="k">the best of the six old beat detectors, same audio</span></div>
+    <div class="stat"><span class="v">42/50</span><span class="k">visualizers measurably locked to the beat or following the music</span></div>
+  </div>
+</section>
+
+<footer>
+  <p>The screens on this page run a simulation of the engine's rules on a synthetic groove; the numbers above are measured on a DJ mix. Evidence and method: <code>docs/reports/audio-engine-report.html</code>. Engine source: <code>src/audio/</code>.</p>
+  <p>VoltViz · github.com/sanderdw/voltviz</p>
+</footer>
+</div>
+<script>
+(() => {
+'use strict';
+/* ==========================================================================
+   Simulation of the VoltViz audio engine on a synthetic 130 BPM groove.
+   The rules follow src/audio/core (peak picking, tempo scoring, beat clock,
+   neural arbiter, Auto Gain); the music and the clock's mistakes are scripted.
+   ========================================================================== */
+const FR = 172.265625;               // engine hop rate (hops per second, ~5.8 ms)
+const BPM = 130, T = 60 / BPM;       // beat period
+const LOOP_BEATS = 64, LOOP = LOOP_BEATS * T;
+const PICKUP = 0.075;                // the pickup lands 75 ms before every other beat in the drop
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mod = (x, m) => ((x % m) + m) % m;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+function mulberry32(a) {
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rnd = mulberry32(130);
+
+/* ---------- the groove ---------- */
+const sectionOf = (b) => (b < 16 ? 'Groove' : b < 24 ? 'Breakdown' : b < 48 ? 'Drop' : 'Groove');
+const BASS_NOTES = [55, 55, 65.41, 49];
+const EVENTS = [];
+for (let b = 0; b < LOOP_BEATS; b++) {
+  const s = sectionOf(b), t = b * T, note = BASS_NOTES[Math.floor(b / 4) % 4];
+  if (s !== 'Breakdown') EVENTS.push({ t, kind: 'kick' });
+  if (s !== 'Breakdown' && b % 2 === 1) EVENTS.push({ t, kind: 'clap' });
+  EVENTS.push({ t: t + T / 2, kind: 'hat' });
+  for (const q of s === 'Groove' ? [2] : [1, 2, 3]) EVENTS.push({ t: t + (q * T) / 4, kind: 'bass', f: q === 2 ? note * 2 : note });
+  if (s === 'Drop' && b % 2 === 1) EVENTS.push({ t: t - PICKUP, kind: 'pickup' });
+}
+EVENTS.sort((a, b) => a.t - b.t);
+
+/* ---------- onset functions at the engine's hop rate ---------- */
+const N = Math.round(LOOP * FR);
+const LANES = ['kick', 'mid', 'hat'];
+const lanes = { kick: new Float32Array(N), mid: new Float32Array(N), hat: new Float32Array(N) };
+// how strongly each sound shows up in each onset function
+const WEIGHT = {
+  kick: { kick: 1, mid: 0.95, hat: 0.08 },
+  clap: { kick: 0.05, mid: 1, hat: 0.3 },
+  hat: { kick: 0, mid: 0.14, hat: 1 },
+  bass: { kick: 0.42, mid: 0.26, hat: 0 },
+  pickup: { kick: 1.05, mid: 0.2, hat: 0.04 },
+};
+const SHAPE = [0.35, 1, 0.55, 0.22, 0.08];
+const LAG = { kick: 2, mid: 1, hat: 1 }; // detection delay in hops (kick is measured on the waveform)
+for (const e of EVENTS) {
+  const f0 = Math.round(e.t * FR);
+  for (const lane of LANES) {
+    const w = WEIGHT[e.kind][lane];
+    if (!w) continue;
+    const amp = w * (0.85 + 0.3 * rnd());
+    SHAPE.forEach((s, k) => { lanes[lane][mod(f0 + LAG[lane] - 1 + k, N)] += amp * s; });
+  }
+}
+for (let i = 0; i < N; i++) {
+  const busy = sectionOf(Math.floor(i / FR / T)) === 'Drop' ? 1.4 : 1;
+  for (const l of LANES) lanes[l][i] += busy * 0.1 * rnd() * rnd();
+}
+
+// The engine's peak picker: local maximum over [c-3, c+2] above median + k * MAD + delta of the
+// preceding 0.5 s, with a minimum gap. Run twice around the loop so the start has history.
+const PICK = { kick: { k: 1.5, delta: 0.05, min: 0.1 }, mid: { k: 2, delta: 0.05, min: 0.08 }, hat: { k: 2, delta: 0.05, min: 0.05 } };
+const thresholds = {}, peaks = {};
+for (const l of LANES) {
+  const v = lanes[l], p = PICK[l], win = Math.round(0.5 * FR);
+  const th = new Float32Array(N), pk = new Uint8Array(N), buf = new Float32Array(win);
+  const at = (i) => v[mod(i, N)];
+  let last = -1e9;
+  for (let c = 0; c < N + win; c++) {
+    for (let i = 0; i < win; i++) buf[i] = at(c - win + i);
+    buf.sort();
+    const med = buf[win >> 1];
+    let mad = 0;
+    for (let i = 0; i < win; i++) mad += Math.abs(buf[i] - med);
+    const thr = med + (p.k * mad) / win + p.delta;
+    const vc = at(c);
+    let isMax = true;
+    for (let i = c - 3; i <= c + 2; i++) if (i !== c && at(i) > vc) { isMax = false; break; }
+    const hit = isMax && vc > thr && c - last >= p.min * FR;
+    if (hit) last = c;
+    th[mod(c, N)] = thr;
+    pk[mod(c, N)] = hit ? 1 : 0;
+  }
+  thresholds[l] = th;
+  peaks[l] = pk;
+}
+
+/* ---------- a synthetic spectrogram (for the screens and the Auto Gain bars) ---------- */
+const SPEC_FPS = FR / 2, NS = Math.round(LOOP * SPEC_FPS), NB = 56, FMIN = 30, FMAX = 16000;
+const bandHz = Array.from({ length: NB }, (_, i) => FMIN * Math.pow(FMAX / FMIN, (i + 0.5) / NB));
+const specRaw = new Float32Array(NS * NB);
+const gauss = (f, fc, oct) => { const d = Math.log2(f / fc) / oct; return Math.exp(-0.5 * d * d); };
+function template(e, dt, f) {
+  switch (e.kind) {
+    case 'kick': return 1.1 * Math.exp(-dt / 0.2) * gauss(f, 48 + 110 * Math.exp(-dt / 0.03), 0.35) + 0.45 * Math.exp(-dt / 0.012) * gauss(f, 2500, 1.3);
+    case 'pickup': return 0.9 * Math.exp(-dt / 0.06) * gauss(f, 85, 0.45) + 0.25 * Math.exp(-dt / 0.03) * gauss(f, 350, 0.6);
+    case 'clap': return 0.65 * Math.exp(-dt / 0.09) * gauss(f, 2000, 1.6);
+    case 'hat': return 0.55 * Math.exp(-dt / 0.16) * gauss(f, 10500, 0.7);
+    case 'bass': return 0.6 * Math.exp(-dt / 0.1) * (gauss(f, e.f, 0.15) + 0.5 * gauss(f, e.f * 2, 0.15) + 0.3 * gauss(f, e.f * 3, 0.15) + 0.2 * gauss(f, e.f * 5, 0.2));
+  }
+  return 0;
+}
+for (let c = 0; c < NS; c++) {
+  const t = c / SPEC_FPS, breakdown = sectionOf(Math.floor(t / T)) === 'Breakdown';
+  for (let k = 0; k < NB; k++) {
+    let e = 0.015 + 0.03 * rnd();
+    if (breakdown) e += 0.2 * gauss(bandHz[k], 700, 1.1) * (0.8 + 0.2 * Math.sin(t * 3 + k * 0.7));
+    specRaw[c * NB + k] = e;
+  }
+}
+for (const e of EVENTS) {
+  const c0 = Math.ceil(e.t * SPEC_FPS);
+  for (let j = 0; j < 52; j++) {
+    const c = mod(c0 + j, NS), dt = (c0 + j) / SPEC_FPS - e.t;
+    for (let k = 0; k < NB; k++) specRaw[c * NB + k] += template(e, dt, bandHz[k]);
+  }
+}
+const spec = new Float32Array(NS * NB);   // 0..1, log-compressed, for drawing
+const colDb = new Float32Array(NS);       // program loudness (RMS dBFS) at full input level
+{
+  const norm = Math.log1p(6 * 1.4);
+  let grooveSum = 0, grooveN = 0;
+  for (let c = 0; c < NS; c++) {
+    let energy = 0;
+    for (let k = 0; k < NB; k++) {
+      const x = specRaw[c * NB + k];
+      spec[c * NB + k] = clamp(Math.log1p(6 * x) / norm, 0, 1);
+      energy += x * x;
+    }
+    colDb[c] = 10 * Math.log10(energy / NB + 1e-9);
+    if (sectionOf(Math.floor(c / SPEC_FPS / T)) === 'Groove') { grooveSum += colDb[c]; grooveN++; }
+  }
+  const shift = -11 - grooveSum / grooveN;   // a mastered groove sits around -11 dBFS RMS
+  for (let c = 0; c < NS; c++) colDb[c] += shift;
+}
+const specCol = (t) => mod(Math.floor(mod(t, LOOP) * SPEC_FPS), NS);
+const laneIdx = (t) => mod(Math.floor(mod(t, LOOP) * FR), N);
+
+/* ---------- engine state ---------- */
+const J_OFF = 24.6 * T;   // just after the drop lands: the DSP comb prefers the off-beat
+const J_BACK = 41.5 * T;  // several bars later it finds its way back on its own
+const S = {
+  now: 0, ai: false, agc: false, inputDb: -18,
+  lockedAt: 2.2, offset: 0, lockUntil: -1,
+  aiStart: 0, nextReq: 4,
+  fired: [], beatCount: 0, lastBeat: -1e9, lastBeatOff: false,
+  conf: 0, log: [], reqs: [], marks: [],
+  agcLoud: null, agcGainDb: 0, appliedDb: 0,
+};
+const nextGridBeat = (t) => (Math.floor((t - S.offset * T) / T + 1e-9) + 1) * T + S.offset * T;
+function note(kind, text) {
+  S.log.unshift({ t: S.now, kind, text });
+  if (S.log.length > 5) S.log.length = 5;
+  if (kind === 'jump' || kind === 'veto') {
+    S.marks.push({ t: S.now, kind });
+    if (S.marks.length > 12) S.marks.shift();
+  }
+}
+function nextJump(after) {
+  const base = Math.floor(after / LOOP) * LOOP;
+  const c = [base + J_OFF, base + J_BACK, base + LOOP + J_OFF, base + LOOP + J_BACK].filter((t) => t > after);
+  return Math.min(...c);
+}
+function onRequest() {
+  const t = S.now;
+  if (S.offset !== 0) {
+    S.offset = 0;
+    note('shift', 'shift ½ beat · 0.94 consistent · back on the beat');
+    S.reqs.push({ t, kind: 'shift' });
+  } else {
+    const ms = 2 + Math.floor(rnd() * 8);
+    note('confirm', `confirm · 0.9${5 + Math.floor(rnd() * 4)} consistent · ${ms} ms off, no nudge`);
+    S.reqs.push({ t, kind: 'confirm' });
+  }
+  S.lockUntil = t + 12;
+  if (S.reqs.length > 10) S.reqs.shift();
+  S.nextReq = t + (t - S.aiStart < 20 ? 2.5 : 5);
+}
+function onJump(tl) {
+  const locked = S.now <= S.lockUntil;
+  if (Math.abs(tl - J_OFF) < 1e-6 && S.offset === 0) {
+    if (locked) note('veto', 'DSP comb wants the off-beat · held by the AI lock');
+    else { S.offset = 0.5; note('jump', 'DSP comb re-locks onto the off-beat'); }
+  } else if (Math.abs(tl - J_BACK) < 1e-6 && S.offset !== 0 && !locked) {
+    S.offset = 0;
+    note('jump', 'DSP comb finds the beat again');
+  }
+}
+/** Advance the simulation to sim time `to`, handling beats, AI windows and comb jumps in order. */
+function advance(to) {
+  for (let guard = 0; guard < 10000; guard++) {
+    const tb = nextGridBeat(S.now);
+    const tr = S.ai ? S.nextReq : Infinity;
+    const tj = nextJump(S.now);
+    const t = Math.min(tb, tr, tj);
+    if (t > to) break;
+    S.now = t;
+    if (t === tb) {
+      if (t >= S.lockedAt && S.conf >= 0.3) {
+        S.fired.push({ t, off: S.offset !== 0, idx: S.beatCount });
+        if (S.fired.length > 80) S.fired.shift();
+        S.beatCount++;
+        S.lastBeat = t;
+        S.lastBeatOff = S.offset !== 0;
+      }
+      S.now = t + 1e-7;
+    } else if (t === tr) onRequest();
+    else onJump(mod(t, LOOP));
+    if (t !== tb) S.now = t + 1e-7;
+  }
+  S.now = Math.max(S.now, to);
+}
+function stepContinuous(dt) {
+  const sec = sectionOf(Math.floor(mod(S.now, LOOP) / T));
+  let target = S.now < S.lockedAt ? 0 : sec === 'Breakdown' ? 0.46 : 0.93;
+  if (S.ai && S.now <= S.lockUntil && S.now >= S.lockedAt) target = Math.max(target, 0.78);
+  S.conf += (target - S.conf) * (1 - Math.exp(-dt / 0.6));
+  // Auto Gain: the constants of src/audio/core/levels.ts and the engine's GainNode
+  const inDb = colDb[specCol(S.now)] + S.inputDb;
+  if (S.agcLoud === null) S.agcLoud = inDb;
+  const coef = (s) => 1 - Math.exp(-dt / s);
+  S.agcLoud += (inDb - S.agcLoud) * coef(inDb > S.agcLoud ? 0.4 : 3);
+  const want = clamp(-14 - S.agcLoud, -6, 24);
+  S.agcGainDb += (want - S.agcGainDb) * coef(1.5);
+  S.appliedDb += ((S.agc ? S.agcGainDb : 0) - S.appliedDb) * coef(0.1);
+}
+function setAi(on) {
+  if (on === S.ai) return;
+  S.ai = on;
+  if (on) { S.aiStart = S.now; S.nextReq = S.now + 4; note('info', 'AI Beat Tracking on · first window in 4 s'); }
+  else note('info', 'AI Beat Tracking off · the DSP comb decides alone');
+}
+
+/* ---------- optional sound: the same groove, synthesized ---------- */
+const audio = {
+  ctx: null, on: false, base: 0, out: null, noise: null, until: 0, timer: 0,
+  latency() { const c = this.ctx; return c.outputLatency || c.baseLatency || 0; },
+  simNow() { return this.ctx.currentTime - this.latency() - this.base; },
+};
+function voice(e, when) {
+  const c = audio.ctx, out = audio.out;
+  const env = (g, peak, decay) => { g.gain.setValueAtTime(peak, when); g.gain.exponentialRampToValueAtTime(0.001, when + decay); };
+  const noise = (filterType, freq, q, peak, decay) => {
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = audio.noise; f.type = filterType; f.frequency.value = freq; f.Q.value = q;
+    env(g, peak, decay); src.connect(f).connect(g).connect(out);
+    src.start(when, rnd() * 0.5, decay + 0.05);
+  };
+  if (e.kind === 'kick' || e.kind === 'pickup') {
+    const o = c.createOscillator(), g = c.createGain();
+    const kick = e.kind === 'kick';
+    o.frequency.setValueAtTime(kick ? 160 : 115, when);
+    o.frequency.exponentialRampToValueAtTime(kick ? 48 : 62, when + (kick ? 0.09 : 0.05));
+    env(g, kick ? 1 : 0.55, kick ? 0.32 : 0.1);
+    o.connect(g).connect(out); o.start(when); o.stop(when + 0.36);
+  } else if (e.kind === 'clap') {
+    for (const d of [0, 0.011, 0.022]) noise('bandpass', 1400, 1, 0.5, 0.12 + d);
+  } else if (e.kind === 'hat') noise('highpass', 7500, 0.7, 0.2, 0.16);
+  else if (e.kind === 'bass') {
+    const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.value = e.f; f.type = 'lowpass'; f.frequency.value = 420; f.Q.value = 5;
+    env(g, 0.2, 0.12); o.connect(f).connect(g).connect(out); o.start(when); o.stop(when + 0.14);
+  }
+}
+function schedule() {
+  const now = audio.simNow(), horizon = now + 0.15, from = Math.max(audio.until, now);
+  for (let L = Math.floor(from / LOOP); L * LOOP < horizon; L++) {
+    for (const e of EVENTS) {
+      const t = L * LOOP + e.t;
+      if (t >= from && t < horizon) voice(e, t + audio.base);
+    }
+  }
+  audio.until = horizon;
+}
+async function soundOn() {
+  if (!audio.ctx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    const c = new Ctx({ latencyHint: 'interactive' });
+    audio.ctx = c;
+    const master = c.createGain(), comp = c.createDynamicsCompressor();
+    master.gain.value = 0.5;
+    master.connect(comp).connect(c.destination);
+    audio.out = master;
+    audio.noise = c.createBuffer(1, c.sampleRate, c.sampleRate);
+    const d = audio.noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = rnd() * 2 - 1;
+  }
+  await audio.ctx.resume();
+  audio.base = audio.ctx.currentTime - audio.latency() - S.now;
+  audio.until = S.now;
+  audio.on = true;
+  audio.timer = setInterval(schedule, 25);
+  schedule();
+  return true;
+}
+function soundOff() {
+  audio.on = false;
+  clearInterval(audio.timer);
+  audio.ctx?.suspend();
+}
+
+/* ==========================================================================
+   Views
+   ========================================================================== */
+const $ = (id) => document.getElementById(id);
+const C = {};
+const TOKENS = ['ink', 'muted', 'rule', 'soft', 'panel', 'audio', 'onset', 'beat', 'ai', 'gain', 'truth',
+  'screen', 'screen-2', 'screen-ink', 'screen-muted', 'screen-rule', 's-audio', 's-onset', 's-beat', 's-ai', 's-gain'];
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const t of TOKENS) C[t] = cs.getPropertyValue('--' + t).trim();
+}
+function rgb(hex) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.replace(/./g, (x) => x + x) : h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+const alpha = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+let dirty = true;
+
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) if (e.target.__surface) e.target.__surface.visible = e.isIntersecting;
+}, { rootMargin: '120px' });
+function surface(id) {
+  const el = $(id), ctx = el.getContext('2d');
+  const s = { el, ctx, w: 1, h: 1, visible: true };
+  const fit = () => {
+    const r = el.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    s.w = Math.max(1, r.width); s.h = Math.max(1, r.height);
+    el.width = Math.round(s.w * dpr); el.height = Math.round(s.h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dirty = true;
+  };
+  el.__surface = s;
+  new ResizeObserver(fit).observe(el);
+  io.observe(el);
+  fit();
+  return s;
+}
+function label(ctx, text, x, y, color, align = 'left', size = 10) {
+  ctx.font = `600 ${size}px ${MONO}`;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+/* ---------- the frame every view reads (mirrors AudioFrame) ---------- */
+const BYTE = (displayDb, v) => clamp((displayDb - 22 + 45 * (v - 1) + 100) / 70, 0, 1); // AnalyserNode: -100..-30 dB -> 0..1
+let prevCount = 0;
+function onsetSince(lane, now) {
+  const i = laneIdx(now);
+  for (let k = 2; k < FR * 2; k++) if (peaks[lane][mod(i - k, N)]) return (k - 2) / FR + 2 / FR;
+  return Infinity;
+}
+function buildFrame() {
+  const now = S.now, tl = mod(now, LOOP), col = specCol(now);
+  const locked = now >= S.lockedAt;
+  const next = nextGridBeat(now);
+  const isBeat = S.beatCount !== prevCount;
+  prevCount = S.beatCount;
+  const inDb = colDb[col] + S.inputDb, displayDb = inDb + S.appliedDb;
+  const band = (lo, hi) => {
+    let s = 0, n = 0;
+    for (let k = 0; k < NB; k++) if (bandHz[k] >= lo && bandHz[k] < hi) { s += BYTE(displayDb, spec[col * NB + k]); n++; }
+    return n ? s / n : 0;
+  };
+  const on = (lane) => { const since = onsetSince(lane, now); return { since, envelope: Math.exp(-since / 0.15) }; };
+  const last = S.reqs[S.reqs.length - 1];
+  return {
+    now, tl, col, locked, next, isBeat,
+    section: sectionOf(Math.floor(tl / T)),
+    bpm: locked ? 130 + 0.06 * Math.sin(now * 0.7) : 0,
+    conf: S.conf, phase: locked ? clamp(1 - (next - now) / T, 0, 1) : 0,
+    count: S.beatCount, barBeat: (S.beatCount + 3) % 4, sinceBeat: now - S.lastBeat, off: S.lastBeatOff,
+    onsets: { kick: on('kick'), snare: on('mid'), hat: on('hat') },
+    bands: { sub: band(20, 60), bass: band(60, 250), lowMid: band(250, 500), mid: band(500, 2000), highMid: band(2000, 6000), treble: band(6000, 16000) },
+    inDb, displayDb, rms: Math.pow(10, displayDb / 20),
+    ai: S.ai, aiLast: S.ai ? (last ? last.kind : 'waiting') : 'off', lockActive: now <= S.lockUntil,
+  };
+}
+
+/* ---------- spectrogram image (built from the colour tokens) ---------- */
+let specImg = null;
+function buildSpecImage() {
+  const cv = document.createElement('canvas');
+  cv.width = NS; cv.height = NB;
+  const g = cv.getContext('2d'), img = g.createImageData(NS, NB);
+  const bg = rgb(C.screen), mid = rgb(C['s-audio']), hi = [244, 251, 255];
+  for (let c = 0; c < NS; c++) {
+    for (let k = 0; k < NB; k++) {
+      const v = Math.pow(spec[c * NB + k], 1.35);
+      const a = v < 0.55 ? v / 0.55 : 1, b = v < 0.55 ? 0 : (v - 0.55) / 0.45;
+      const px = ((NB - 1 - k) * NS + c) * 4;
+      for (let j = 0; j < 3; j++) img.data[px + j] = bg[j] + (mid[j] - bg[j]) * a + (hi[j] - mid[j]) * b;
+      img.data[px + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  specImg = cv;
+}
+/** Draw the spectrogram for sim times [t0, t1] into the rectangle x0..x1. Handles the loop wrap. */
+function drawSpec(ctx, t0, t1, x0, x1, y, h) {
+  const pps = (x1 - x0) / (t1 - t0);
+  let t = t0;
+  while (t < t1 - 1e-6) {
+    const loopStart = Math.floor(t / LOOP) * LOOP;
+    const segEnd = Math.min(t1, loopStart + LOOP);
+    const sx = (t - loopStart) * SPEC_FPS, sw = (segEnd - t) * SPEC_FPS;
+    const dx = x0 + (t - t0) * pps, dw = (segEnd - t) * pps;
+    if (sw > 0.01) ctx.drawImage(specImg, sx, 0, Math.min(sw, NS - sx), NB, dx, y, dw, h);
+    t = segEnd;
+  }
+}
+
+/* ---------- hero scope ---------- */
+const scope = surface('scope');
+function drawScope(F) {
+  const { ctx, w, h } = scope;
+  const narrow = w < 640;
+  const PAST = narrow ? 2.6 : 4.4, FUTURE = narrow ? 1.1 : 1.6;
+  const xNow = w * (PAST / (PAST + FUTURE)), pps = xNow / PAST;
+  const tx = (t) => xNow + (t - F.now) * pps;
+  const specY = 26, specH = h * 0.5, odfTop = specY + specH + 10, odfH = h * 0.22, beatY = odfTop + odfH + 12, beatH = h - beatY - 12;
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+
+  // spectrogram (past only: the future has not been heard yet)
+  drawSpec(ctx, F.now - PAST, F.now, 0, xNow, specY, specH);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(xNow, specY, w - xNow, specH + odfH + 10); ctx.clip();
+  ctx.strokeStyle = alpha(C['screen-muted'], 0.16); ctx.lineWidth = 1;
+  for (let x = xNow - h; x < w + h; x += 9) { ctx.beginPath(); ctx.moveTo(x, specY); ctx.lineTo(x + specH + odfH, specY + specH + odfH + 10); ctx.stroke(); }
+  ctx.restore();
+  label(ctx, narrow ? 'AHEAD' : 'NOT HEARD YET', xNow + 10, specY + 12, C['screen-muted']);
+  label(ctx, narrow ? 'SPECTROGRAM' : 'SPECTROGRAM · 30 Hz – 16 kHz', 12, 13, C['screen-muted']);
+
+  // mid-band onset function + adaptive threshold
+  const lane = lanes.mid, th = thresholds.mid, pk = peaks.mid;
+  const vmax = 2.4, yOf = (v) => odfTop + odfH - Math.min(1, v / vmax) * odfH;
+  ctx.fillStyle = C['screen-2']; ctx.fillRect(0, odfTop, xNow, odfH);
+  ctx.beginPath();
+  for (let x = 0; x <= xNow; x++) {
+    const t = F.now - (xNow - x) / pps, i0 = laneIdx(t), n = Math.max(1, Math.ceil(FR / pps));
+    let v = 0;
+    for (let k = 0; k < n; k++) v = Math.max(v, lane[mod(i0 + k, N)]);
+    x === 0 ? ctx.moveTo(x, yOf(v)) : ctx.lineTo(x, yOf(v));
+  }
+  ctx.strokeStyle = C['s-onset']; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.beginPath();
+  for (let x = 0; x <= xNow; x += 3) {
+    const y = yOf(th[laneIdx(F.now - (xNow - x) / pps)]);
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.setLineDash([3, 4]); ctx.strokeStyle = alpha(C['screen-ink'], 0.45); ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+  const f0 = Math.floor((F.now - PAST) * FR), f1 = Math.floor(F.now * FR) - 2;
+  ctx.fillStyle = C['s-onset'];
+  for (let f = f0; f <= f1; f++) {
+    if (!pk[mod(f, N)]) continue;
+    const t = f / FR, x = tx(t);
+    ctx.beginPath(); ctx.arc(x, yOf(lane[mod(f, N)]), 2.6, 0, Math.PI * 2); ctx.fill();
+  }
+  label(ctx, narrow ? 'MID-BAND ONSETS' : 'MID-BAND ONSETS · 150 Hz – 6 kHz', 12, odfTop + 11, C['screen-muted']);
+
+  // beats: the true grid, fired beats (past) and predicted beats (future)
+  ctx.fillStyle = C['screen-2']; ctx.fillRect(0, beatY, w, beatH);
+  const k0 = Math.ceil((F.now - PAST) / T), k1 = Math.floor((F.now + FUTURE) / T);
+  ctx.fillStyle = alpha(C['screen-ink'], 0.28);
+  for (let k = k0; k <= k1; k++) { const x = tx(k * T); ctx.fillRect(x - 0.5, beatY + beatH - 7, 1, 7); }
+  for (const b of S.fired) {
+    if (b.t < F.now - PAST) continue;
+    const x = tx(b.t), age = F.now - b.t, col = b.off ? C['s-onset'] : C['s-beat'];
+    const glow = Math.exp(-age / 0.25);
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 1.5, beatY + 4, 3, beatH - 13);
+    if (glow > 0.02) {
+      const gr = ctx.createRadialGradient(x, beatY + beatH / 2, 0, x, beatY + beatH / 2, 44);
+      gr.addColorStop(0, alpha(col, 0.55 * glow)); gr.addColorStop(1, alpha(col, 0));
+      ctx.fillStyle = gr; ctx.fillRect(x - 44, beatY - 20, 88, beatH + 40);
+    }
+  }
+  if (F.locked) {
+    ctx.strokeStyle = C['s-beat']; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+    for (let t = F.next; t <= F.now + FUTURE; t += T) {
+      const x = tx(t);
+      ctx.beginPath(); ctx.moveTo(x, beatY + 4); ctx.lineTo(x, beatY + beatH - 9); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  label(ctx, 'BEATS', 12, beatY + beatH / 2, C['screen-muted']);
+  if (!narrow) label(ctx, 'PREDICTED', w - 12, beatY + 10, C['s-beat'], 'right', 9);
+
+  // now
+  const flash = Math.exp(-(F.now - S.lastBeat) / 0.12);
+  ctx.fillStyle = alpha(C['screen-ink'], 0.5 + 0.5 * flash);
+  ctx.fillRect(xNow - 1, specY - 8, 2, h - specY);
+  label(ctx, 'NOW', xNow, 13, C['screen-ink'], 'center');
+}
+
+/* ---------- readouts and the headline ---------- */
+const ro = { bpm: $('ro-bpm'), conf: $('ro-conf'), next: $('ro-next'), ai: $('ro-ai'), sec: $('ro-sec'), bar: $('ro-bar').children };
+const beatword = $('beatword');
+let textTick = 0;
+function drawReadouts(F) {
+  const lit = F.count > 0 ? F.barBeat : -1;
+  for (let i = 0; i < 4; i++) ro.bar[i].className = i === lit ? (F.off ? 'off' : 'on') : '';
+  if (!reduceMotion || running) {
+    const s = 1 + 0.11 * Math.exp(-F.sinceBeat / 0.09);
+    beatword.style.transform = `scale(${s.toFixed(3)})`;
+  }
+  beatword.style.color = F.off && F.sinceBeat < 0.6 ? 'var(--onset)' : '';
+  if (++textTick % 4 && !F.isBeat) return;
+  ro.bpm.innerHTML = F.locked ? `${F.bpm.toFixed(1)} <small>BPM</small>` : 'listening';
+  ro.conf.textContent = F.conf.toFixed(2);
+  ro.next.innerHTML = F.locked ? `${Math.round((F.next - F.now) * 1000)} <small>ms</small>` : '—';
+  ro.ai.textContent = F.aiLast;
+  ro.sec.textContent = F.section;
+}
+
+/* ---------- signal map ---------- */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const map = $('map');
+const mk = (tag, attrs, parent = map) => {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  parent.appendChild(el);
+  return el;
+};
+const NODES = {
+  src: [12, 185, 204, 70, 'Your audio', 'mic · system · Sendspin', 'audio'],
+  gain: [260, 50, 170, 70, 'Auto Gain', 'GainNode', 'gain'],
+  pool: [500, 50, 190, 70, 'Display analysers', 'spectrum · waveform', 'audio'],
+  ons: [260, 225, 130, 70, 'Onsets', 'every 5.8 ms', 'onset'],
+  tmp: [410, 225, 130, 70, 'Tempo', '4× per second', 'beat'],
+  clk: [560, 225, 140, 70, 'Beat clock', 'predicts beats', 'beat'],
+  nn: [410, 375, 290, 70, 'AI beat model', 'Web Worker · every 5 s', 'ai'],
+  frame: [770, 185, 150, 70, 'AudioFrame', 'once per frame', 'ink'],
+  viz: [960, 185, 152, 70, 'Visualizers', 'one render loop', 'ink'],
+};
+const WIRES = {
+  srcGain: ['M216 205 C 240 205, 236 85, 260 85', 'audio'],
+  gainPool: ['M430 85 L500 85', 'gain'],
+  poolFrame: ['M690 85 C 736 85, 726 205, 770 205', 'audio'],
+  srcOns: ['M216 235 C 238 235, 238 260, 260 260', 'audio'],
+  onsTmp: ['M390 260 L410 260', 'onset'],
+  tmpClk: ['M540 260 L560 260', 'beat'],
+  clkFrame: ['M700 260 C 736 260, 734 235, 770 235', 'beat'],
+  onsNn: ['M325 295 C 325 382, 352 410, 410 410', 'ai'],
+  nnClk: ['M630 375 L630 295', 'ai'],
+  frameViz: ['M920 220 L960 220', 'ink'],
+};
+mk('rect', { class: 'zone', x: 240, y: 168, width: 480, height: 146, rx: 14 });
+mk('text', { class: 'zone-label', x: 256, y: 190 }).textContent = 'AUDIOWORKLET · AUDIO THREAD';
+mk('text', { class: 'zone-label', x: 256, y: 468, style: 'fill:var(--ai)' }).textContent = '10 s LOG-MEL';
+mk('text', { class: 'zone-label', x: 642, y: 340, style: 'fill:var(--ai)' }).textContent = 'DECISIONS';
+const wires = {};
+for (const k in WIRES) {
+  const [d, col] = WIRES[k];
+  const el = mk('path', { class: 'wire', d, style: `stroke:var(--${col})`, 'stroke-dasharray': k === 'onsNn' ? '5 5' : 'none' });
+  wires[k] = { el, len: el.getTotalLength(), dots: [], col };
+}
+const nodes = {};
+for (const k in NODES) {
+  const [x, y, w, h, title, sub, col] = NODES[k];
+  const g = mk('g', { class: 'node' });
+  const r = mk('rect', { x, y, width: w, height: h, rx: 10 }, g);
+  mk('rect', { x, y: y + 12, width: 4, height: h - 24, rx: 2, style: `fill:var(--${col})` }, g);
+  mk('text', { x: x + 16, y: y + 30 }, g).textContent = title;
+  const s = mk('text', { x: x + 16, y: y + 51, class: 'sub' }, g);
+  s.textContent = sub;
+  nodes[k] = { g, r, sub: s, col };
+}
+// steady flow dots on the audio-rate wires
+const FLOW = ['srcGain', 'gainPool', 'poolFrame', 'srcOns', 'onsTmp', 'tmpClk', 'onsNn', 'frameViz'];
+for (const k of FLOW) {
+  const wdef = wires[k], n = Math.max(1, Math.floor(wdef.len / 34));
+  for (let i = 0; i < n; i++) wdef.dots.push(mk('circle', { r: 2.6, style: `fill:var(--${wdef.col})` }));
+}
+const pulses = [];
+function pulse(route, col, dur) { pulses.push({ route, col, dur, t0: S.now, el: mk('circle', { r: 6, style: `fill:var(--${col})` }) }); }
+let lastReqSeen = 0;
+function drawMap(F) {
+  for (const k of FLOW) {
+    const wdef = wires[k];
+    const idle = (k === 'onsNn' && !S.ai) || (k === 'gainPool' && !S.agc);
+    wdef.el.style.opacity = idle ? 0.3 : 1;
+    const speed = 70, off = (F.now * speed) % 34;
+    wdef.dots.forEach((c, i) => {
+      const p = wdef.el.getPointAtLength((off + i * 34) % wdef.len);
+      c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
+      c.style.opacity = idle ? 0 : 0.85;
+    });
+  }
+  wires.nnClk.el.style.opacity = S.ai ? 1 : 0.3;
+  nodes.gain.sub.textContent = S.agc ? `GainNode · ${S.appliedDb >= 0 ? '+' : ''}${S.appliedDb.toFixed(1)} dB` : 'GainNode · off (×1)';
+  nodes.nn.sub.textContent = S.ai ? `Web Worker · last: ${F.aiLast}` : 'off · the DSP clock decides alone';
+  nodes.clk.sub.textContent = F.locked ? `${F.bpm.toFixed(1)} BPM · ${F.off ? 'off-beat!' : 'on the beat'}` : 'listening…';
+  nodes.clk.r.style.stroke = F.sinceBeat < 0.12 ? `var(--${F.off ? 'onset' : 'beat'})` : '';
+  nodes.clk.r.style.strokeWidth = F.sinceBeat < 0.12 ? 3 : '';
+  if (F.isBeat) pulse(['clkFrame', 'frameViz'], F.off ? 'onset' : 'beat', 0.45);
+  if (S.reqs.length && S.reqs[S.reqs.length - 1].t !== lastReqSeen) {
+    lastReqSeen = S.reqs[S.reqs.length - 1].t;
+    pulse(['nnClk'], 'ai', 0.5);
+  }
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i], u = (F.now - p.t0) / p.dur;
+    if (u >= 1 || u < 0) { p.el.remove(); pulses.splice(i, 1); continue; }
+    const seg = Math.min(p.route.length - 1, Math.floor(u * p.route.length)), su = u * p.route.length - seg;
+    const wdef = wires[p.route[seg]], pt = wdef.el.getPointAtLength(su * wdef.len);
+    p.el.setAttribute('cx', pt.x); p.el.setAttribute('cy', pt.y);
+  }
+}
+
+/* ---------- stage 1: onset lanes ---------- */
+const onsetView = surface('onsetCanvas');
+const LANE_INFO = [
+  ['kick', 'KICK · 35–150 Hz', 3.0],
+  ['mid', 'MID · 150 Hz–6 kHz · beat phase', 2.4],
+  ['hat', 'HAT · 6 kHz and up', 2.4],
+];
+function drawOnsets(F) {
+  const { ctx, w, h } = onsetView;
+  const PAST = w < 520 ? 1.6 : 2.4, pps = (w - 16) / PAST, x0 = 8;
+  const tx = (t) => x0 + (t - (F.now - PAST)) * pps;
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+  const laneH = (h - 16) / 3;
+  // the true beat grid through all lanes
+  for (let k = Math.ceil((F.now - PAST) / T); k * T <= F.now; k++) {
+    const x = tx(k * T);
+    ctx.fillStyle = alpha(C['screen-ink'], 0.13); ctx.fillRect(x - 0.5, 4, 1, h - 8);
+  }
+  LANE_INFO.forEach(([lane, name, vmax], li) => {
+    const top = 8 + li * laneH, bottom = top + laneH - 8;
+    const yOf = (v) => bottom - Math.min(1, v / vmax) * (laneH - 26);
+    const v = lanes[lane], th = thresholds[lane], pk = peaks[lane];
+    const main = lane === 'mid';
+    ctx.fillStyle = main ? alpha(C['s-onset'], 0.07) : C['screen-2'];
+    ctx.fillRect(x0, top, w - 16, laneH - 6);
+    ctx.beginPath();
+    for (let x = x0; x <= w - 8; x++) {
+      const t = F.now - PAST + (x - x0) / pps, i0 = laneIdx(t), n = Math.max(1, Math.ceil(FR / pps));
+      let m = 0;
+      for (let k = 0; k < n; k++) m = Math.max(m, v[mod(i0 + k, N)]);
+      x === x0 ? ctx.moveTo(x, yOf(m)) : ctx.lineTo(x, yOf(m));
+    }
+    ctx.strokeStyle = main ? C['s-onset'] : alpha(C['s-onset'], 0.75); ctx.lineWidth = main ? 2 : 1.3; ctx.stroke();
+    ctx.beginPath();
+    for (let x = x0; x <= w - 8; x += 3) {
+      const y = yOf(th[laneIdx(F.now - PAST + (x - x0) / pps)]);
+      x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = alpha(C['screen-ink'], 0.4); ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+    // detected peaks; the kick lane's pickups (50-100 ms before a beat) get a ring
+    const f0 = Math.floor((F.now - PAST) * FR), f1 = Math.floor(F.now * FR) - 2;
+    let lastPickupX = -1;
+    for (let f = f0; f <= f1; f++) {
+      if (!pk[mod(f, N)]) continue;
+      const t = f / FR, x = tx(t), y = yOf(v[mod(f, N)]);
+      const toBeat = Math.ceil(t / T) * T - t;
+      const pickup = lane === 'kick' && toBeat > 0.045 && toBeat < 0.11;
+      ctx.beginPath(); ctx.arc(x, y, pickup ? 6 : 3, 0, Math.PI * 2);
+      if (pickup) { ctx.strokeStyle = C['s-gain']; ctx.lineWidth = 2; ctx.stroke(); lastPickupX = x; }
+      else { ctx.fillStyle = C['s-onset']; ctx.fill(); }
+    }
+    if (lastPickupX > 90) label(ctx, 'PICKUP', lastPickupX - 10, top + 12, C['s-gain'], 'right');
+    label(ctx, name, x0 + 8, top + 12, main ? C['screen-ink'] : C['screen-muted']);
+    // onset lamp
+    const since = onsetSince(lane, F.now), glow = Math.exp(-since / 0.15);
+    ctx.beginPath(); ctx.arc(w - 22, top + 13, 6, 0, Math.PI * 2);
+    ctx.fillStyle = alpha(C['s-onset'], 0.15 + 0.85 * glow); ctx.fill();
+  });
+}
+
+/* ---------- stage 2: tempo ---------- */
+const tempoView = surface('tempoCanvas');
+const TW = Math.round(8 * FR), MIN_LAG = Math.floor((60 / 200) * FR), MAX_LAG = Math.ceil((60 / 60) * FR);
+const acf = new Float64Array(4 * MAX_LAG + 4);
+const tempoState = { raw: new Float64Array(MAX_LAG + 2), score: new Float64Array(MAX_LAG + 2), shownRaw: new Float64Array(MAX_LAG + 2), shown: new Float64Array(MAX_LAG + 2), bpm: 0, at: -1, flash: 0 };
+function computeTempo(now) {
+  // the tempo onset function: mid band plus a broadband stand-in, last 8 s
+  const end = laneIdx(now), x = new Float64Array(TW);
+  let mean = 0;
+  for (let i = 0; i < TW; i++) {
+    const j = mod(end - TW + i, N);
+    x[i] = lanes.mid[j] + 0.5 * lanes.kick[j] + 0.3 * lanes.hat[j];
+    mean += x[i];
+  }
+  mean /= TW;
+  for (let i = 0; i < TW; i++) x[i] -= mean;
+  let zero = 0;
+  for (let i = 0; i < TW; i++) zero += x[i] * x[i];
+  zero /= TW;
+  for (let l = 0; l < acf.length && l < TW; l++) {
+    let s = 0;
+    for (let i = l; i < TW; i++) s += x[i] * x[i - l];
+    acf[l] = s / (TW - l) / zero;
+  }
+  // harmonic summation + sub-beat support + log-Gaussian prior (src/audio/core/tempo.ts)
+  let best = -1, bestScore = -Infinity;
+  for (let lag = MIN_LAG; lag <= MAX_LAG; lag++) {
+    let s = 0, ws = 0;
+    for (let k = 1; k <= 4; k++) {
+      const kl = k * lag;
+      s += Math.max(acf[kl - 1], acf[kl], acf[kl + 1]) / k;
+      ws += 1 / k;
+    }
+    const h0 = Math.floor(lag / 2);
+    s = (s + 0.5 * Math.max(0, acf[h0], acf[h0 + 1])) / (ws + 0.5);
+    const bpm = (60 * FR) / lag, oct = Math.log2(bpm / 128) / 0.7;
+    tempoState.raw[lag] = Math.max(0, s);
+    tempoState.score[lag] = Math.max(0, s) * Math.exp(-0.5 * oct * oct);
+    if (tempoState.score[lag] > bestScore) { bestScore = tempoState.score[lag]; best = lag; }
+  }
+  // refine on the 4th harmonic (parabolic peak)
+  let p = 4 * best;
+  for (let l = p - 4; l <= p + 4; l++) if (acf[l] > acf[p]) p = l;
+  const y0 = acf[p - 1], y1 = acf[p], y2 = acf[p + 1], den = y0 - 2 * y1 + y2;
+  const frac = den < 0 ? clamp((0.5 * (y0 - y2)) / den, -0.5, 0.5) : 0;
+  tempoState.bpm = (60 * FR) / ((p + frac) / 4);
+  tempoState.flash = 1;
+}
+function drawTempo(F) {
+  const { ctx, w, h } = tempoView;
+  const ts = tempoState;
+  const beat = Math.floor(F.now * 4);
+  if (beat !== ts.at) { ts.at = beat; computeTempo(F.now); }   // four times a second, like the engine
+  for (let l = MIN_LAG; l <= MAX_LAG; l++) {
+    ts.shown[l] += (ts.score[l] - ts.shown[l]) * 0.25;
+    ts.shownRaw[l] += (ts.raw[l] - ts.shownRaw[l]) * 0.25;
+  }
+  const pad = { l: 12, r: 12, t: 22, b: 30 };
+  const bx = (bpm) => pad.l + (Math.log2(bpm / 60) / Math.log2(200 / 60)) * (w - pad.l - pad.r);
+  const py = (v, vmax) => h - pad.b - (v / vmax) * (h - pad.t - pad.b);
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+  let vmax = 0.05;
+  for (let l = MIN_LAG; l <= MAX_LAG; l++) vmax = Math.max(vmax, ts.shownRaw[l]);
+  vmax *= 1.12;
+  for (const b of [60, 80, 100, 130, 160, 200]) {
+    const x = bx(b);
+    ctx.fillStyle = alpha(C['screen-ink'], 0.1); ctx.fillRect(x, pad.t, 1, h - pad.t - pad.b);
+    label(ctx, b === 60 ? '60 BPM' : String(b), x, h - 14, C['screen-muted'], b === 60 ? 'left' : b === 200 ? 'right' : 'center');
+  }
+  // prior
+  ctx.beginPath();
+  for (let x = pad.l; x <= w - pad.r; x += 2) {
+    const bpm = 60 * Math.pow(200 / 60, (x - pad.l) / (w - pad.l - pad.r)), oct = Math.log2(bpm / 128) / 0.7;
+    const y = py(Math.exp(-0.5 * oct * oct) * vmax * 0.9, vmax);
+    x === pad.l ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.setLineDash([2, 4]); ctx.strokeStyle = alpha(C['screen-ink'], 0.45); ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]);
+  const curve = (arr, stroke, width, fill) => {
+    ctx.beginPath();
+    for (let l = MAX_LAG; l >= MIN_LAG; l--) {
+      const x = bx((60 * FR) / l), y = py(arr[l], vmax);
+      l === MAX_LAG ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke();
+    if (fill) {
+      ctx.lineTo(bx((60 * FR) / MIN_LAG), h - pad.b); ctx.lineTo(bx((60 * FR) / MAX_LAG), h - pad.b); ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill();
+    }
+  };
+  curve(ts.shownRaw, alpha(C['s-beat'], 0.35), 1.2);
+  curve(ts.shown, C['s-beat'], 2, alpha(C['s-beat'], 0.12));
+  if (ts.bpm) {
+    const x = bx(ts.bpm);
+    ts.flash *= 0.9;
+    ctx.fillStyle = alpha(C['s-beat'], 0.6 + 0.4 * ts.flash); ctx.fillRect(x - 1, pad.t - 6, 2, h - pad.t - pad.b + 6);
+    label(ctx, `${ts.bpm.toFixed(1)} BPM`, x + (x > w - 110 ? -8 : 8), pad.t + 2, C['screen-ink'], x > w - 110 ? 'right' : 'left', 12);
+    const hx = bx(ts.bpm / 2);
+    label(ctx, 'HALF TEMPO', hx, py(ts.shownRaw[Math.round((120 * FR) / ts.bpm)] || 0, vmax) - 12, C['screen-muted'], 'center', 9);
+    $('tempoPick').textContent = `chosen: ${ts.bpm.toFixed(1)} BPM`;
+  }
+}
+
+/* ---------- stage 3: the phase dial and predict vs detect ---------- */
+const dialView = surface('dialCanvas');
+function drawDial(F) {
+  const { ctx, w, h } = dialView;
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2 + 6, R = Math.min(w, h) / 2 - 30;
+  const ang = (ph) => -Math.PI / 2 + ph * Math.PI * 2;
+  // PLL search window: +-8% of a beat around the predicted beat
+  ctx.beginPath(); ctx.arc(cx, cy, R, ang(-0.08), ang(0.08));
+  ctx.strokeStyle = alpha(C['s-beat'], 0.35); ctx.lineWidth = 16; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = C['screen-rule']; ctx.lineWidth = 1.5; ctx.stroke();
+  for (let i = 0; i < 16; i++) {
+    const a = ang(i / 16), r0 = R - (i % 4 === 0 ? 12 : 6);
+    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    ctx.strokeStyle = alpha(C['screen-ink'], i % 4 === 0 ? 0.5 : 0.2); ctx.lineWidth = 1; ctx.stroke();
+  }
+  label(ctx, 'PREDICTED BEAT', cx, cy - R - 16, C['s-beat'], 'center');
+  label(ctx, 'OFF-BEAT', cx, cy + R + 16, C['screen-muted'], 'center');
+  // onsets of the last 4 beats, placed at their phase relative to the clock's grid
+  if (F.locked) {
+    const f1 = Math.floor(F.now * FR) - 2, f0 = f1 - Math.round(4 * T * FR);
+    for (const [lane, col, rr] of [['mid', C['s-onset'], 0.8], ['hat', C['screen-muted'], 0.62]]) {
+      for (let f = f0; f <= f1; f++) {
+        if (!peaks[lane][mod(f, N)]) continue;
+        const t = f / FR, age = (F.now - t) / (4 * T);
+        const ph = mod((t - S.offset * T) / T, 1);
+        const r = R * (rr - 0.18 * age), a = ang(ph);
+        ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, lane === 'mid' ? 5 : 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(col, 1 - 0.7 * age); ctx.fill();
+      }
+    }
+  }
+  // the hand
+  const a = ang(F.phase), flash = Math.exp(-F.sinceBeat / 0.12);
+  const col = F.off ? C['s-onset'] : C['s-beat'];
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4));
+  ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 30 + 10 * flash, 0, Math.PI * 2);
+  ctx.fillStyle = alpha(col, 0.12 + 0.5 * flash); ctx.fill();
+  label(ctx, F.locked ? F.phase.toFixed(2) : '—', cx, cy, C['screen-ink'], 'center', 14);
+  label(ctx, 'PHASE', cx, cy + 18, C['screen-muted'], 'center', 9);
+  label(ctx, '● MID ONSETS', 12, h - 14, C['s-onset']);
+  label(ctx, '● HATS', w - 12, h - 14, C['screen-muted'], 'right');
+}
+const predictView = surface('predictCanvas');
+function drawPredict(F) {
+  const { ctx, w, h } = predictView;
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+  // one beat window: 0.3 beat before the beat to 0.7 after; the playhead follows the clock phase
+  const lx = 104, span = w - lx - 16, tx = (u) => lx + ((u + 0.3) / 1) * span;
+  const u = (F.locked ? mod(F.phase + 0.3, 1) : 0) - 0.3;
+  const beatX = tx(0), lateX = tx(0.042 / T);   // ~40 ms: onset lag + peak decision + message + next frame
+  ctx.fillStyle = alpha(C['screen-ink'], 0.18); ctx.fillRect(beatX - 0.5, 8, 1, h - 16);
+  label(ctx, 'THE BEAT', beatX, 10, C['screen-muted'], 'center', 9);
+  const rows = [['DETECTOR', lateX, C['s-onset'], 'reacts after the peak'], ['BEAT CLOCK', beatX, C['s-beat'], 'fires on the prediction']];
+  rows.forEach(([name, x, col, note], i) => {
+    const y = 48 + i * 52;
+    label(ctx, name, 12, y, C['screen-muted'], 'left', 10);
+    ctx.fillStyle = C['screen-2']; ctx.fillRect(lx, y - 14, span, 28);
+    const lit = u >= (x - lx) / span - 0.3 && u < (x - lx) / span - 0.3 + 0.18;
+    const g = lit ? 1 - (u - ((x - lx) / span - 0.3)) / 0.18 : 0;
+    ctx.fillStyle = alpha(col, 0.25 + 0.75 * g); ctx.fillRect(x - 3, y - 14, 6, 28);
+    if (g > 0) { ctx.fillStyle = alpha(col, 0.25 * g); ctx.fillRect(x, y - 14, 60 * g, 28); }
+    if (w > 460) label(ctx, note, x + 14, y, alpha(C['screen-ink'], 0.8), 'left', 10);
+  });
+  ctx.fillStyle = alpha(C['screen-ink'], 0.8); ctx.fillRect(tx(u) - 1, 26, 2, h - 34);
+}
+
+/* ---------- stage 4: AI Beat Tracking timeline ---------- */
+const aiView = surface('aiCanvas');
+const aiLog = $('aiLog');
+let logKey = '';
+function drawAi(F) {
+  const { ctx, w, h } = aiView;
+  const PAST = w < 520 ? 9 : 14, lx = 92, xr = w - 14, pps = (xr - lx) / PAST;
+  const tx = (t) => xr - (F.now - t) * pps;
+  ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
+  const rowY = [34, 84, 150];
+  const names = ['TRUE BEAT', 'BEAT CLOCK', S.ai ? 'AI WINDOWS' : 'AI OFF'];
+  names.forEach((n, i) => {
+    ctx.fillStyle = C['screen-2']; ctx.fillRect(lx, rowY[i] - 16, xr - lx, i === 2 ? 72 : 32);
+    label(ctx, n, 10, rowY[i], i === 2 ? C['s-ai'] : C['screen-muted'], 'left', 9);
+  });
+  // lock band: the DSP comb may not jump while it lasts
+  if (S.lockUntil > F.now - PAST) {
+    const last = S.reqs.length ? S.reqs[S.reqs.length - 1].t : F.now;
+    const x0 = Math.max(lx, tx(last)), x1 = Math.min(xr, tx(Math.min(S.lockUntil, F.now)));
+    if (x1 > x0) {
+      ctx.fillStyle = alpha(C['s-ai'], 0.14); ctx.fillRect(x0, rowY[1] - 16, x1 - x0, 32);
+      if (x1 - x0 > 90) label(ctx, 'AI LOCK', x0 + 6, rowY[1] - 8, C['s-ai'], 'left', 8);
+    }
+  }
+  for (let k = Math.ceil((F.now - PAST) / T); k * T <= F.now; k++) {
+    const x = tx(k * T);
+    ctx.fillStyle = alpha(C['screen-ink'], 0.45); ctx.fillRect(x - 1, rowY[0] - 10, 2, 20);
+  }
+  for (const b of S.fired) {
+    if (b.t < F.now - PAST) continue;
+    const x = tx(b.t);
+    ctx.fillStyle = b.off ? C['s-onset'] : C['s-beat'];
+    ctx.fillRect(x - 1.5, rowY[1] - 11, 3, 22);
+  }
+  for (const m of S.marks) {
+    if (m.t < F.now - PAST) continue;
+    const x = tx(m.t);
+    if (m.kind === 'veto') {
+      ctx.strokeStyle = C['s-gain']; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(x - 6, rowY[1] - 6); ctx.lineTo(x + 6, rowY[1] + 6); ctx.moveTo(x + 6, rowY[1] - 6); ctx.lineTo(x - 6, rowY[1] + 6); ctx.stroke();
+      label(ctx, 'VETO', x, rowY[1] + 24, C['s-gain'], 'center', 8);
+    } else {
+      ctx.fillStyle = C['s-onset'];
+      ctx.beginPath(); ctx.moveTo(x, rowY[1] - 20); ctx.lineTo(x - 6, rowY[1] - 30); ctx.lineTo(x + 6, rowY[1] - 30); ctx.fill();
+      label(ctx, 'JUMP', x, rowY[1] + 24, C['s-onset'], 'center', 8);
+    }
+  }
+  // each AI run looks at the last 10 s and returns a decision
+  S.reqs.forEach((r, i) => {
+    if (r.t < F.now - PAST - 10) return;
+    const y = rowY[2] - 6 + (i % 3) * 18, x1 = tx(r.t), x0 = Math.max(lx, tx(r.t - 10));
+    const age = F.now - r.t, fresh = Math.exp(-age / 1.2);
+    ctx.strokeStyle = alpha(C['s-ai'], 0.35 + 0.65 * fresh); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.moveTo(x1, y - 5); ctx.lineTo(x1, y + 5); ctx.stroke();
+    if (x1 >= lx) {
+      ctx.beginPath(); ctx.arc(x1, y, 5 + 4 * fresh, 0, Math.PI * 2);
+      ctx.fillStyle = r.kind === 'shift' ? C['s-beat'] : C['s-ai']; ctx.fill();
+      if (x1 - lx > 60) label(ctx, r.kind.toUpperCase(), x1 - 10, y, C['screen-ink'], 'right', 8);
+    }
+  });
+  ctx.fillStyle = alpha(C['screen-ink'], 0.7); ctx.fillRect(xr, 12, 1.5, h - 24);
+  label(ctx, 'NOW', xr, 8, C['screen-ink'], 'right', 8);
+  const key = S.log.map((l) => l.t).join(',');
+  if (key !== logKey) {
+    logKey = key;
+    aiLog.innerHTML = S.log.map((l) => {
+      const m = Math.floor(l.t / 60), s = (l.t % 60).toFixed(1).padStart(4, '0');
+      const kind = { confirm: 'confirm', shift: 'shift', veto: 'veto', jump: 'dsp', info: 'switch' }[l.kind];
+      return `<div class="${l.kind}"><span>${m}:${s}</span><b>${kind}</b><span>${l.text}</span></div>`;
+    }).join('');
+  }
+}
+
+/* ---------- stage 5: Auto Gain ---------- */
+const barsView = surface('barsCanvas');
+const BARS = 32;
+let barsTick = 0;
+function drawBars(F) {
+  const { ctx, w, h } = barsView;
+  ctx.clearRect(0, 0, w, h);
+  const lampH = 26, bh = h - lampH - 8, gap = 3, bw = (w - gap * (BARS - 1)) / BARS;
+  const normalDb = colDb[F.col];   // the same song at full level, no gain
+  for (let i = 0; i < BARS; i++) {
+    const k0 = Math.floor((i * NB) / BARS), k1 = Math.floor(((i + 1) * NB) / BARS);
+    let v = 0;
+    for (let k = k0; k < k1; k++) v = Math.max(v, spec[F.col * NB + k]);
+    const x = i * (bw + gap);
+    const now = BYTE(F.displayDb, v) * bh, ref = BYTE(normalDb, v) * bh;
+    ctx.fillStyle = C.soft; ctx.fillRect(x, 0, bw, bh);
+    ctx.fillStyle = S.agc ? C.gain : C.audio;
+    ctx.fillRect(x, bh - now, bw, now);
+    ctx.fillStyle = C.ink; ctx.fillRect(x, bh - ref - 1, bw, 2);
+  }
+  for (let i = 0; i < 4; i++) {
+    const lit = F.count > 0 && i === F.barBeat, x = w / 2 + (i - 1.5) * 26;
+    ctx.beginPath(); ctx.arc(x, h - lampH / 2, 7, 0, Math.PI * 2);
+    ctx.fillStyle = lit ? (F.off ? C.onset : C.beat) : C.soft; ctx.fill();
+  }
+  label(ctx, 'FULL-LEVEL REFERENCE', 0, h - lampH / 2, C.muted, 'left', 9);
+  if (barsTick++ % 4 === 0) {
+    $('m-in').textContent = `${F.inDb.toFixed(1)} dBFS`;
+    $('m-gain').textContent = S.agc ? `${S.appliedDb >= 0 ? '+' : ''}${S.appliedDb.toFixed(1)} dB` : `off · ×1`;
+    $('m-out').textContent = `${F.displayDb.toFixed(1)} dBFS`;
+  }
+}
+const levelInput = $('inputLevel'), levelOut = $('inputLevelOut');
+const LEVEL_NAMES = [[-3, 'system audio, full level'], [-10, 'a bit quiet'], [-22, 'quiet microphone'], [-99, 'very quiet']];
+function onLevel() {
+  S.inputDb = Number(levelInput.value);
+  const name = LEVEL_NAMES.find(([db]) => S.inputDb >= db)[1];
+  levelOut.textContent = `${S.inputDb === 0 ? '0' : '−' + Math.abs(S.inputDb)} dB (${name})`;
+  dirty = true;
+}
+levelInput.addEventListener('input', onLevel);
+onLevel();
+
+/* ---------- stage 6: the AudioFrame inspector ---------- */
+const inspector = $('inspector');
+let beatFlash = 0;
+function drawInspector(F) {
+  beatFlash = F.isBeat ? 1 : beatFlash * 0.9;
+  if (textTick % 3 && !F.isBeat) return;
+  const bar = (v, cls = '') => `<span class="bar ${cls}" style="width:${Math.round(clamp(v, 0, 1) * 90)}px"></span>`;
+  const k = (s) => `<span class="key">${s}</span>`;
+  const on = F.onsets;
+  const flash = beatFlash > 0.05 ? ` style="background:rgba(96,165,250,${(0.35 * beatFlash).toFixed(2)})"` : '';
+  inspector.innerHTML = [
+    `<span${flash}>${k('beat.isBeat     ')}<span class="t">${F.isBeat}</span></span>`,
+    `${k('beat.count      ')}${F.count}`,
+    `${k('beat.barBeat    ')}${F.count ? F.barBeat : 0}`,
+    `${k('beat.bpm        ')}${F.bpm.toFixed(1)}`,
+    `${k('beat.confidence ')}${F.conf.toFixed(2)}`,
+    `${k('beat.phase      ')}${F.phase.toFixed(2)}  ${bar(F.phase)}`,
+    `${k('beat.sinceBeat  ')}${F.count ? F.sinceBeat.toFixed(3) : '∞'} s`,
+    `${k('onsets.kick     ')}<span class="o">envelope ${on.kick.envelope.toFixed(2)}</span> ${bar(on.kick.envelope)}`,
+    `${k('onsets.snare    ')}<span class="o">envelope ${on.snare.envelope.toFixed(2)}</span> ${bar(on.snare.envelope)}`,
+    `${k('onsets.hat      ')}<span class="o">envelope ${on.hat.envelope.toFixed(2)}</span> ${bar(on.hat.envelope)}`,
+    `${k('bands.bass      ')}${F.bands.bass.toFixed(2)}  ${bar(F.bands.bass)}`,
+    `${k('bands.highMid   ')}${F.bands.highMid.toFixed(2)}  ${bar(F.bands.highMid)}`,
+    `${k('level.rms       ')}${F.rms.toFixed(3)}`,
+    `${k('gain            ')}<span class="g">${Math.pow(10, S.appliedDb / 20).toFixed(2)}</span>  ${k(S.agc ? 'Auto Gain on' : 'Auto Gain off')}`,
+    `${k('engine.neural   ')}<span class="a">${S.ai ? 'ready' : 'off'}</span>  ${k('last: ' + F.aiLast)}`,
+  ].join('\n');
+}
+
+/* ---------- measured band scores (docs/reports) ---------- */
+$('bands').innerHTML = [['150 Hz–6 kHz', 29, true], ['150–600 Hz', 28], ['Broadband', 18], ['Below 150 Hz', 10], ['Above 6 kHz', 5]]
+  .map(([n, v, best]) => `<div class="band${best ? ' best' : ''}"><span>${n}</span><span class="track"><span class="fill" style="width:${(v / 29) * 100}%;display:block"></span></span><span class="n">${v} / 29</span></div>`).join('');
+
+/* ---------- controls ---------- */
+function setSwitch(kind, on) {
+  for (const b of document.querySelectorAll(`[data-switch="${kind}"]`)) {
+    b.setAttribute('aria-checked', String(on));
+    b.querySelector('.state').textContent = on ? 'On' : 'Off';
+  }
+  if (kind === 'ai') setAi(on); else S.agc = on;
+  dirty = true;
+}
+for (const b of document.querySelectorAll('[data-switch]')) {
+  b.addEventListener('click', () => setSwitch(b.dataset.switch, b.getAttribute('aria-checked') !== 'true'));
+}
+const soundBtn = $('sound'), motionBtn = $('motion');
+soundBtn.addEventListener('click', async () => {
+  if (audio.on) {
+    soundOff();
+    soundBtn.setAttribute('aria-pressed', 'false');
+    soundBtn.lastElementChild.textContent = 'Play the groove';
+    return;
+  }
+  const ok = await soundOn().catch(() => false);
+  if (!ok) { soundBtn.lastElementChild.textContent = 'Sound is not available here'; return; }
+  running = true;
+  motionBtn.hidden = true;
+  soundBtn.setAttribute('aria-pressed', 'true');
+  soundBtn.lastElementChild.textContent = 'Stop the sound';
+});
+motionBtn.addEventListener('click', () => {
+  running = !running;
+  motionBtn.textContent = running ? 'Pause the animation' : 'Play the animation';
+});
+
+/* ---------- colours ---------- */
+readColors(); buildSpecImage(); dirty = true;
+
+/* ---------- main loop ---------- */
+let running = !reduceMotion;
+if (reduceMotion) {
+  // Reduced motion: show a representative moment (just after the drop) and wait for the viewer.
+  for (let t = 0; t < 13.2; t += 1 / 60) { advance(t); stepContinuous(1 / 60); }
+  motionBtn.hidden = false;
+}
+const VIEWS = [
+  [scope, drawScope], [null, drawReadouts], [{ visible: true, el: map }, drawMap], [onsetView, drawOnsets],
+  [tempoView, drawTempo], [dialView, drawDial], [predictView, drawPredict], [aiView, drawAi],
+  [barsView, drawBars], [{ visible: true }, drawInspector],
+];
+const mapBox = { visible: true };
+new IntersectionObserver((e) => { mapBox.visible = e[0].isIntersecting; }, { rootMargin: '120px' }).observe(map);
+VIEWS[2][0] = mapBox;
+let lastWall = performance.now();
+function tick(wall) {
+  const dt = Math.min(0.1, Math.max(0, (wall - lastWall) / 1000));
+  lastWall = wall;
+  if (running || audio.on) {
+    const target = audio.on ? Math.max(S.now, audio.simNow()) : S.now + dt;
+    advance(target);
+    stepContinuous(dt);
+    dirty = true;
+  }
+  if (dirty) {
+    const F = buildFrame();
+    for (const [s, draw] of VIEWS) if (!s || s.visible) draw(F);
+    dirty = running || audio.on;
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

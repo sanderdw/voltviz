@@ -6,7 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
-example_code
 
 # Playwright
 /test-results/
@@ -14,3 +13,6 @@ example_code
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Test audio (large, downloaded on demand)
+/.cache/
