@@ -1,0 +1,100 @@
+{
+  "source": {
+    "name": "DJ de Wildt - UTO Mix 1 (uto-oosterhout.nl)",
+    "url": "https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3",
+    "file": ".cache/test-audio/uto-mix-1.mp3"
+  },
+  "excerpts": [
+    {
+      "id": "uto-0-120",
+      "start": 0,
+      "seconds": 120,
+      "role": "tuning",
+      "note": "Opening: groove with a pickup hit before every other beat, break at ~1:35, drop at 1:40. Used while developing the engine and for the live in-app tests."
+    },
+    {
+      "id": "uto-900-1020",
+      "start": 900,
+      "seconds": 120,
+      "role": "held-out (inspected, then dev)",
+      "note": "15:00-17:00. First evaluation failed the AMLt gate (off-beat locking in a kick-less section); inspected, which led to the general off-beat phase-inertia rule. First-run numbers are kept in the report."
+    },
+    {
+      "id": "uto-1800-1920",
+      "start": 1800,
+      "seconds": 120,
+      "role": "held-out v1 (then dev)",
+      "note": "30:00-32:00, held out for design v1; used in the design-v2 tuning sweep."
+    },
+    {
+      "id": "uto-2700-2820",
+      "start": 2700,
+      "seconds": 120,
+      "role": "held-out v1 (then dev)",
+      "note": "45:00-47:00, held out for design v1; used in the design-v2 tuning sweep."
+    },
+    {
+      "id": "uto-450-570",
+      "start": 450,
+      "seconds": 120,
+      "role": "final v1 (failed, then dev)",
+      "note": "7:30-9:30. Final-set excerpt of design v1: failed the F/AMLt gates (rolling-bass section where the phase slipped a sixteenth early). Afterwards used for development, so it no longer counts as held-out. First-run numbers are kept in the report."
+    },
+    {
+      "id": "uto-2250-2370",
+      "start": 2250,
+      "seconds": 120,
+      "role": "final v1 (passed, then dev)",
+      "note": "37:30-39:30. Final-set excerpt of design v1 (passed with F=1.0). Used in the tuning sweep afterwards, so it no longer counts as held-out."
+    },
+    {
+      "id": "uto-180-300",
+      "start": 180,
+      "seconds": 120,
+      "role": "final v2 (then dev)",
+      "note": "3:00-5:00, final set of design v2 (DSP only: failed on 3:00 and 21:00). Used to develop the hybrid arbiter, so no longer held-out."
+    },
+    {
+      "id": "uto-1260-1380",
+      "start": 1260,
+      "seconds": 120,
+      "role": "final v2 (then dev)",
+      "note": "21:00-23:00, final set of design v2 (DSP only: failed on 3:00 and 21:00). Used to develop the hybrid arbiter, so no longer held-out."
+    },
+    {
+      "id": "uto-2460-2580",
+      "start": 2460,
+      "seconds": 120,
+      "role": "final v2 (then dev)",
+      "note": "41:00-43:00, final set of design v2 (DSP only: failed on 3:00 and 21:00). Used to develop the hybrid arbiter, so no longer held-out."
+    },
+    {
+      "id": "uto-630-750",
+      "start": 630,
+      "seconds": 120,
+      "role": "final",
+      "note": "10:30-12:30, evaluated once after the hybrid design (v3) was frozen."
+    },
+    {
+      "id": "uto-1560-1680",
+      "start": 1560,
+      "seconds": 120,
+      "role": "final",
+      "note": "26:00-28:00, evaluated once after the hybrid design (v3) was frozen."
+    },
+    {
+      "id": "uto-2040-2160",
+      "start": 2040,
+      "seconds": 120,
+      "role": "final",
+      "note": "34:00-36:00, evaluated once after the hybrid design (v3) was frozen."
+    },
+    {
+      "id": "uto-2940-3060",
+      "start": 2940,
+      "seconds": 120,
+      "role": "final",
+      "note": "49:00-51:00, evaluated once after the hybrid design (v3) was frozen."
+    }
+  ]
+}

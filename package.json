@@ -10,14 +10,18 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "playwright test",
+    "test:unit": "vitest run",
     "test:install": "playwright install chromium",
     "capture:previews": "node scripts/capture-previews.ts",
-    "make:og-image": "node scripts/make-og-image.ts"
+    "make:og-image": "node scripts/make-og-image.ts",
+    "eval:prepare": "node scripts/eval/prepare-audio.ts",
+    "eval:mix": "node scripts/eval/eval-mix.ts"
   },
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",
     "d3-geo": "^3.1.1",
     "lucide-react": "^1.37.0",
+    "onnxruntime-web": "^1.30.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "three": "^0.185.1"
@@ -33,6 +37,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^5.0.2"
   }
 }
