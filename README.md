@@ -135,6 +135,7 @@ public/models/              # AI beat-tracking model (beat_this small0, MIT) –
 scripts/eval/               # Beat-tracking evaluation on the test mix (offline, live, before/after)
 scripts/templates/          # Templates for `npm run new:viz`
 docs/reports/               # Audio engine evidence report (HTML) and its data
+docs/presentation/          # Conference talk about the rewrite (HTML slides)
 nginx/
 └── default.conf            # Nginx configuration for production
 ```
@@ -148,7 +149,7 @@ nginx/
 3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
 
-How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html).
+How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
 
 ---
 

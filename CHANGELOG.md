@@ -8,6 +8,7 @@
 - **Auto Gain** (Settings, off by default, `?agc=1`): normalizes the input level so a quiet microphone reacts like loud system audio.
 - Beat-driven visualizers now use the engine's beats: Anunaki Sphere, Cyber City, Aurum Leaf, Fractal Orb, Razor 1911, Icons, Your Logo, Festival Stage, Fireworks Show, Defqon Mainstage, Moss Ball, MS Defrag, Disney Drone Show. Audio Debug shows the engine (onset function, predicted beats, BPM, confidence, onsets, AI status, Auto Gain).
 - Evidence report on a real DJ mix (`docs/reports/audio-engine-report.html`) and the evaluation harness behind it (`scripts/eval`, reference beats from madmom + beat_this).
+- Conference talk about the rewrite (`docs/presentation/ai-as-audio-engineer.html`): 21 slides with speaker notes and a presenter view.
 - `npm run new:viz` scaffold with Canvas 2D / three.js / shader templates, and a rewritten adding-visualizer skill.
 - Unit tests for the audio engine (vitest) and e2e tests for the engine settings, a single AudioContext across crossfades and every visualizer mounting without errors.
 
