@@ -57,7 +57,7 @@ export const SEGMENTS = [
 
 const manifestExcerpts: { id: string; seconds: number; expectedPulseBpm?: number | null }[] = [
   ...JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8')).excerpts,
-  ...JSON.parse(readFileSync('scripts/eval/genres.json', 'utf8')).excerpts,
+  ...(existsSync('scripts/eval/genres.json') ? JSON.parse(readFileSync('scripts/eval/genres.json', 'utf8')).excerpts : []),
   // the music-library manifest is local only
   ...(existsSync('scripts/eval/library2025.json') ? JSON.parse(readFileSync('scripts/eval/library2025.json', 'utf8')).excerpts : []),
 ];

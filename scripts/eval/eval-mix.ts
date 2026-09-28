@@ -404,7 +404,9 @@ for (const ex of manifest.excerpts) {
   const primaryKey = Object.keys(gatesByStyle)[0];
   const gatesByMode = gatesByStyle[primaryKey];
   const gates = gatesByMode[modes.includes('hybrid') ? 'hybrid' : modes[0]];
-  excerpts.push({ ...ex, refGridBpm: ref.grid.bpm, gatedRanges: gated, pulseRefs: pulseRefs.map(p => ({ name: p.name, bpm: p.bpm })), gates, gatesByMode, gatesByStyle, results });
+  // the local file path names the song: it stays in the private manifest
+  const { file: _file, ...exPublic } = ex as Excerpt & { file?: string };
+  excerpts.push({ ...exPublic, refGridBpm: ref.grid.bpm, gatedRanges: gated, pulseRefs: pulseRefs.map(p => ({ name: p.name, bpm: p.bpm })), gates, gatesByMode, gatesByStyle, results });
 
   console.log(`\n=== ${ex.id} (${ex.role}) reference ~${ref.grid.bpm.toFixed(1)} BPM${isGenre ? `, expected pulse ${expectedPulse ? expectedPulse.toFixed(0) : 'either'}` : ''}${ex.changeAt !== undefined ? `, song change at ${ex.changeAt} s` : ''}`);
   for (const r of results) {

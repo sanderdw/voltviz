@@ -20,6 +20,7 @@ coverage/
 
 # Private music-library test set (from the report-refresh zip): never public
 /scripts/eval/library*.json
+/scripts/eval/genres.json
 /tests/fixtures/lib-*.reference.json
 /docs/reports/data/eval-library*.json
 /docs/reports/data/library-genres.json
