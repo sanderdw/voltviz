@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { beatHit } from '../lib/audio';
+import { beatStrength } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -333,10 +333,7 @@ const FractalOrb: VisualizerFactory = ({ container, width: w, height: h, dpr }) 
       smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
 
       // Kick: predicted beats (raw kick onsets as fallback when there is no confident beat)
-      const isKick = beatHit(audio);
-      if (isKick) {
-        kickEnergy = 1.0;
-      }
+      kickEnergy = Math.max(kickEnergy, beatStrength(audio));
       // Decay kick energy for visual response
       kickEnergy *= 0.88;
 

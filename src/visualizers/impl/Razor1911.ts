@@ -1,4 +1,4 @@
-import { beatHit } from '../lib/audio';
+import { beatStrength } from '../lib/audio';
 import type { VisualizerFactory } from '../runtime/types';
 
 const SCROLL_TEXT =
@@ -75,9 +75,10 @@ const Razor1911: VisualizerFactory = ({ container }) => {
       bassSlow = bassSlow * 0.95 + bass * 0.05;
       // Beat-driven kick: a confident beat, or a raw kick when there is no confident beat.
       // The impulse matches what the old detector added for a typical kick.
-      if (beatHit(audio)) {
-        bassKickDecay = Math.min(1, bassKickDecay + 0.6 * sens);
-        flashIntensity = Math.min(1, 0.8 * sens);
+      const hit = beatStrength(audio);
+      if (hit > 0) {
+        bassKickDecay = Math.min(1, bassKickDecay + 0.6 * sens * hit);
+        flashIntensity = Math.max(flashIntensity, Math.min(1, 0.8 * sens * hit));
       }
       bassKickDecay *= 0.88;
       flashIntensity *= 0.85;

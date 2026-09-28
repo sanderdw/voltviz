@@ -51,7 +51,7 @@ export function Overlay({ api }: OverlayProps) { /* optional React UI (uploads),
 - Never call `requestAnimationFrame`, never add `resize` listeners, never create an
   `AudioContext` — the host does all of that once for every layer.
 - Helpers: `lib/canvas2d.ts` (`mountCanvas2D`), `lib/three.ts` (`createRenderer`,
-  `disposeObject`, `disposeRenderer`), `lib/audio.ts` (`avg`, `ema`, `binFor`, `beatHit`).
+  `disposeObject`, `disposeRenderer`), `lib/audio.ts` (`avg`, `ema`, `binFor`, `beatHit`, `beatStrength`, `STRONG_BEAT`).
 
 ## 3. Which audio field for which effect
 
@@ -59,10 +59,11 @@ Open `?viz=rawaudio` (the **Raw Audio** visualizer) to see every field below liv
 
 | You want… | Use | Notes |
 |---|---|---|
-| a flash / burst / cut **on the beat** | `beatHit(audio)` (lib/audio) | predicted beat, fires in the frame the beat is **heard**; falls back to a raw kick when there is no confident tempo |
+| a flash / burst / cut **on the beat** | `beatHit(audio)` (lib/audio) | a kick or snare that was **heard** on the beat (~15-25 ms after it, never predicted: when the drums stop, it stops); falls back to a raw kick when there is no confident tempo |
+| how **hard** that beat should hit | `beatStrength(audio)` (0..1, 0 without a hit), `audio.beat.strength` | multiply the effect by it: low in a build-up without a drum hit (a pumping pad, a riser), 1 on a full kick. One-off events that cannot be weaker (switch a look, spawn something): only when `beatStrength(audio) >= STRONG_BEAT` |
 | something that **grows and decays** with each beat | `audio.beat.sinceBeat` → `Math.exp(-sinceBeat / 0.15)` | or keep your own `pulse` set to 1 on `beatHit` and decayed by `dt` |
-| motion **locked to the tempo** (swing, bounce, strobe per bar) | `audio.beat.phase` (0→1 between beats), `audio.beat.barBeat` (0–3), `audio.beat.bpm` | continuous; no jumps |
-| kick / snare / hi-hat hits | `audio.onsets.kick/snare/hat` → `.hit`, `.envelope` (decays, τ 150 ms), `.strength` | detected onsets, ~10 ms after they happen |
+| motion **locked to the tempo** (swing, bounce, strobe per bar) | `audio.beat.phase` (0→1 from the last heard beat over one beat period), `audio.beat.barBeat` (0–3), `audio.beat.bpm` | restarts at every heard beat; stays at 1 when the beats stop |
+| kick / snare / hi-hat hits | `audio.onsets.kick/snare/hat` → `.hit`, `.envelope` (decays, τ 150 ms), `.strength` | detected onsets, ~15-25 ms after they happen; also between the beats (snare rolls, hats in a build-up) |
 | overall loudness | `audio.level.rms` / `.peak` | display path (after Auto Gain) |
 | bass / mids / highs | `audio.bands.sub, bass, lowMid, mid, highMid, treble` (0..1) | means of the 2048/0.8 spectrum per Hz range |
 | bars / a spectrum | `audio.spectrum({ fftSize, smoothing })` → `Uint8Array` (fftSize/2) | shared analysers, read once per frame; any fftSize 32…32768 |

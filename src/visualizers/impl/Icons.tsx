@@ -9,7 +9,7 @@ import {
   Shield, Snowflake, Sun, Target, TreePine, Umbrella, Wind, Aperture,
   Fingerprint, Anchor, Bell, Bookmark, Fish
 } from 'lucide-react';
-import { beatHit } from '../lib/audio';
+import { beatStrength, STRONG_BEAT } from '../lib/audio';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -180,8 +180,8 @@ const Icons: VisualizerFactory = ({ container }) => {
       const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
       const treble = dataArray.slice(50, 150).reduce((a, b) => a + b, 0) / 100;
 
-      // Beat-driven: a confident beat (or a raw kick when there is no confident beat)
-      const isBeat = beatHit(audio);
+      // Beat-driven: a confident beat with a drum hit (or a raw kick when there is no confident beat)
+      const isBeat = beatStrength(audio) >= STRONG_BEAT;
 
       // Switch icon on strong beat (min 4s interval)
       if (isBeat && performance.now() - lastSwitchTime > 4000) {

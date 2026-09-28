@@ -6,11 +6,11 @@
  *           └─> Auto Gain (GainNode) ─> shared display analysers (spectrum / waveform / stereo)
  *
  * The analysis runs on the audio thread at a fixed hop rate, independent of the render frame
- * rate. Beats are *predicted*, so the frame in which `beat.isBeat` is true is the frame in
- * which the beat is heard (compensated for output latency), not one detection delay later.
+ * rate. Beats are *heard*, never predicted: `beat.isBeat` is true in the first frame after the
+ * analysis detected a kick or snare on the tracked beat grid (~15-25 ms after the hit). The
+ * tempo only filters which hits count; when the drums stop, the beats stop.
  */
 import type { AnalyzerEvent, AnalyzerState } from './core/Analyzer';
-import { BeatFirer, type DueBeat } from './beatFirer';
 import { DEFAULT_STYLE } from './core/styles';
 import { AnalyserPool } from './host/analyserPool';
 import type { HostToEngine } from './host/protocol';
@@ -19,7 +19,6 @@ import workletUrl from './host/analysis.worklet.ts?worker&url';
 import { NeuralClient } from './neural/NeuralClient';
 import type { AudioFrame, AudioInput, Bands, BeatInfo, EngineOptions, OnsetInfo, SpectrumOptions } from './types';
 
-const BEAT_CONFIDENCE_MIN = 0.3;
 const ONSET_TAU = 0.15;
 const HISTORY = 256;
 
@@ -32,6 +31,8 @@ function emptyOnset(): OnsetInfo {
 export class AudioEngine {
   readonly context: AudioContext;
   private readonly source: AudioNode;
+  /** A captured stream was heard before it reached us; a media element is heard through our output. */
+  private readonly captured: boolean;
   private readonly gainNode: GainNode;
   private readonly pool: AnalyserPool;
   private host: AnalysisHost | null = null;
@@ -54,18 +55,21 @@ export class AudioEngine {
   private frameStamp = -1;
   private startedAt = performance.now();
   private cached: AudioFrame | null = null;
-  private readonly firer = new BeatFirer(BEAT_CONFIDENCE_MIN);
+  private beatCount = 0;
+  private lastBeatAt = -Infinity;
+  private beatConfidence = 0;
   private barBeat = 3;
-  private readonly onsetState: Record<OnsetKind, { at: number; strength: number }> = {
-    kick: { at: -Infinity, strength: 0 },
-    snare: { at: -Infinity, strength: 0 },
-    hat: { at: -Infinity, strength: 0 },
+  private readonly onsetState: Record<OnsetKind, { at: number; strength: number; fresh: boolean }> = {
+    kick: { at: -Infinity, strength: 0, fresh: false },
+    snare: { at: -Infinity, strength: 0, fresh: false },
+    hat: { at: -Infinity, strength: 0, fresh: false },
   };
   private currentGain = 1;
 
-  private constructor(ctx: AudioContext, source: AudioNode, options: EngineOptions) {
+  private constructor(ctx: AudioContext, source: AudioNode, captured: boolean, options: EngineOptions) {
     this.context = ctx;
     this.source = source;
+    this.captured = captured;
     this.options = options;
     this.gainNode = ctx.createGain();
     source.connect(this.gainNode);
@@ -79,7 +83,7 @@ export class AudioEngine {
     const source = input.kind === 'stream' ? ctx.createMediaStreamSource(input.stream) : ctx.createMediaElementSource(input.element);
     // a media element routed into the graph is only audible through the destination
     if (input.kind === 'element') source.connect(ctx.destination);
-    const engine = new AudioEngine(ctx, source, options);
+    const engine = new AudioEngine(ctx, source, input.kind === 'stream', options);
     await engine.startHost();
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -172,12 +176,17 @@ export class AudioEngine {
     h.kick.set(kick, HISTORY - n);
     h.threshold.set(threshold, HISTORY - n);
     h.beats.fill(0, HISTORY - n);
-    if (events.some(e => e.type === 'beat' && e.pulse)) h.beats[HISTORY - 1] = 1;
+    if (events.some(e => e.type === 'hit')) h.beats[HISTORY - 1] = 1;
   }
 
-  /** Current AudioContext time corrected to what is being heard right now. */
+  /**
+   * AudioContext time of the audio being heard right now. A captured stream (microphone,
+   * system audio) was heard before it entered the context: its "now" is the context's current
+   * time. A media element is heard through the context's output, one output latency later.
+   */
   private audibleContextTime(now: number): number {
     const ctx = this.context;
+    if (this.captured) return ctx.currentTime;
     if (typeof ctx.getOutputTimestamp === 'function') {
       const ts = ctx.getOutputTimestamp();
       if (ts.contextTime !== undefined && ts.performanceTime !== undefined && ts.performanceTime > 0) {
@@ -206,59 +215,67 @@ export class AudioEngine {
       this.gainNode.gain.setTargetAtTime(targetGain, this.context.currentTime, 0.1);
     }
 
-    // --- beats ------------------------------------------------------------------------
-    // Queued events: beats already emitted by the analysis (fired by the BeatFirer once
-    // audible, together with the predicted next pulse beat) and onsets.
+    // --- beats and onsets ------------------------------------------------------------------
+    // Everything the analysis heard, in the first frame in which it is audible: onsets, and
+    // hits (a kick or snare on the beat grid), which fire the beat. Nothing is predicted.
     const keep: AnalyzerEvent[] = [];
-    const due: DueBeat[] = [];
+    let isBeat = false;
+    let hitBar = -1;
+    for (const o of Object.values(this.onsetState)) o.fresh = false;
     for (const e of this.queue) {
       const at = e.time + this.ctxOffset;
       if (at > ctxNow) {
         keep.push(e);
         continue;
       }
-      if (e.type === 'beat') due.push({ at, index: e.index, pulse: e.pulse, confidence: e.confidence });
-      else {
+      if (e.type === 'hit') {
+        isBeat = true;
+        hitBar = e.bar;
+        this.lastBeatAt = at;
+        this.beatConfidence = e.confidence;
+      } else if (e.type !== 'beat') {
         const o = this.onsetState[e.type];
         o.at = at;
         o.strength = e.strength;
+        o.fresh = true;
       }
     }
     // drop stale events (e.g. after a tab was hidden)
     this.queue = keep.filter(e => e.time + this.ctxOffset < ctxNow + 2);
-    const fired = this.firer.frame(ctxNow, Math.max(0.06, 1.5 * dt), st, this.ctxOffset, due);
 
     // The pulse is what beat effects follow: every tracked beat, or every other one on a
-    // half-time pulse. phase/period/bpm describe the pulse; tempo is the tracked tempo.
+    // half-time pulse. period/bpm describe the pulse; tempo is the tracked tempo; phase runs
+    // from the last heard beat.
     const divisor = st && st.pulseDivisor > 0 ? st.pulseDivisor : 1;
     const period = st && st.pulsePeriod > 0 ? st.pulsePeriod : 0;
-    let phase = 0;
-    if (period > 0 && st) {
-      const nextCtx = st.nextPulseTime + this.ctxOffset;
-      phase = 1 - Math.min(1, Math.max(0, (nextCtx - ctxNow) / period));
-    }
-    // Bar position: from the AI downbeats when known (0 = the "1"), else counting fired beats.
+    const sinceBeat = Math.max(0, ctxNow - this.lastBeatAt);
+    const phase = period > 0 ? Math.min(1, sinceBeat / period) : 0;
+    // Bar position: from the AI downbeats when known (0 = the "1"), else counting beats.
     const barKnown = !!st && st.barPhase >= 0;
-    if (fired.isBeat) this.barBeat = barKnown ? (((fired.index - st!.barPhase) % 4) + 4) % 4 : (this.firer.count + 3) % 4;
+    if (isBeat) {
+      this.beatCount++;
+      this.barBeat = barKnown && hitBar >= 0 ? hitBar : (this.beatCount + 3) % 4;
+    }
     const beat: BeatInfo = {
-      isBeat: fired.isBeat,
-      count: this.firer.count,
+      isBeat,
+      count: this.beatCount,
       barBeat: this.barBeat,
       barKnown,
-      downbeat: fired.isBeat && barKnown && this.barBeat === 0,
+      downbeat: isBeat && barKnown && this.barBeat === 0,
       bpm: st ? st.bpm / divisor : 0,
       tempo: st?.bpm ?? 0,
       divisor,
-      confidence: fired.confidence,
+      confidence: isBeat ? this.beatConfidence : st && !st.silent ? st.confidence : 0,
+      strength: st && !st.silent ? st.beatStrength : 0,
       phase,
-      sinceBeat: Math.max(0, ctxNow - this.firer.lastBeatAt),
+      sinceBeat,
       period,
     };
 
     const onset = (k: OnsetKind): OnsetInfo => {
       const o = this.onsetState[k];
-      const since = ctxNow - o.at;
-      return { hit: since >= 0 && since < dt + 1e-3, since, envelope: since >= 0 ? Math.exp(-since / ONSET_TAU) : 0, strength: o.strength };
+      const since = Math.max(0, ctxNow - o.at);
+      return { hit: o.fresh, since, envelope: Number.isFinite(o.at) ? Math.exp(-since / ONSET_TAU) : 0, strength: o.strength };
     };
 
     const pool = this.pool;
@@ -347,7 +364,7 @@ function computeBands(spec: Uint8Array, sampleRate: number): Bands {
 
 const EMPTY_STATE: AnalyzerState = {
   time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1, bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0,
-  locked: false, confidence: 0, period: 0, nextBeatTime: 0, nextBeatIndex: 0,
+  locked: false, beatStrength: 0, beatRise: 0, confidence: 0, period: 0, nextBeatTime: 0, nextBeatIndex: 0,
   style: DEFAULT_STYLE, barPhase: -1, songChanges: 0, novelty: 0, songChangeAt: -1, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
   odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
   neural: { enabled: false, runs: 0, lastDecision: 'off', consistency: 0, lockActive: false },

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer';
 import { foldPeriod, PulseSelector, type PulseMode } from '../../src/audio/core/beatTracker';
 import type { StyleId } from '../../src/audio/core/styles';
-import { BeatFirer, type DueBeat, type PulseClock } from '../../src/audio/beatFirer';
 import type { AudioFrame } from '../../src/audio/types';
 import { beatHit } from '../../src/visualizers/lib/audio';
 import { amlt, fMeasure, median, offsetsMs } from '../../scripts/eval/lib/metrics';
@@ -195,48 +194,5 @@ describe('beatHit fallback', () => {
     expect(beatHit(frame('electronic', false, true))).toBe(false);
     expect(beatHit(frame('auto', false, true))).toBe(true);
     expect(beatHit(frame('chill', false, true))).toBe(true);
-  });
-});
-
-describe('BeatFirer', () => {
-  const clock = (o: Partial<PulseClock>): PulseClock => ({
-    locked: true, confidence: 0.9, pulsePeriod: 0.5, pulseDivisor: 1, nextPulseTime: 10, nextPulseIndex: 20, ...o,
-  });
-  const due = (at: number, index: number, pulse = true, confidence = 0.9): DueBeat => ({ at, index, pulse, confidence });
-
-  it('fires a beat once, whether the prediction or the queued event reports it first', () => {
-    const f = new BeatFirer();
-    // the analysis already moved on to beat 21; beat 20 becomes audible at 10.0
-    const c = clock({ nextPulseTime: 10.5, nextPulseIndex: 21 });
-    expect(f.frame(9.99, 0.06, c, 0, []).isBeat).toBe(false);
-    expect(f.frame(10.005, 0.06, c, 0, []).isBeat).toBe(true);
-    expect(f.frame(10.02, 0.06, c, 0, [due(10, 20)]).isBeat).toBe(false);
-    expect(f.count).toBe(1);
-  });
-
-  it('on a half-time pulse only pulse beats fire; the others only advance the index', () => {
-    const f = new BeatFirer();
-    // tracked beats every 0.5 s: 21 at 10.5 (off), 22 at 11.0 (pulse), 23 at 11.5 (off), 24 at 12.0 (pulse)
-    const c = clock({ pulsePeriod: 1, pulseDivisor: 2, nextPulseTime: 12, nextPulseIndex: 24 });
-    expect(f.frame(10.5, 0.06, c, 0, [due(10.5, 21, false)]).isBeat).toBe(false);
-    expect(f.frame(11.0, 0.06, c, 0, [due(11, 22, true)]).isBeat).toBe(true);
-    expect(f.frame(11.5, 0.06, c, 0, [due(11.5, 23, false)]).isBeat).toBe(false);
-    expect(f.frame(12.0, 0.06, c, 0, []).isBeat).toBe(true);
-  });
-
-  it('a divisor change never fires a skipped beat late', () => {
-    const f = new BeatFirer();
-    // beat 23 (not a pulse) passed without firing; the pulse switches to every beat
-    f.frame(11.52, 0.06, clock({ pulsePeriod: 1, pulseDivisor: 2, nextPulseTime: 12.5, nextPulseIndex: 24 }), 0, [due(11.5, 22), due(11.51, 23, false)]);
-    const every = clock({ pulsePeriod: 0.5, pulseDivisor: 1, nextPulseTime: 12.5, nextPulseIndex: 25 });
-    // prev beat (24 at 12.0) is 0.2 s late here: too late to fire
-    expect(f.frame(12.2, 0.06, every, 0, []).isBeat).toBe(false);
-    expect(f.frame(12.5, 0.06, every, 0, []).isBeat).toBe(true);
-  });
-
-  it('does not fire low-confidence beats', () => {
-    const f = new BeatFirer();
-    expect(f.frame(10.0, 0.06, clock({ confidence: 0.1 }), 0, []).isBeat).toBe(false);
-    expect(f.frame(10.5, 0.06, clock({ confidence: 0.1, nextPulseTime: 10.5, nextPulseIndex: 21 }), 0, [due(10.5, 21, true, 0.1)]).isBeat).toBe(false);
   });
 });

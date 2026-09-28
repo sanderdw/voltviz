@@ -42,6 +42,13 @@ export interface BeatInfo {
   divisor: number;
   /** 0..1; beats below 0.3 are not fired. */
   confidence: number;
+  /**
+   * 0..1: how much of an audible hit (kick, snare, clap) the recent beats carry. About 1 for a
+   * full drum beat, low for a pulse without a hit (a build-up over a pumping pad or a riser),
+   * where the beat is still tracked and fired. Scale beat effects by it (see `beatStrength()`
+   * in visualizers/lib/audio.ts).
+   */
+  strength: number;
   /** 0..1 progress from the previous to the next predicted pulse beat (continuous, for smooth motion). */
   phase: number;
   /** Seconds since the last fired beat. */

@@ -23,6 +23,12 @@ export interface OnsetFrame {
    */
   snareRise: number;
   kickRise: number;
+  /**
+   * Mean energy of the hop in the kick band (35-150 Hz) and in the click/snare band (1-5 kHz,
+   * time-domain filters: sharper in time than the FFT bands). For the beat strength.
+   */
+  lowEnergy: number;
+  clickEnergy: number;
   /** RMS and peak of the raw hop. */
   rms: number;
   peak: number;
@@ -68,6 +74,9 @@ export class OnsetFeatures {
   private readonly kickHp: Biquad;
   private readonly kickLp1: Biquad;
   private readonly kickLp2: Biquad;
+  private readonly clickHp1: Biquad;
+  private readonly clickHp2: Biquad;
+  private readonly clickLp: Biquad;
   private readonly kickLog: Float64Array;
   private readonly kickLin: Float64Array;
   private readonly snareLin: Float64Array;
@@ -100,6 +109,9 @@ export class OnsetFeatures {
     this.kickHp = Biquad.highpass(sampleRate, 35);
     this.kickLp1 = Biquad.lowpass(sampleRate, 150);
     this.kickLp2 = Biquad.lowpass(sampleRate, 150);
+    this.clickHp1 = Biquad.highpass(sampleRate, 1000);
+    this.clickHp2 = Biquad.highpass(sampleRate, 1000);
+    this.clickLp = Biquad.lowpass(sampleRate, 5000);
     this.kickLog = new Float64Array(KICK_LAG + 1);
     this.kickLin = new Float64Array(KICK_LAG + 1);
     this.snareLin = new Float64Array(FLUX_LAG + 1);
@@ -123,6 +135,7 @@ export class OnsetFeatures {
     let sumSq = 0;
     let peak = 0;
     let kickSq = 0;
+    let clickSq = 0;
     for (let i = 0; i < hop; i++) {
       const x = samples[offset + i];
       input[FFT_SIZE - hop + i] = x;
@@ -131,8 +144,12 @@ export class OnsetFeatures {
       if (ax > peak) peak = ax;
       const k = this.kickLp2.process(this.kickLp1.process(this.kickHp.process(x)));
       kickSq += k * k;
+      const c = this.clickLp.process(this.clickHp2.process(this.clickHp1.process(x)));
+      clickSq += c * c;
     }
     out.rms = Math.sqrt(sumSq / hop);
+    out.lowEnergy = kickSq / hop;
+    out.clickEnergy = clickSq / hop;
     out.peak = peak;
 
     // --- spectral flux -----------------------------------------------------------------

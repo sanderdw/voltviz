@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { beatHit } from '../lib/audio';
+import { beatHit, beatStrength } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -192,6 +192,7 @@ const AnunakiSphere: VisualizerFactory = ({ container, width: w, height: h, dpr 
   let smoothedMids = 0;
   let smoothedHighs = 0;
   let lastKickTime = 0;
+  let kickAmp = 1;
 
   return {
     resize(width, height, d) {
@@ -230,9 +231,11 @@ const AnunakiSphere: VisualizerFactory = ({ container, width: w, height: h, dpr 
       smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
 
       // Beat-driven kick flash (predicted beats, raw kicks as fallback)
-      const isKick = beatHit(audio);
-      if (isKick) lastKickTime = now;
-      const kickFlash = lastKickTime > 0 ? Math.max(0, 1 - (now - lastKickTime) / 200) : 0;
+      if (beatHit(audio)) {
+        lastKickTime = now;
+        kickAmp = beatStrength(audio);
+      }
+      const kickFlash = lastKickTime > 0 ? kickAmp * Math.max(0, 1 - (now - lastKickTime) / 200) : 0;
 
       const delta = dt;
 

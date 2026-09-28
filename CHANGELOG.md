@@ -11,12 +11,16 @@
 - **Song changes**: VoltViz notices when a new song starts (after a pause, or when the sound and the tempo change together) and looks for the beat again instead of carrying the old song's beat into the new one. With Sendspin it uses the track change itself. This helps most when the next song has about the same tempo.
 
 ### Changed
+- **Beat effects only react to what is really playing.** A beat now fires when a kick or snare is actually heard on the beat, about 20 ms after the hit, instead of on a predicted beat. When the drums stop, the beat effects stop at once instead of running on for a few seconds. The tempo is only used to ignore hits between the beats.
+- **Build-ups stay calm.** Beat effects are as strong as the hit on the beat: a build-up over a pumping pad or a riser gives a faint pulse, the drop the full effect. Looks, icons and fireworks only change on a real drum hit. Raw Audio shows the beat strength.
 - Beat effects on music without a steady kick drum (acoustic, piano, many rock and hip-hop songs) now also react to snare and strum hits while no steady beat is found.
 - Songs with vocals, melodies or dense drums (rap, hardcore, ballads) lose the beat less often.
 - Hardcore, gabber and uptempo up to 230 BPM can be followed with the Hardstyle/hardcore style.
-- Raw Audio shows more of the engine: the Music style, the half-time pulse, whether the bar comes from the AI's downbeats (the "1" is ringed and flashes), song changes and the AI's last decision.
+- The explainer ([How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html)) describes the heard beats, the beat grid and the beat strength. The numbers in the 0.30.0 audio engine report predate these changes; a full refresh of the report will follow.
+- Raw Audio shows more of the engine: the beat strength, the beat grid and the tempo estimate, the Music style, the half-time pulse, whether the bar comes from the AI's downbeats (the "1" is ringed and flashes), song changes and the AI's last decision.
 
 ### Fixed
+- Kick, snare and hi-hat effects react the moment you hear the hit again. On some starts (seen with the microphone and system audio in Chrome) every hit arrived about a third of a second late, so effects that fire on a single hit never fired.
 - Half-time drums (hits on every other beat) no longer leave the beat tracker without a tempo.
 - The tempo no longer suddenly runs a third too fast or too slow on rock and pop songs.
 - With AI Beat Tracking on, the tempo no longer flips between double and half speed on some songs.

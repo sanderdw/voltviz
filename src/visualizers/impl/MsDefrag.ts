@@ -1,4 +1,4 @@
-import { beatHit } from '../lib/audio';
+import { beatStrength } from '../lib/audio';
 import type { VisualizerFactory } from '../runtime/types';
 
 type CellBase = 'empty' | 'used' | 'bad' | 'unmovable';
@@ -340,7 +340,7 @@ const MsDefrag: VisualizerFactory = ({ container, settings: initialSettings }) =
       const speed = cur.speed;
       // Beat-driven: every beat writes a visible burst of blocks on top of the continuous,
       // bass-driven writing (sens/speed are applied in writeCount below).
-      const bassKick = beatHit(audio) ? 1.5 : 0;
+      const bassKick = 1.5 * beatStrength(audio);
 
       // --- Audio-driven events ---
       const writeCount = Math.floor((sBass * 18 + bassKick * 60) * sens * speed);

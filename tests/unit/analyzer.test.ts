@@ -97,6 +97,54 @@ describe('beat tracking on synthetic four-on-the-floor patterns', () => {
     expect(fMeasure(after(s.beats, 40), after(beats, 40))).toBeGreaterThan(0.95);
   });
 
+  it('beat strength: full on kicks, low on a sidechain-pumped pad without a hit, back within beats on the drop', () => {
+    const period = 60 / 128;
+    const s = synth([
+      { seconds: 20, bpm: 128, kick: true, hats: 'offbeat', clap: true },
+      { seconds: 16, bpm: 128, pad: true, noise: 0.02 },
+      { seconds: 12, bpm: 128, kick: true, hats: 'offbeat', clap: true },
+    ]);
+    // a build-up: the pad ducks on every beat and swells back (sidechain pumping), no drum hit
+    for (let i = Math.round(20 * s.sampleRate); i < 36 * s.sampleRate; i++) {
+      const since = (i / s.sampleRate) % period;
+      s.samples[i] *= 1 - 0.8 * Math.exp(-since / 0.15);
+    }
+    const a = new Analyzer(s.sampleRate);
+    const beats: { time: number; strength: number }[] = [];
+    for (let i = 0; i < s.samples.length; i += 128) {
+      a.process(s.samples.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'beat') beats.push(e);
+    }
+    const strengths = (t0: number, t1: number) => beats.filter(b => b.time >= t0 && b.time < t1).map(b => b.strength);
+    expect(median(strengths(8, 20))).toBeGreaterThan(0.8);
+    const build = strengths(26, 36);
+    expect(build.length).toBeGreaterThan(8); // the clock keeps running through the build-up
+    expect(median(build)).toBeLessThan(0.3);
+    expect(Math.min(...strengths(36 + 2.5 * period, 48))).toBeGreaterThan(0.7);
+  });
+
+  it('hits: fire only on heard kicks on the beat, never between beats, and stop with the drums', () => {
+    const s = synth([
+      { seconds: 20, bpm: 128, kick: true, hats: 'offbeat', rollingBass: true },
+      { seconds: 12, bpm: 128, pad: true },
+      { seconds: 12, bpm: 128, kick: true, hats: 'offbeat' },
+    ]);
+    const a = new Analyzer(s.sampleRate);
+    const hits: number[] = [];
+    for (let i = 0; i < s.samples.length; i += 128) {
+      a.process(s.samples.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'hit') hits.push(e.time);
+    }
+    // every hit is a real kick (nothing predicted, nothing on the rolling bass between the kicks)
+    const kicks = s.beats;
+    for (const t of hits) expect(Math.min(...kicks.map(k => Math.abs(k - t)))).toBeLessThan(0.03);
+    expect(fMeasure(after(kicks, 8, 20), after(hits, 8, 20))).toBeGreaterThan(0.95);
+    // the pad breakdown has no hit, so no beat: not even the first beat after the drums stop
+    expect(after(hits, 20.05, 32)).toHaveLength(0);
+    // and the beats come back with the kicks
+    expect(fMeasure(after(kicks, 36), after(hits, 36))).toBeGreaterThan(0.9);
+  });
+
   it('produces no confident beats for silence or white noise', () => {
     const silence = run([{ seconds: 15, bpm: 120 }]);
     expect(silence.beats.length).toBe(0);

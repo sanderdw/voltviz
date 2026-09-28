@@ -1,4 +1,5 @@
 import { BarTracker, BEATS_PER_BAR, type ClockBeat } from './bars.ts';
+import { BeatStrength } from './beatStrength.ts';
 import { BeatTracker, foldPeriod, type BeatEvent, type TrackerTuning } from './beatTracker.ts';
 import { LevelTracker } from './levels.ts';
 import { NeuralArbiter, type ArbiterDecision } from './neuralArbiter.ts';
@@ -15,10 +16,21 @@ export type OnsetKind = 'kick' | 'snare' | 'hat';
 export type AnalyzerEvent =
   | {
     type: 'beat'; time: number; index: number; confidence: number; bpm: number; pulse: boolean;
+    /** 0..1: how much of an audible hit the recent beats carry (see {@link AnalyzerState.beatStrength}). */
+    strength: number;
     /** Position in the bar (0 = the "1"), from the AI downbeats; -1 when unknown. */
     bar: number;
   }
-  | { type: OnsetKind; time: number; strength: number };
+  | { type: OnsetKind; time: number; strength: number }
+  | {
+    /**
+     * A beat that was heard: a kick or snare onset on the tracked pulse grid. Emitted only
+     * after the hit itself (never predicted); this is what fires beat effects.
+     */
+    type: 'hit'; time: number; index: number; confidence: number; strength: number;
+    /** Position in the bar (0 = the "1"), from the AI downbeats; -1 when unknown. */
+    bar: number;
+  };
 
 /** Snapshot of the analysis, updated every hop (~5.8 ms). Times are seconds of processed audio. */
 export interface AnalyzerState {
@@ -34,6 +46,13 @@ export interface AnalyzerState {
   tempoCandidateBpm: number;
   tempoSalience: number;
   locked: boolean;
+  /**
+   * 0..1: how much of an audible hit (kick, snare, clap) the recent beats carry. Low for a
+   * pulse without a hit, e.g. a build-up over a pumping pad; scale beat effects by it.
+   */
+  beatStrength: number;
+  /** The rise (dB) of the beat-aligned envelope behind `beatStrength` (diagnostics). */
+  beatRise: number;
   confidence: number;
   /** Beat period in seconds (0 until a tempo is known). */
   period: number;
@@ -118,6 +137,19 @@ const NEURAL_NUDGE_MIN_S = 0.015;
 export const KICK_LAG_S = 0.012;
 export const MID_LAG_S = 0.004;
 
+/** A heard kick/snare counts as a beat within this distance (s) of the tracked pulse grid ... */
+export const HIT_GRID_S = 0.05;
+/** ... at least this many pulse periods after the previous one ... */
+export const HIT_MIN_GAP = 0.6;
+/** ... only while the tracked tempo is this confident ... */
+export const HIT_CONFIDENCE_MIN = 0.3;
+/**
+ * ... and only for an onset at least this fraction of the recent hits' median strength. Pads,
+ * risers and noise in a breakdown produce weak onsets, some of which land on the grid by chance.
+ */
+export const HIT_STRENGTH_REL = 0.15;
+const HIT_STRENGTH_HISTORY = 16;
+
 
 /**
  * The analysis engine: feed it mono PCM in blocks of any size; it produces a continuously
@@ -132,7 +164,7 @@ export class Analyzer {
   readonly state: AnalyzerState;
 
   private readonly onset: OnsetFeatures;
-  private readonly frame: OnsetFrame = { broad: 0, kick: 0, mid: 0, hat: 0, snareRise: 0, kickRise: 0, rms: 0, peak: 0 };
+  private readonly frame: OnsetFrame = { broad: 0, kick: 0, mid: 0, hat: 0, snareRise: 0, kickRise: 0, lowEnergy: 0, clickEnergy: 0, rms: 0, peak: 0 };
   private readonly hopBuf: Float64Array;
   private hopFill = 0;
   private frameIndex = 0;
@@ -163,6 +195,9 @@ export class Analyzer {
   private readonly mel: MelFrontend | null;
   private readonly arbiter: NeuralArbiter | null;
   private readonly bars = new BarTracker();
+  private readonly strength: BeatStrength;
+  private lastHitTime = -Infinity;
+  private readonly hitStrengths: number[] = [];
   private readonly change: SongChangeDetector | null;
   /** First frame of the new song after a song change, while the tempo window still reaches back into the old one. */
   private songStartFrame = -1;
@@ -200,6 +235,7 @@ export class Analyzer {
     this.tracker.setTuning(STYLE_PROFILES[style].tracker);
     this.tracker.setRange(prof.minBpm, prof.maxBpm, STYLE_PROFILES[style].pulse.mode, STYLE_PROFILES[style].pulse.maxBpm);
     this.levels = new LevelTracker({ frameRate: fr });
+    this.strength = new BeatStrength(fr);
     this.meanCoef = 1 - Math.exp(-1 / (4 * fr));
     this.pickers = {
       kick: new PeakPicker({ frameRate: fr, k: 1.5, delta: 0.05, minIntervalS: 0.1 }),
@@ -215,7 +251,7 @@ export class Analyzer {
     this.neuralStartedAt = 0;
     this.state = {
       time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1,
-      bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0, locked: false, confidence: 0, period: 0,
+      bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0, locked: false, beatStrength: 0, beatRise: 0, confidence: 0, period: 0,
       nextBeatTime: 0, nextBeatIndex: 0,
       style, barPhase: -1, songChanges: 0, novelty: 0, songChangeAt: -1, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
       odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
@@ -377,6 +413,34 @@ export class Analyzer {
     return e;
   }
 
+  /**
+   * A kick or snare was heard at `time`: a beat when it lands on the tracked pulse grid. The
+   * grid only filters (hits between the beats, pickups and bass notes do not count); nothing
+   * fires without a hit.
+   */
+  private hit(time: number, onsetStrength: number): void {
+    const recent = this.hitStrengths;
+    if (recent.length) {
+      const sorted = [...recent].sort((a, b) => a - b);
+      if (onsetStrength < HIT_STRENGTH_REL * sorted[sorted.length >> 1]) return;
+    }
+    const tr = this.tracker;
+    const pulse = tr.nextPulse;
+    if (!tr.locked || pulse.period <= 0 || tr.confidence < HIT_CONFIDENCE_MIN) return;
+    const period = pulse.period / this.frameRate;
+    const k = Math.round((time - this.frameTime(pulse.position)) / period);
+    if (Math.abs(time - (this.frameTime(pulse.position) + k * period)) > HIT_GRID_S) return;
+    const index = pulse.index + k * tr.pulse.divisor;
+    if (time - this.lastHitTime < HIT_MIN_GAP * period) return;
+    this.lastHitTime = time;
+    recent.push(onsetStrength);
+    if (recent.length > HIT_STRENGTH_HISTORY) recent.shift();
+    this.events.push({
+      type: 'hit', time, index, confidence: tr.confidence, strength: this.strength.strength,
+      bar: tr.barPhase >= 0 ? (((index - tr.barPhase) % BEATS_PER_BAR) + BEATS_PER_BAR) % BEATS_PER_BAR : -1,
+    });
+  }
+
   private frameTime(frameEnd: number): number {
     return (frameEnd * this.hop) / this.sampleRate;
   }
@@ -388,6 +452,7 @@ export class Analyzer {
     const st = this.state;
 
     this.levels.update(f.rms, f.peak);
+    this.strength.push(f.lowEnergy, f.clickEnergy, f.rms * f.rms);
 
     // Scale-free versions of the onset functions. The beat phase comes from the mid band
     // (150 Hz - 6 kHz) only; tempo uses mid + broadband (periodicity, not phase).
@@ -429,6 +494,7 @@ export class Analyzer {
     this.tracker.step(h, this.phaseOdf, beats);
     const silent = this.levels.silent;
     for (const b of beats) {
+      this.strength.onBeat(b.position);
       this.events.push({
         type: 'beat',
         time: this.frameTime(b.position),
@@ -436,6 +502,7 @@ export class Analyzer {
         confidence: silent ? 0 : b.confidence,
         bpm: (60 * this.frameRate) / b.period,
         pulse: b.pulse,
+        strength: this.strength.strength,
         bar: this.tracker.barPhase >= 0 ? (((b.index - this.tracker.barPhase) % BEATS_PER_BAR) + BEATS_PER_BAR) % BEATS_PER_BAR : -1,
       });
     }
@@ -445,7 +512,9 @@ export class Analyzer {
       const strength = p.push(kind === 'snare' ? f.mid : f[kind]);
       if (strength > 0 && !silent) {
         const peakFrame = h - p.lookahead;
-        this.events.push({ type: kind, time: this.frameTime(peakFrame + 1) - this.lags[kind], strength });
+        const time = this.frameTime(peakFrame + 1) - this.lags[kind];
+        this.events.push({ type: kind, time, strength });
+        if (kind !== 'hat') this.hit(time, strength);
       }
     }
 
@@ -459,6 +528,8 @@ export class Analyzer {
     st.bpm = tr.bpm;
     st.tempoSalience = tr.tempoSalience;
     st.locked = tr.locked;
+    st.beatStrength = this.strength.strength;
+    st.beatRise = this.strength.rise;
     st.confidence = silent ? 0 : tr.confidence;
     st.period = tr.period > 0 ? tr.period / this.frameRate : 0;
     st.nextBeatTime = this.frameTime(tr.nextBeat);

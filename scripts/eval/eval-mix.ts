@@ -12,8 +12,8 @@
  *
  * `--styles` runs every excerpt with each Music style (`matching` = the excerpt's own style from
  * the manifest); the first one is the primary result that the gates are reported for.
- * Beats are scored as fired: only *pulse* beats (the half-time pulse fires every other tracked
- * beat) with confidence >= 0.3 reach the visualizers.
+ * Beats are scored as fired: the heard hits (a kick or snare on the tracked pulse grid, while the
+ * tempo is confident) are what reach the visualizers; tracking metrics use the tracked beats.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -249,7 +249,8 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
   const isPulse = (b: AnalyzerEvent) => (b as { pulse?: boolean }).pulse !== false;
   const allBeats = beats.filter(isPulse).map(b => b.time);
   const confidentBeats = beats.filter(b => b.confidence >= BEAT_CONFIDENCE_MIN);
-  const confident = confidentBeats.filter(isPulse).map(b => b.time);
+  // what fires beat effects: the heard hits on the beat grid (the tracked beats only filter them)
+  const confident = events.filter(e => e.type === 'hit').map(e => e.time);
   const trackedConfident = confidentBeats.map(b => b.time);
   const bpmAt = (t: number) => {
     let v = 0;

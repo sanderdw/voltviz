@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { beatHit } from '../lib/audio';
+import { beatStrength, STRONG_BEAT } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -185,7 +185,7 @@ const FireworksShow: VisualizerFactory = ({ container, width: w, height: h, dpr 
 
       // --- Spawning Logic ---
       // Spawn on (predicted) beats, gated by loudness so quiet passages don't fire
-      if (beatHit(audio) && bassNorm > 0.25 * (1.5 - currentSettings.sensitivity) && beatTimer <= 0) {
+      if (beatStrength(audio) >= STRONG_BEAT && bassNorm > 0.25 * (1.5 - currentSettings.sensitivity) && beatTimer <= 0) {
         beatTimer = 0.4; // Cooldown
 
         const numRockets = Math.random() > 0.6 ? 3 : 1;

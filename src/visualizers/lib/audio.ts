@@ -39,3 +39,19 @@ export function beatHit(audio: AudioFrame): boolean {
   if (audio.onsets.kick.hit) return true;
   return STYLE_PROFILES[audio.style]?.fallback === 'accent' && audio.onsets.snare.hit;
 }
+
+/**
+ * How hard the {@link beatHit} of this frame should hit, 0..1 (0 when there is none): the beat
+ * strength on a tracked beat (low in a build-up without a drum hit), 1 on a raw onset hit.
+ * Multiply beat effects by it.
+ */
+export function beatStrength(audio: AudioFrame): number {
+  if (audio.beat.isBeat) return audio.beat.strength;
+  return beatHit(audio) ? 1 : 0;
+}
+
+/**
+ * Minimum {@link beatStrength} for one-off beat events that cannot be made weaker (switching a
+ * look or an icon, spawning rockets): a build-up without a drum hit does not trigger them.
+ */
+export const STRONG_BEAT = 0.5;

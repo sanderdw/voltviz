@@ -116,7 +116,7 @@ http://localhost:8080
 ```
 src/
 ├── audio/                  # Audio engine (no React, no visuals)
-│   ├── core/               # Pure DSP: onsets, tempo, predictive beat clock, levels, neural arbiter
+│   ├── core/               # Pure DSP: onsets, tempo, beat tracking, heard beats, levels, neural arbiter
 │   ├── neural/             # Log-mel front end + ONNX beat model (runs in a Web Worker)
 │   ├── host/               # AudioWorklet host (ScriptProcessor fallback), shared analyser pool
 │   ├── sources/            # Microphone, system audio, Sendspin, dev-only test audio
@@ -147,11 +147,11 @@ nginx/
 ## 🎯 How It Works
 
 1. **Audio Capture**: VoltViz captures audio from your microphone, system audio, or a [Sendspin](https://www.sendspin-audio.com) server
-2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat, and finds the first beat of each bar. When a new song starts (or Sendspin reports a new track), the engine looks for the beat again. The **Music style** setting (Auto by default) adapts the tempo range to the genre and lets half-time music such as dubstep flash on the kick and snare instead of twice as fast.
+2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets and the tempo. Beat effects fire only on beats that are actually heard: a kick or snare on the tracked beat grid, about 20 ms after the hit, and they stop as soon as the drums stop. A beat strength scales the effects, so a build-up without a drum hit stays calm. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the beat grid on the beat rather than the off-beat, and finds the first beat of each bar. When a new song starts (or Sendspin reports a new track), the engine looks for the beat again. The **Music style** setting (Auto by default) adapts the tempo range to the genre and lets half-time music such as dubstep flash on the kick and snare instead of twice as fast.
 3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
 
-An animated walk-through of the engine, including the Music style, Auto Gain and AI Beat Tracking settings, is in [How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html). How well the beat detection works is documented in the [audio engine report](docs/reports/audio-engine-report-0.30.0.html) (a DJ mix and songs from five other genres; the [0.23.0 report](docs/reports/audio-engine-report.html) covers the rewrite). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
+An animated walk-through of the engine, including the Music style, Auto Gain and AI Beat Tracking settings, is in [How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html). How well the beat detection works is documented in the [audio engine report](docs/reports/audio-engine-report-0.30.0.html) (a DJ mix and songs from five other genres; its numbers predate the final 0.30.0 changes, heard beats and beat strength, and a full refresh will follow; the [0.23.0 report](docs/reports/audio-engine-report.html) covers the rewrite). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
 
 ---
 

@@ -30,6 +30,7 @@ ul{color:var(--ink2);padding-left:20px}li{margin:4px 0}
 <p class="wordmark">VoltViz<span> Music Visualizer</span></p>
 <h1>Audio engine — evidence report, version 0.30.0</h1>
 <p class="muted">Earlier reports: <a href="audio-engine-report.html">0.23.0</a> (the rewrite, measured on the DJ mix).</p>
+<p><strong>Pending refresh.</strong> These numbers were measured before the last 0.30.0 changes: beats now fire only on hits that are heard on the beat grid (nothing predicted), beat effects scale with a beat strength, and onsets are no longer reported about 350 ms late on some starts. A full refresh of this report, with the music-library test set, will follow.</p>
 <p class="muted">Generated 2026-09-28 12:59 UTC, built on commit <code>cd16118</code> · test material: a DJ mix (2-minute excerpts) and songs from five other genres · rebuild with <code>npm run report</code>.</p>
 <div class="tiles">
     <div class="tile"><div class="tile-value">0.975</div><div class="tile-label">Beat F-measure, unseen excerpts</div><div class="tile-sub">hybrid engine, 4 never-tuned 2-minute excerpts</div></div>
