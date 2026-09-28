@@ -18,19 +18,28 @@ export interface OrtLike {
   };
 }
 
+/** Beat and downbeat probabilities, one value per model frame (50 per second). */
+export interface BeatActivation {
+  beat: Float32Array;
+  downbeat: Float32Array;
+}
+
 export interface BeatModel {
-  /** Beat probabilities (500 values) for 500 x 128 log-mel frames. */
-  run(frames: Float32Array): Promise<Float32Array>;
+  /** Beat and downbeat probabilities (500 values each) for 500 x 128 log-mel frames. */
+  run(frames: Float32Array): Promise<BeatActivation>;
   release(): Promise<void>;
 }
 
 export async function createBeatModel(ort: OrtLike, model: string | Uint8Array): Promise<BeatModel> {
   const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
   return {
-    async run(frames: Float32Array): Promise<Float32Array> {
+    async run(frames: Float32Array): Promise<BeatActivation> {
       if (frames.length !== MODEL_FRAMES * N_MELS) throw new Error(`expected ${MODEL_FRAMES}x${N_MELS} frames`);
       const out = await session.run({ spect: new ort.Tensor('float32', frames, [1, MODEL_FRAMES, N_MELS]) });
-      return Float32Array.from(out.beat.data as Float32Array);
+      return {
+        beat: Float32Array.from(out.beat.data as Float32Array),
+        downbeat: Float32Array.from(out.downbeat.data as Float32Array),
+      };
     },
     async release() {
       await session.release?.();

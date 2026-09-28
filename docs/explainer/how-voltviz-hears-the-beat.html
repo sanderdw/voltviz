@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>How VoltViz Hears the Beat</title>
-<meta name="description" content="A visual explainer of the VoltViz audio engine: onsets, tempo, the predictive beat clock, AI Beat Tracking and Auto Gain.">
+<meta name="description" content="A visual explainer of the VoltViz audio engine: onsets, tempo, the beat grid that decides which heard hits are beats, beat strength, AI Beat Tracking and Auto Gain.">
 <meta name="color-scheme" content="dark">
 <style>
   /* voltviz.com look: black, gray-900 panels, white/10 rules, Tailwind 400 accents. Tokens stay hex: the canvases parse them. */
@@ -169,6 +169,19 @@
   .stat .k { font-size: 14px; color: var(--muted); }
   footer { padding-block: 40px 64px; color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
 
+  /* Music style: tempo-prior picker and pulse diagram */
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button { font: 600 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 7px 10px; border-radius: 999px; border: 1px solid var(--screen-rule); background: transparent; color: var(--screen-muted); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--s-beat); border-color: var(--s-beat); color: var(--screen); }
+  .pulse { display: block; width: 100%; height: auto; }
+  .pulse text { font: 600 12px var(--mono); fill: var(--screen-muted); }
+  .pulse .title { font: 600 14px var(--body); fill: var(--screen-ink); }
+  .pulse .slot { stroke: var(--screen-rule); stroke-width: 1; }
+  .pulse .kick { fill: var(--s-onset); }
+  .pulse .snare { fill: var(--s-audio); }
+  .pulse .hat { fill: var(--screen-muted); }
+  .pulse .fire { fill: var(--s-beat); }
+  .pulse .skip { fill: none; stroke: var(--screen-rule); stroke-width: 1.5; }
   @media (max-width: 860px) {
     .cols, .cols.flip { grid-template-columns: minmax(0, 1fr); gap: 24px; }
     .readouts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -198,15 +211,15 @@
   <p class="wordmark">VoltViz<span> Music Visualizer</span></p>
   <p class="eyebrow">The audio engine, explained</p>
   <h1>How VoltViz hears the <span class="beatword" id="beatword">beat</span></h1>
-  <p class="lede">One engine listens to the music for every visualizer. It detects <b>onsets</b>, estimates the <b>tempo</b> and runs a <b>beat clock that predicts</b> the next beat, so a flash lands in the frame in which you hear the kick. The screen below simulates the engine on a 130 BPM groove with a breakdown and a drop.</p>
+  <p class="lede">One engine listens to the music for every visualizer. It detects <b>onsets</b>, estimates the <b>tempo</b> and keeps a <b>beat grid</b>. A beat fires only when a kick or snare is <b>heard</b> on that grid, about 20 ms after the hit: nothing is predicted, and when the drums stop the beats stop. The screen below simulates the engine on a 130 BPM groove with a breakdown, a build-up and a drop.</p>
 
   <div class="console">
-    <canvas class="scope" id="scope" role="img" aria-label="Scrolling view of the simulated engine: spectrogram, mid-band onset function with its adaptive threshold, fired beats in the past and predicted beats in the future"></canvas>
+    <canvas class="scope" id="scope" role="img" aria-label="Scrolling view of the simulated engine: spectrogram, mid-band onset function with its adaptive threshold, the beat grid, and the beats fired on heard hits"></canvas>
     <div class="readouts">
       <div class="ro"><div class="k">Tempo</div><div class="v" id="ro-bpm">—</div></div>
       <div class="ro"><div class="k">Bar</div><div class="bar4" id="ro-bar"><i></i><i></i><i></i><i></i></div></div>
       <div class="ro"><div class="k">Confidence</div><div class="v" id="ro-conf">—</div></div>
-      <div class="ro"><div class="k">Next beat</div><div class="v" id="ro-next">—</div></div>
+      <div class="ro"><div class="k">Beat strength</div><div class="v" id="ro-str">—</div></div>
       <div class="ro"><div class="k">AI Beat</div><div class="v" id="ro-ai">—</div></div>
       <div class="ro"><div class="k">Section</div><div class="v" id="ro-sec">—</div></div>
     </div>
@@ -221,7 +234,7 @@
   <div class="legend" aria-label="Colour key">
     <span><i style="background:var(--audio)"></i>Audio</span>
     <span><i style="background:var(--onset)"></i>Onsets</span>
-    <span><i style="background:var(--beat)"></i>Beat clock</span>
+    <span><i style="background:var(--beat)"></i>Beat grid and beats</span>
     <span><i style="background:var(--ai)"></i>AI Beat Tracking</span>
     <span><i style="background:var(--gain)"></i>Auto Gain</span>
     <span><i style="background:var(--truth)"></i>The true beat</span>
@@ -236,7 +249,7 @@
     <p>Once per animation frame the engine packs everything into one <code>AudioFrame</code>. Every visualizer reads that frame, and none of them touch Web Audio. Before the rewrite, each visualizer built its own audio graph and guessed the beat in its own way.</p>
   </div>
   <div class="fig">
-    <div class="map-scroll"><svg class="map" id="map" viewBox="0 0 1120 470" style="min-width:760px" role="img" aria-label="Signal flow: source to Auto Gain and display analysers, and to the AudioWorklet with onsets, tempo and the beat clock; the AI beat model in a Web Worker arbitrates the clock; everything meets in the AudioFrame that the visualizers read"></svg></div>
+    <div class="map-scroll"><svg class="map" id="map" viewBox="0 0 1120 470" style="min-width:760px" role="img" aria-label="Signal flow: source to Auto Gain and display analysers, and to the AudioWorklet with onsets, tempo and the beat grid; the AI beat model in a Web Worker arbitrates the grid; everything meets in the AudioFrame that the visualizers read"></svg></div>
     <p class="cap">Dots travel at the pace of the simulation: blue pulses are fired beats, violet ones are AI decisions. The Auto Gain wire lights up when the switch is on.</p>
   </div>
 </section>
@@ -257,7 +270,7 @@
     <figure class="fig dark" style="margin:0">
       <div class="figbar"><span class="chip live">Simulation</span><span class="cap">dashed: adaptive threshold</span></div>
       <canvas id="onsetCanvas" style="height:330px" role="img" aria-label="Three onset lanes, kick, mid and hat, scrolling, with thresholds and detected peaks"></canvas>
-      <p class="cap">In the drop a pickup hits 75 ms before every other beat. The kick lane (orange rings) fires on it; the mid lane stays on the beat.</p>
+      <p class="cap">In the drop a pickup hits 75 ms before every other beat. The kick lane (orange rings) fires on it; the mid lane stays on the beat. The pickup is heard, but it lies outside the beat grid, so it never fires a beat.</p>
     </figure>
   </div>
   <div class="cols flip">
@@ -268,7 +281,7 @@
     </div>
     <div class="prose">
       <p>The mix is full of traps. Rolling basslines fill the gaps between kicks, a pickup lands just before the beat, and open hats sit on the off-beat. Measured on the real audio, only the mid band pointed at the beat every time.</p>
-      <p>So the beat's <b>phase</b> comes from the mid band alone. The kick lane still drives kick effects in visualizers, and the tempo estimate also uses the broadband flux.</p>
+      <p>So the <b>phase</b> of the beat grid comes from the mid band alone, and the tempo estimate also uses the broadband flux. Beats themselves fire on kick and snare onsets, but only on those that land on the grid.</p>
     </div>
   </div>
 </section>
@@ -279,50 +292,77 @@
   <div class="cols flip">
     <figure class="fig dark" style="margin:0">
       <div class="figbar"><span class="chip live">Computed live from the simulated onsets</span><span class="cap num" id="tempoPick"></span></div>
-      <canvas id="tempoCanvas" style="height:300px" role="img" aria-label="Tempo score from 60 to 200 BPM: the autocorrelation score, the tempo prior and the chosen tempo"></canvas>
-      <p class="cap">Faint: the raw score. Solid: after the prior. Dotted curve: the prior around 128 BPM.</p>
+      <div class="seg" id="tempoStyles" role="group" aria-label="Music style whose tempo prior is shown"></div>
+      <canvas id="tempoCanvas" style="height:300px" role="img" aria-label="Tempo score from 50 to 230 BPM: the autocorrelation score, the tempo prior of the selected Music style and the chosen tempo"></canvas>
+      <p class="cap">Faint: the raw score. Solid: after the prior. Dotted curve: the prior of the selected Music style (none outside its range). The groove is a 130 BPM dance beat: the dance prior (Auto) picks 130, the ballad prior (Chill) the half tempo, 65. A prior decides between octaves, which is why the Music style matters.</p>
     </figure>
     <div class="prose">
       <p>Four times a second the engine compares the last 8 seconds of onsets with delayed copies of themselves (an autocorrelation). A delay that lines the onsets up again is a candidate beat period.</p>
-      <p>A candidate earns extra support when its 2×, 3× and 4× multiples line up too, and when something happens halfway between its beats. Dance music is ambiguous between 65, 130 and 260 BPM, so a gentle prior around 128 BPM breaks the tie.</p>
+      <p>A candidate earns extra support when its 2×, 3× and 4× multiples line up too, and when something happens halfway between its beats. Dance music is ambiguous between 65, 130 and 260 BPM, so a gentle prior around 128 BPM breaks the tie. Other music has other habits: the <b>Music style</b> setting moves the prior, e.g. to 85 BPM for ballads or 170 BPM for hardcore.</p>
+      <p>A beat period must also repeat by itself: half-time drums with hits on every other beat only are tracked at the rate of the hits. Jumps to a 3:2 or 4:3 relative of a tempo followed with confidence need much stronger evidence, because dotted and syncopated rhythms repeat at exactly those ratios.</p>
       <dl class="facts">
-        <div><dt class="k">Search range</dt><dd class="v">60–200 BPM</dd></div>
-        <div><dt class="k">Prior</dt><dd class="v">128 BPM, 0.7 octave wide</dd></div>
-        <div><dt class="k">Octave jump needs</dt><dd class="v">12 agreeing updates (~3 s)</dd></div>
+        <div><dt class="k">Search range</dt><dd class="v" id="tsRange">60–200 BPM</dd></div>
+        <div><dt class="k">Prior</dt><dd class="v" id="tsPrior">128 BPM, 0.7 octave wide</dd></div>
+        <div><dt class="k">Octave, 3:2 or 4:3 jump needs</dt><dd class="v">12 agreeing updates (~3 s)</dd></div>
       </dl>
     </div>
   </div>
 </section>
 
 <section class="stage" id="clock">
-  <p class="stage-label"><i style="background:var(--beat)"></i>Stage 3 · the beat clock</p>
-  <h2>Predict the beat, then correct</h2>
+  <p class="stage-label"><i style="background:var(--beat)"></i>Stage 3 · the beat grid</p>
+  <h2>A beat is a hit you heard, on the grid</h2>
   <div class="cols">
     <div class="prose">
-      <p>A detector can only react after it has heard an onset, so its flash always comes late. The VoltViz beat clock works like a metronome that listens. It fires each beat at the <b>predicted</b> time, then checks the onsets around that moment and moves its phase a quarter of the error (a phase-locked loop).</p>
-      <p>Four times a second a comb over the last 32 beats scores every possible phase. When the comb keeps disagreeing with the clock, the clock re-locks. A jump of half a beat, onto the off-beat, needs twice as much evidence, because off-beat hats and basslines are the classic trap.</p>
-      <p>The engine converts beat times to what the speakers are playing right now, so <code>beat.isBeat</code> is true in the frame in which you hear the beat.</p>
+      <p>The engine keeps a <b>beat grid</b>: a clock that runs at the tempo and checks the onsets around each of its beats, moving its phase a quarter of the error (a phase-locked loop). Four times a second a comb over the last 32 beats scores every possible phase. When the comb keeps disagreeing with the grid, the grid re-locks. A jump of half a beat, onto the off-beat, needs twice as much evidence, because off-beat hats and basslines are the classic trap.</p>
+      <p>The grid never fires anything itself. A beat fires when a <b>kick or snare is heard</b> within 50 ms of a grid beat, while the tempo is confident. <code>beat.isBeat</code> is true in the first frame after the analysis detected that hit, about 20 ms after it sounded. Hits between the beats, such as the pickup, a bassline note or an off-beat hat, are heard but ignored. When the drums stop, nothing fires: the engine doesn't make up beats to fill a breakdown. A hit also has to be at least 15% as strong as the recent beats, so faint onsets in a pad or a riser don't count.</p>
+      <p><b>Beat strength</b> says how hard the beats hit. The engine lines up the level of the kick band, the snare band and the whole signal around the last beats and measures how far it jumps on the beat. A full kick gives about 1, a build-up over a pumping pad or a soft thud a small value. Visualizers scale their beat effects by it, so a build-up pulses gently and the drop hits hard.</p>
+      <p>A new song resets the grid's caution. The engine notices one after half a second of silence, or when the sound and the tempo change together (a DJ mix keeps its tempo and is left alone); a Sendspin track change counts too. The comb and the tempo estimate then listen to the new song only, and the grid takes the new phase as soon as six beats of it are clear.</p>
       <dl class="facts">
-        <div><dt class="k">PLL search window</dt><dd class="v">±8% of a beat</dd></div>
+        <div><dt class="k">Hit window</dt><dd class="v">±50 ms around a grid beat</dd></div>
+        <div><dt class="k">Fires</dt><dd class="v">~16–25 ms after the hit · never ahead</dd></div>
+        <div><dt class="k">Between two beats</dt><dd class="v">at least 0.6 of a beat</dd></div>
+        <div><dt class="k">Only while</dt><dd class="v">tempo confidence ≥ 0.3</dd></div>
+        <div><dt class="k">Beat strength</dt><dd class="v">from the last 8 beats; the last 2 for a quick drop</dd></div>
         <div><dt class="k">Re-lock</dt><dd class="v">8 votes (~2 s), off-beat 16 (~4 s)</dd></div>
-        <div><dt class="k">Fired only above</dt><dd class="v">confidence 0.3</dd></div>
       </dl>
     </div>
     <div style="display:grid;gap:16px;min-width:0">
       <figure class="fig dark" style="margin:0">
-        <div class="figbar"><span class="chip live">Simulation</span><span class="cap">one turn = one beat</span></div>
-        <canvas id="dialCanvas" style="height:330px" role="img" aria-label="Phase dial: the hand turns once per beat; onsets land as dots near the top and nudge the clock"></canvas>
+        <div class="figbar"><span class="chip live">Simulation</span><span class="cap">one turn = one beat of the grid</span></div>
+        <canvas id="dialCanvas" style="height:330px" role="img" aria-label="Phase dial of the beat grid: the hand turns once per beat; onsets land as dots near the top and nudge the grid"></canvas>
       </figure>
       <figure class="fig dark" style="margin:0">
-        <canvas id="predictCanvas" style="height:150px" role="img" aria-label="Timeline comparing a reactive detector that flashes after the onset with the predictive clock that flashes on the beat"></canvas>
-        <p class="cap">Top: a detector reacts after the onset. Bottom: the clock fires on the prediction.</p>
+        <canvas id="predictCanvas" style="height:150px" role="img" aria-label="One beat of the grid with its hit window: the onsets heard over the last beats, and the beats fired on the ones inside the window, a moment later"></canvas>
+        <p class="cap">Top: every kick and mid onset of the last four beats, placed by its distance to the grid beat. Bottom: the beats that fired, only for the hits inside the window, about 20 ms after them.</p>
       </figure>
     </div>
   </div>
 </section>
 
+<section class="stage" id="style">
+  <p class="stage-label"><i style="background:var(--beat)"></i>Stage 4 · Settings → Music style</p>
+  <h2>Which pulse do the effects follow?</h2>
+  <div class="cols flip">
+    <figure class="fig dark" style="margin:0">
+      <svg class="pulse" viewBox="0 0 640 300" role="img" aria-label="Two eight-beat grids. House at 128 BPM has a kick on every beat and every beat flashes. Dubstep at 140 BPM has a kick on beat 1 and a snare on beat 3 of every four; only those beats flash, a 70 BPM pulse."><text class="title" x="0" y="34">House · 128 BPM · kick on every beat</text><text x="0" y="76">drums</text><text x="0" y="120">effects flash</text><line class="slot" x1="150" y1="50" x2="150" y2="132"/><circle class="kick" cx="150" cy="72" r="9"/><circle class="hat" cx="179" cy="72" r="3"/><circle class="fire" cx="150" cy="116" r="8"/><line class="slot" x1="208" y1="50" x2="208" y2="132"/><circle class="kick" cx="208" cy="72" r="9"/><rect class="snare" x="202" y="54" width="12" height="8" rx="2"/><circle class="hat" cx="237" cy="72" r="3"/><circle class="fire" cx="208" cy="116" r="8"/><line class="slot" x1="266" y1="50" x2="266" y2="132"/><circle class="kick" cx="266" cy="72" r="9"/><circle class="hat" cx="295" cy="72" r="3"/><circle class="fire" cx="266" cy="116" r="8"/><line class="slot" x1="324" y1="50" x2="324" y2="132"/><circle class="kick" cx="324" cy="72" r="9"/><rect class="snare" x="318" y="54" width="12" height="8" rx="2"/><circle class="hat" cx="353" cy="72" r="3"/><circle class="fire" cx="324" cy="116" r="8"/><line class="slot" x1="382" y1="50" x2="382" y2="132"/><circle class="kick" cx="382" cy="72" r="9"/><circle class="hat" cx="411" cy="72" r="3"/><circle class="fire" cx="382" cy="116" r="8"/><line class="slot" x1="440" y1="50" x2="440" y2="132"/><circle class="kick" cx="440" cy="72" r="9"/><rect class="snare" x="434" y="54" width="12" height="8" rx="2"/><circle class="hat" cx="469" cy="72" r="3"/><circle class="fire" cx="440" cy="116" r="8"/><line class="slot" x1="498" y1="50" x2="498" y2="132"/><circle class="kick" cx="498" cy="72" r="9"/><circle class="hat" cx="527" cy="72" r="3"/><circle class="fire" cx="498" cy="116" r="8"/><line class="slot" x1="556" y1="50" x2="556" y2="132"/><circle class="kick" cx="556" cy="72" r="9"/><rect class="snare" x="550" y="54" width="12" height="8" rx="2"/><circle class="hat" cx="585" cy="72" r="3"/><circle class="fire" cx="556" cy="116" r="8"/><text class="title" x="0" y="174">Dubstep · 140 BPM · kick on 1, snare on 3</text><text x="0" y="216">drums</text><text x="0" y="260">effects flash</text><line class="slot" x1="150" y1="190" x2="150" y2="272"/><circle class="kick" cx="150" cy="212" r="9"/><circle class="hat" cx="150" cy="228" r="3"/><circle class="hat" cx="179" cy="228" r="3"/><circle class="fire" cx="150" cy="256" r="8"/><line class="slot" x1="208" y1="190" x2="208" y2="272"/><circle class="hat" cx="208" cy="228" r="3"/><circle class="hat" cx="237" cy="228" r="3"/><circle class="skip" cx="208" cy="256" r="8"/><line class="slot" x1="266" y1="190" x2="266" y2="272"/><rect class="snare" x="258" y="206" width="16" height="12" rx="2"/><circle class="hat" cx="266" cy="228" r="3"/><circle class="hat" cx="295" cy="228" r="3"/><circle class="fire" cx="266" cy="256" r="8"/><line class="slot" x1="324" y1="190" x2="324" y2="272"/><circle class="hat" cx="324" cy="228" r="3"/><circle class="hat" cx="353" cy="228" r="3"/><circle class="skip" cx="324" cy="256" r="8"/><line class="slot" x1="382" y1="190" x2="382" y2="272"/><circle class="kick" cx="382" cy="212" r="9"/><circle class="hat" cx="382" cy="228" r="3"/><circle class="hat" cx="411" cy="228" r="3"/><circle class="fire" cx="382" cy="256" r="8"/><line class="slot" x1="440" y1="190" x2="440" y2="272"/><circle class="hat" cx="440" cy="228" r="3"/><circle class="hat" cx="469" cy="228" r="3"/><circle class="skip" cx="440" cy="256" r="8"/><line class="slot" x1="498" y1="190" x2="498" y2="272"/><rect class="snare" x="490" y="206" width="16" height="12" rx="2"/><circle class="hat" cx="498" cy="228" r="3"/><circle class="hat" cx="527" cy="228" r="3"/><circle class="fire" cx="498" cy="256" r="8"/><line class="slot" x1="556" y1="190" x2="556" y2="272"/><circle class="hat" cx="556" cy="228" r="3"/><circle class="hat" cx="585" cy="228" r="3"/><circle class="skip" cx="556" cy="256" r="8"/></svg>
+      <p class="cap">Orange: kick. Cyan: snare or clap. Grey: hi-hats. Blue: the beats on which effects flash; hollow: tracked beats that do not flash.</p>
+    </figure>
+    <div class="prose">
+      <p>The tempo says how fast the grid runs; the Music style decides what the effects follow on it. Most music flashes on every beat. Dubstep, trap and a lot of drum &amp; bass are written at 140 or 174 BPM but felt at half: a kick on 1, a snare on 3. With the <b>Dubstep, drum &amp; bass, trap</b> style the engine keeps tracking the steadier 140 BPM grid and fires every other beat, the ones with the kick and the snare.</p>
+      <p><b>Auto</b> makes no genre assumption. It keeps the dance-music prior and only goes half-time on unmistakable evidence: for about seven seconds nothing, and no kick, on every other beat. A DJ's half-time build-up therefore still flashes on every beat. When the effects run at double or half the speed you feel, pick a style; Settings shows what the engine follows right now.</p>
+      <dl class="facts">
+        <div><dt class="k">Styles</dt><dd class="v">Auto · House, techno, trance · Hardstyle, hardcore · Dubstep, DnB, trap · Hip-hop, rap, R&amp;B · Rock, pop, live band · Acoustic, chill, ballads</dd></div>
+        <div><dt class="k">Half-time pulse</dt><dd class="v">Dubstep style: always above 110 BPM · rock: when the accents alternate · Auto and hip-hop: unmistakable evidence only</dd></div>
+        <div><dt class="k">No steady beat</dt><dd class="v">effects fall back to kick hits, for Auto and the non-dance styles also to snare and strum hits</dd></div>
+        <div><dt class="k">Switching</dt><dd class="v">instant, no restart: the tempo folds into the new range</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
 <section class="stage" id="ai">
-  <p class="stage-label"><i style="background:var(--ai)"></i>Stage 4 · Settings → AI Beat Tracking</p>
+  <p class="stage-label"><i style="background:var(--ai)"></i>Stage 5 · Settings → AI Beat Tracking</p>
   <h2>A neural network decides which beat</h2>
   <div class="cols flip">
     <figure class="fig dark" style="margin:0">
@@ -330,25 +370,28 @@
         <button class="switch ai" type="button" role="switch" aria-checked="false" data-switch="ai" style="color:var(--screen-ink)"><span class="track"><span class="knob"></span></span><span>AI Beat Tracking <span class="state">Off</span></span></button>
         <span class="chip live">Simulation</span>
       </div>
-      <canvas id="aiCanvas" style="height:250px" role="img" aria-label="Timeline of the true beat, the beat clock and the AI windows with their decisions"></canvas>
+      <canvas id="aiCanvas" style="height:250px" role="img" aria-label="Timeline of the true beat, the beats fired on the grid and the AI windows with their decisions"></canvas>
       <div class="log" id="aiLog" aria-live="polite"></div>
     </figure>
     <div class="prose">
-      <p>The DSP clock keeps time within milliseconds, but it can settle confidently on the wrong element, such as the off-beat hats. The network knows which element is the beat.</p>
-      <p>Every 5 seconds (every 2.5 s while it settles in) the worklet sends the last 10 seconds of audio, as a 128-band log-mel spectrogram at 50 frames per second, to <b>beat_this small0</b> (2.1 M parameters, MIT licence). The model runs in a Web Worker, on your device. The arbiter compares the beats it finds with the clock:</p>
+      <p>The DSP grid keeps time within milliseconds, but it can settle confidently on the wrong element, such as the off-beat hats. Then the kicks fall outside its windows and the beats stop, or land on off-beat sounds. The network knows which element is the beat.</p>
+      <p>Every 5 seconds (every 2.5 s while it settles in) the worklet sends the last 10 seconds of audio, as a 128-band log-mel spectrogram at 50 frames per second, to <b>beat_this small0</b> (2.1 M parameters, MIT licence). The model runs in a Web Worker, on your device. The arbiter compares the beats it finds with the grid:</p>
       <dl class="facts">
         <div><dt class="k">Same phase</dt><dd class="v">confirm, nudge ½ if &gt; 15 ms</dd></div>
-        <div><dt class="k">Off by ≥ 13% of a beat</dt><dd class="v">shift the phase</dd></div>
+        <div><dt class="k">Off by ≥ 13% of a beat</dt><dd class="v">shift the phase (two windows agree if the previous one confirmed it)</dd></div>
         <div><dt class="k">Double, half or 3:2 tempo</dt><dd class="v">retime (two windows agree)</dd></div>
-        <div><dt class="k">After a decision</dt><dd class="v">12 s lock: DSP may not jump</dd></div>
+        <div><dt class="k">4:3 tempo, or clock lost</dt><dd class="v">retime, only if the DSP's own estimate no longer backs its clock</dd></div>
+        <div><dt class="k">After a decision</dt><dd class="v">12 s: no phase jump · 30 s: no octave, 3:2 or 4:3 tempo jump</dd></div>
+        <div><dt class="k">Downbeats</dt><dd class="v">which grid beat is the “1” of the bar; a change needs two windows</dd></div>
+        <div><dt class="k">New song</dt><dd class="v">locks and bar forgotten; a window of the new song only after 4 s, then every 2.5 s</dd></div>
       </dl>
-      <p class="aside">It is off by default, in the app and on this page: the clock is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. Switch it on to let the network put the clock back on the beat. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
+      <p class="aside">It is off by default, in the app and on this page: the grid is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. Switch it on to let the network put the grid back on the beat. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
     </div>
   </div>
 </section>
 
 <section class="stage" id="agc">
-  <p class="stage-label"><i style="background:var(--gain)"></i>Stage 5 · Settings → Auto Gain</p>
+  <p class="stage-label"><i style="background:var(--gain)"></i>Stage 6 · Settings → Auto Gain</p>
   <h2>Auto Gain: loud looks from a quiet mic</h2>
   <div class="cols">
     <div class="prose">
@@ -381,7 +424,7 @@
 </section>
 
 <section class="stage" id="frame">
-  <p class="stage-label"><i style="background:var(--audio)"></i>Stage 6 · once per animation frame</p>
+  <p class="stage-label"><i style="background:var(--audio)"></i>Stage 7 · once per animation frame</p>
   <h2>What a visualizer receives</h2>
   <div class="cols flip">
     <figure class="fig dark" style="margin:0">
@@ -390,13 +433,13 @@
     </figure>
     <div class="prose">
       <p>A visualizer is a small module with a <code>frame()</code> function. It gets the same <code>AudioFrame</code> as every other layer, including both layers during a crossfade.</p>
-      <pre class="code"><span class="c">// fire on the beat, glide on the phase</span>
-<span class="k">if</span> (audio.beat.isBeat) flash = 1;
+      <pre class="code"><span class="c">// fire on the beat, as hard as it hits; glide on the phase</span>
+<span class="k">if</span> (audio.beat.isBeat) flash = audio.beat.strength;
 flash *= 0.9;
 ring.rotation = audio.beat.phase * Math.PI * 2;
 kickPulse = audio.onsets.kick.envelope;
 bars = audio.spectrum({ fftSize: 2048 });</pre>
-      <p class="aside"><code>isBeat</code> is true in one frame per beat. <code>phase</code> runs from 0 to 1 between beats for smooth motion. Onset envelopes decay with a 150 ms time constant. <code>gain</code> reports what Auto Gain applies.</p>
+      <p class="aside"><code>isBeat</code> is true in the first frame after a beat of the pulse was heard, and <code>strength</code> (0–1) says how hard it hit. <code>phase</code> runs from 0 at the last heard beat to 1 one beat later, and stays at 1 when the beats stop. On a half-time pulse <code>bpm</code> is the pulse (70) and <code>tempo</code> the tracked tempo (140). Onset envelopes decay with a 150 ms time constant. <code>gain</code> reports what Auto Gain applies. With AI Beat Tracking on, <code>barBeat</code> counts from the network's downbeats (<code>barKnown</code>) and <code>downbeat</code> marks the “1”.</p>
     </div>
   </div>
 </section>
@@ -405,15 +448,15 @@ bars = audio.spectrum({ fftSize: 2048 });</pre>
   <p class="stage-label"><i style="background:var(--truth)"></i>Measured, not simulated</p>
   <h2>On a real DJ mix</h2>
   <div class="stats">
-    <div class="stat"><span class="v">0.979</span><span class="k">beat F-measure over 13 two-minute excerpts with AI Beat Tracking on (1.0 = every beat within ±70 ms); 0.818 with it off, the default</span></div>
-    <div class="stat"><span class="v">4 ms</span><span class="k">median offset of beats fired in the running app</span></div>
-    <div class="stat"><span class="v">0.584</span><span class="k">the best of the six old beat detectors, same audio</span></div>
-    <div class="stat"><span class="v">42/50</span><span class="k">visualizers measurably locked to the beat or following the music</span></div>
+    <div class="stat"><span class="v">0.801</span><span class="k">beat F-measure of the heard beats over 13 two-minute excerpts, AI Beat Tracking off (1.0 = every beat within ±70 ms). The predicting beat clock of earlier builds scored 0.839, partly by also flashing through breaks</span></div>
+    <div class="stat"><span class="v">~20 ms</span><span class="k">from the hit to the frame in which the beat fires; the hit itself is placed within 4 ms (median) of the reference beat</span></div>
+    <div class="stat"><span class="v">0</span><span class="k">beats made up: with no kick or snare on the grid, nothing fires</span></div>
   </div>
+  <p class="cap">Preliminary, measured offline for 0.30.0 with AI Beat Tracking off. The full 0.30.0 report, with AI Beat Tracking, the genre and music-library sets and the visualizers in the running app, is still to be refreshed.</p>
 </section>
 
 <footer>
-  <p>The screens on this page run a simulation of the engine's rules on a synthetic groove; the numbers above are measured on a DJ mix. Evidence and method: <code>docs/reports/audio-engine-report.html</code>. Engine source: <code>src/audio/</code>.</p>
+  <p>The screens on this page run a simulation of the engine's rules on a synthetic groove; the numbers above are measured on a DJ mix. Evidence and method: <code>docs/reports/audio-engine-report-0.30.0.html</code> (its numbers predate the heard beats and are pending a full refresh; the 0.23.0 report: <code>docs/reports/audio-engine-report.html</code>). Engine source: <code>src/audio/</code>.</p>
   <p>VoltViz · github.com/sanderdw/voltviz</p>
 </footer>
 </div>
@@ -422,8 +465,9 @@ bars = audio.spectrum({ fftSize: 2048 });</pre>
 'use strict';
 /* ==========================================================================
    Simulation of the VoltViz audio engine on a synthetic 130 BPM groove.
-   The rules follow src/audio/core (peak picking, tempo scoring, beat clock,
-   neural arbiter, Auto Gain); the music and the clock's mistakes are scripted.
+   The rules follow src/audio/core (peak picking, tempo scoring, the beat grid,
+   heard hits, beat strength, neural arbiter, Auto Gain); the music and the
+   grid's mistakes are scripted.
    ========================================================================== */
 const FR = 172.265625;               // engine hop rate (hops per second, ~5.8 ms)
 const BPM = 130, T = 60 / BPM;       // beat period
@@ -444,13 +488,16 @@ function mulberry32(a) {
 const rnd = mulberry32(130);
 
 /* ---------- the groove ---------- */
-const sectionOf = (b) => (b < 16 ? 'Groove' : b < 24 ? 'Breakdown' : b < 48 ? 'Drop' : 'Groove');
+const sectionOf = (b) => (b < 16 ? 'Groove' : b < 20 ? 'Breakdown' : b < 24 ? 'Build-up' : b < 48 ? 'Drop' : 'Groove');
+const DRUMS = (s) => s === 'Groove' || s === 'Drop';
+const PAD = (s) => s === 'Breakdown' || s === 'Build-up';
 const BASS_NOTES = [55, 55, 65.41, 49];
 const EVENTS = [];
 for (let b = 0; b < LOOP_BEATS; b++) {
   const s = sectionOf(b), t = b * T, note = BASS_NOTES[Math.floor(b / 4) % 4];
-  if (s !== 'Breakdown') EVENTS.push({ t, kind: 'kick' });
-  if (s !== 'Breakdown' && b % 2 === 1) EVENTS.push({ t, kind: 'clap' });
+  if (DRUMS(s)) EVENTS.push({ t, kind: 'kick' });
+  if (DRUMS(s) && b % 2 === 1) EVENTS.push({ t, kind: 'clap' });
+  if (s === 'Build-up') EVENTS.push({ t, kind: 'thud' }); // a soft, filtered kick: a pulse without a hit
   EVENTS.push({ t: t + T / 2, kind: 'hat' });
   for (const q of s === 'Groove' ? [2] : [1, 2, 3]) EVENTS.push({ t: t + (q * T) / 4, kind: 'bass', f: q === 2 ? note * 2 : note });
   if (s === 'Drop' && b % 2 === 1) EVENTS.push({ t: t - PICKUP, kind: 'pickup' });
@@ -468,6 +515,7 @@ const WEIGHT = {
   hat: { kick: 0, mid: 0.14, hat: 1 },
   bass: { kick: 0.42, mid: 0.26, hat: 0 },
   pickup: { kick: 1.05, mid: 0.2, hat: 0.04 },
+  thud: { kick: 0.8, mid: 0.1, hat: 0 },
 };
 const SHAPE = [0.35, 1, 0.55, 0.22, 0.08];
 const LAG = { kick: 2, mid: 1, hat: 1 }; // detection delay in hops (kick is measured on the waveform)
@@ -481,7 +529,7 @@ for (const e of EVENTS) {
   }
 }
 for (let i = 0; i < N; i++) {
-  const busy = sectionOf(Math.floor(i / FR / T)) === 'Drop' ? 1.4 : 1;
+  const busy = sectionOf(Math.floor(mod(i / FR, LOOP) / T)) === 'Drop' ? 1.4 : 1;
   for (const l of LANES) lanes[l][i] += busy * 0.1 * rnd() * rnd();
 }
 
@@ -513,6 +561,23 @@ for (const l of LANES) {
   peaks[l] = pk;
 }
 
+/* ---------- heard hits: kick and mid onsets, as the analysis reports them ---------- */
+// Each onset is reported once its peak is confirmed (2 hops of lookahead) and posted (~1 hop):
+// 17-23 ms after it sounded. Its strength for the beat-strength estimate comes from what made it.
+const HIT_STRENGTH = { kick: 1, clap: 1, thud: 0.18, pickup: 0.6, bass: 0.35, hat: 0.25 };
+const HITS = [];
+for (const lane of ['kick', 'mid']) {
+  for (let f = 0; f < N; f++) {
+    if (!peaks[lane][f]) continue;
+    const onset = (f - LAG[lane]) / FR, det = (f + 3) / FR;
+    let src = null;
+    for (const e of EVENTS) if (Math.abs(mod(e.t - onset + LOOP / 2, LOOP) - LOOP / 2) < 0.02 && (!src || HIT_STRENGTH[e.kind] > HIT_STRENGTH[src.kind])) src = e;
+    HITS.push({ onset, det, str: src ? HIT_STRENGTH[src.kind] : 0.25 });
+  }
+}
+HITS.sort((a, b) => a.det - b.det);
+const HIT_WINDOW = 0.05, HIT_GAP = 0.6;
+
 /* ---------- a synthetic spectrogram (for the screens and the Auto Gain bars) ---------- */
 const SPEC_FPS = FR / 2, NS = Math.round(LOOP * SPEC_FPS), NB = 56, FMIN = 30, FMAX = 16000;
 const bandHz = Array.from({ length: NB }, (_, i) => FMIN * Math.pow(FMAX / FMIN, (i + 0.5) / NB));
@@ -521,6 +586,7 @@ const gauss = (f, fc, oct) => { const d = Math.log2(f / fc) / oct; return Math.e
 function template(e, dt, f) {
   switch (e.kind) {
     case 'kick': return 1.1 * Math.exp(-dt / 0.2) * gauss(f, 48 + 110 * Math.exp(-dt / 0.03), 0.35) + 0.45 * Math.exp(-dt / 0.012) * gauss(f, 2500, 1.3);
+    case 'thud': return 0.55 * Math.exp(-dt / 0.12) * gauss(f, 58, 0.3);
     case 'pickup': return 0.9 * Math.exp(-dt / 0.06) * gauss(f, 85, 0.45) + 0.25 * Math.exp(-dt / 0.03) * gauss(f, 350, 0.6);
     case 'clap': return 0.65 * Math.exp(-dt / 0.09) * gauss(f, 2000, 1.6);
     case 'hat': return 0.55 * Math.exp(-dt / 0.16) * gauss(f, 10500, 0.7);
@@ -529,7 +595,7 @@ function template(e, dt, f) {
   return 0;
 }
 for (let c = 0; c < NS; c++) {
-  const t = c / SPEC_FPS, breakdown = sectionOf(Math.floor(t / T)) === 'Breakdown';
+  const t = c / SPEC_FPS, breakdown = PAD(sectionOf(Math.floor(t / T)));
   for (let k = 0; k < NB; k++) {
     let e = 0.015 + 0.03 * rnd();
     if (breakdown) e += 0.2 * gauss(bandHz[k], 700, 1.1) * (0.8 + 0.2 * Math.sin(t * 3 + k * 0.7));
@@ -571,7 +637,7 @@ const S = {
   now: 0, ai: false, agc: false, inputDb: -18,
   lockedAt: 2.2, offset: 0, lockUntil: -1,
   aiStart: 0, nextReq: 4,
-  fired: [], beatCount: 0, lastBeat: -1e9, lastBeatOff: false,
+  fired: [], beatCount: 0, lastBeat: -1e9, lastBeatOff: false, lastHitOnset: -1e9, strength: 0,
   conf: 0, log: [], reqs: [], marks: [],
   agcLoud: null, agcGainDb: 0, appliedDb: 0,
 };
@@ -614,33 +680,47 @@ function onJump(tl) {
     note('jump', 'DSP comb finds the beat again');
   }
 }
-/** Advance the simulation to sim time `to`, handling beats, AI windows and comb jumps in order. */
+/** The next heard hit reported after sim time `after`: { t (when reported), onset, str }. */
+function nextHit(after) {
+  const base = Math.floor(after / LOOP) * LOOP;
+  for (const L of [base, base + LOOP]) {
+    for (const h of HITS) if (L + h.det > after) return { t: L + h.det, onset: L + h.onset, str: h.str };
+  }
+  return { t: Infinity };
+}
+/** A kick or mid onset was heard: a beat when it lands on the grid while the tempo is confident. */
+function onHit(h) {
+  if (h.t < S.lockedAt || S.conf < 0.3) return;
+  const g = Math.round((h.onset - S.offset * T) / T) * T + S.offset * T;
+  if (Math.abs(h.onset - g) > HIT_WINDOW || h.onset - S.lastHitOnset < HIT_GAP * T) return;
+  S.lastHitOnset = h.onset;
+  // beat strength follows the last beats (the engine averages 8, and 2 for a quick drop)
+  S.strength += (h.str - S.strength) * 0.55;
+  S.fired.push({ t: h.t, onset: h.onset, off: S.offset !== 0, idx: S.beatCount, str: S.strength });
+  if (S.fired.length > 80) S.fired.shift();
+  S.beatCount++;
+  S.lastBeat = h.t;
+  S.lastBeatOff = S.offset !== 0;
+}
+/** Advance the simulation to sim time `to`, handling heard hits, AI windows and comb jumps in order. */
 function advance(to) {
   for (let guard = 0; guard < 10000; guard++) {
-    const tb = nextGridBeat(S.now);
+    const hit = nextHit(S.now);
     const tr = S.ai ? S.nextReq : Infinity;
     const tj = nextJump(S.now);
-    const t = Math.min(tb, tr, tj);
+    const t = Math.min(hit.t, tr, tj);
     if (t > to) break;
     S.now = t;
-    if (t === tb) {
-      if (t >= S.lockedAt && S.conf >= 0.3) {
-        S.fired.push({ t, off: S.offset !== 0, idx: S.beatCount });
-        if (S.fired.length > 80) S.fired.shift();
-        S.beatCount++;
-        S.lastBeat = t;
-        S.lastBeatOff = S.offset !== 0;
-      }
-      S.now = t + 1e-7;
-    } else if (t === tr) onRequest();
+    if (t === hit.t) onHit(hit);
+    else if (t === tr) onRequest();
     else onJump(mod(t, LOOP));
-    if (t !== tb) S.now = t + 1e-7;
+    S.now = t + 1e-7;
   }
   S.now = Math.max(S.now, to);
 }
 function stepContinuous(dt) {
   const sec = sectionOf(Math.floor(mod(S.now, LOOP) / T));
-  let target = S.now < S.lockedAt ? 0 : sec === 'Breakdown' ? 0.46 : 0.93;
+  let target = S.now < S.lockedAt ? 0 : sec === 'Breakdown' ? 0.46 : sec === 'Build-up' ? 0.8 : 0.93;
   if (S.ai && S.now <= S.lockUntil && S.now >= S.lockedAt) target = Math.max(target, 0.78);
   S.conf += (target - S.conf) * (1 - Math.exp(-dt / 0.6));
   // Auto Gain: the constants of src/audio/core/levels.ts and the engine's GainNode
@@ -674,7 +754,13 @@ function voice(e, when) {
     env(g, peak, decay); src.connect(f).connect(g).connect(out);
     src.start(when, rnd() * 0.5, decay + 0.05);
   };
-  if (e.kind === 'kick' || e.kind === 'pickup') {
+  if (e.kind === 'thud') {
+    const o = c.createOscillator(), g = c.createGain();
+    o.frequency.setValueAtTime(70, when);
+    o.frequency.exponentialRampToValueAtTime(50, when + 0.12);
+    env(g, 0.45, 0.22);
+    o.connect(g).connect(out); o.start(when); o.stop(when + 0.25);
+  } else if (e.kind === 'kick' || e.kind === 'pickup') {
     const o = c.createOscillator(), g = c.createGain();
     const kick = e.kind === 'kick';
     o.frequency.setValueAtTime(kick ? 160 : 115, when);
@@ -801,7 +887,8 @@ function buildFrame() {
     now, tl, col, locked, next, isBeat,
     section: sectionOf(Math.floor(tl / T)),
     bpm: locked ? 130 + 0.06 * Math.sin(now * 0.7) : 0,
-    conf: S.conf, phase: locked ? clamp(1 - (next - now) / T, 0, 1) : 0,
+    conf: S.conf, gridPhase: locked ? clamp(1 - (next - now) / T, 0, 1) : 0,
+    phase: S.beatCount ? clamp((now - S.lastBeat) / T, 0, 1) : 0, strength: S.strength,
     count: S.beatCount, barBeat: (S.beatCount + 3) % 4, sinceBeat: now - S.lastBeat, off: S.lastBeatOff,
     onsets: { kick: on('kick'), snare: on('mid'), hat: on('hat') },
     bands: { sub: band(20, 60), bass: band(60, 250), lowMid: band(250, 500), mid: band(500, 2000), highMid: band(2000, 6000), treble: band(6000, 16000) },
@@ -891,16 +978,23 @@ function drawScope(F) {
   }
   label(ctx, narrow ? 'MID-BAND ONSETS' : 'MID-BAND ONSETS · 150 Hz – 6 kHz', 12, odfTop + 11, C['screen-muted']);
 
-  // beats: the true grid, fired beats (past) and predicted beats (future)
+  // beats: the true beat, the grid's hit windows, and the beats fired on heard hits (past only)
   ctx.fillStyle = C['screen-2']; ctx.fillRect(0, beatY, w, beatH);
   const k0 = Math.ceil((F.now - PAST) / T), k1 = Math.floor((F.now + FUTURE) / T);
   ctx.fillStyle = alpha(C['screen-ink'], 0.28);
   for (let k = k0; k <= k1; k++) { const x = tx(k * T); ctx.fillRect(x - 0.5, beatY + beatH - 7, 1, 7); }
+  if (F.locked) {
+    ctx.fillStyle = alpha(C['s-beat'], F.conf >= 0.3 ? 0.16 : 0.06);
+    for (let t = F.next - Math.ceil(PAST / T + 1) * T; t <= F.now + FUTURE + T; t += T) {
+      const x0 = tx(t - HIT_WINDOW), x1 = tx(t + HIT_WINDOW);
+      ctx.fillRect(x0, beatY + 4, x1 - x0, beatH - 13);
+    }
+  }
   for (const b of S.fired) {
     if (b.t < F.now - PAST) continue;
     const x = tx(b.t), age = F.now - b.t, col = b.off ? C['s-onset'] : C['s-beat'];
-    const glow = Math.exp(-age / 0.25);
-    ctx.fillStyle = col;
+    const glow = Math.exp(-age / 0.25) * b.str;
+    ctx.fillStyle = alpha(col, 0.35 + 0.65 * b.str);
     ctx.fillRect(x - 1.5, beatY + 4, 3, beatH - 13);
     if (glow > 0.02) {
       const gr = ctx.createRadialGradient(x, beatY + beatH / 2, 0, x, beatY + beatH / 2, 44);
@@ -908,40 +1002,32 @@ function drawScope(F) {
       ctx.fillStyle = gr; ctx.fillRect(x - 44, beatY - 20, 88, beatH + 40);
     }
   }
-  if (F.locked) {
-    ctx.strokeStyle = C['s-beat']; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
-    for (let t = F.next; t <= F.now + FUTURE; t += T) {
-      const x = tx(t);
-      ctx.beginPath(); ctx.moveTo(x, beatY + 4); ctx.lineTo(x, beatY + beatH - 9); ctx.stroke();
-    }
-    ctx.setLineDash([]);
-  }
   label(ctx, 'BEATS', 12, beatY + beatH / 2, C['screen-muted']);
-  if (!narrow) label(ctx, 'PREDICTED', w - 12, beatY + 10, C['s-beat'], 'right', 9);
+  if (!narrow) label(ctx, 'GRID · A BEAT FIRES ONLY ON A HEARD HIT', w - 12, beatY + 10, C['s-beat'], 'right', 9);
 
   // now
-  const flash = Math.exp(-(F.now - S.lastBeat) / 0.12);
+  const flash = Math.exp(-(F.now - S.lastBeat) / 0.12) * S.strength;
   ctx.fillStyle = alpha(C['screen-ink'], 0.5 + 0.5 * flash);
   ctx.fillRect(xNow - 1, specY - 8, 2, h - specY);
   label(ctx, 'NOW', xNow, 13, C['screen-ink'], 'center');
 }
 
 /* ---------- readouts and the headline ---------- */
-const ro = { bpm: $('ro-bpm'), conf: $('ro-conf'), next: $('ro-next'), ai: $('ro-ai'), sec: $('ro-sec'), bar: $('ro-bar').children };
+const ro = { bpm: $('ro-bpm'), conf: $('ro-conf'), str: $('ro-str'), ai: $('ro-ai'), sec: $('ro-sec'), bar: $('ro-bar').children };
 const beatword = $('beatword');
 let textTick = 0;
 function drawReadouts(F) {
   const lit = F.count > 0 ? F.barBeat : -1;
   for (let i = 0; i < 4; i++) ro.bar[i].className = i === lit ? (F.off ? 'off' : 'on') : '';
   if (!reduceMotion || running) {
-    const s = 1 + 0.11 * Math.exp(-F.sinceBeat / 0.09);
+    const s = 1 + 0.11 * F.strength * Math.exp(-F.sinceBeat / 0.09);
     beatword.style.transform = `scale(${s.toFixed(3)})`;
   }
   beatword.style.color = F.off && F.sinceBeat < 0.6 ? 'var(--onset)' : '';
   if (++textTick % 4 && !F.isBeat) return;
   ro.bpm.innerHTML = F.locked ? `${F.bpm.toFixed(1)} <small>BPM</small>` : 'listening';
   ro.conf.textContent = F.conf.toFixed(2);
-  ro.next.innerHTML = F.locked ? `${Math.round((F.next - F.now) * 1000)} <small>ms</small>` : '—';
+  ro.str.textContent = F.count ? F.strength.toFixed(2) : '—';
   ro.ai.textContent = F.aiLast;
   ro.sec.textContent = F.section;
 }
@@ -961,7 +1047,7 @@ const NODES = {
   pool: [500, 50, 190, 70, 'Display analysers', 'spectrum · waveform', 'audio'],
   ons: [260, 225, 130, 70, 'Onsets', 'every 5.8 ms', 'onset'],
   tmp: [410, 225, 130, 70, 'Tempo', '4× per second', 'beat'],
-  clk: [560, 225, 140, 70, 'Beat clock', 'predicts beats', 'beat'],
+  clk: [560, 225, 140, 70, 'Beat grid', 'heard hits on it', 'beat'],
   nn: [410, 375, 290, 70, 'AI beat model', 'Web Worker · every 5 s', 'ai'],
   frame: [770, 185, 150, 70, 'AudioFrame', 'once per frame', 'ink'],
   viz: [960, 185, 152, 70, 'Visualizers', 'one render loop', 'ink'],
@@ -1022,7 +1108,7 @@ function drawMap(F) {
   }
   wires.nnClk.el.style.opacity = S.ai ? 1 : 0.3;
   nodes.gain.sub.textContent = S.agc ? `GainNode · ${S.appliedDb >= 0 ? '+' : ''}${S.appliedDb.toFixed(1)} dB` : 'GainNode · off (×1)';
-  nodes.nn.sub.textContent = S.ai ? `Web Worker · last: ${F.aiLast}` : 'off · the DSP clock decides alone';
+  nodes.nn.sub.textContent = S.ai ? `Web Worker · last: ${F.aiLast}` : 'off · the DSP grid decides alone';
   nodes.clk.sub.textContent = F.locked ? `${F.bpm.toFixed(1)} BPM · ${F.off ? 'off-beat!' : 'on the beat'}` : 'listening…';
   nodes.clk.r.style.stroke = F.sinceBeat < 0.12 ? `var(--${F.off ? 'onset' : 'beat'})` : '';
   nodes.clk.r.style.strokeWidth = F.sinceBeat < 0.12 ? 3 : '';
@@ -1102,7 +1188,18 @@ function drawOnsets(F) {
 
 /* ---------- stage 2: tempo ---------- */
 const tempoView = surface('tempoCanvas');
-const TW = Math.round(8 * FR), MIN_LAG = Math.floor((60 / 200) * FR), MAX_LAG = Math.ceil((60 / 60) * FR);
+// Music styles: tempo range and prior (src/audio/core/styles.ts)
+const TEMPO_STYLES = [
+  { id: 'auto', label: 'Auto', min: 60, max: 200, prior: 128, oct: 0.7 },
+  { id: 'bass', label: 'Dubstep', min: 60, max: 190, prior: 140, oct: 0.6 },
+  { id: 'hiphop', label: 'Hip-hop', min: 60, max: 180, prior: 120, oct: 0.9 },
+  { id: 'band', label: 'Rock', min: 60, max: 200, prior: 115, oct: 0.9 },
+  { id: 'chill', label: 'Chill', min: 50, max: 140, prior: 85, oct: 0.7 },
+  { id: 'hard', label: 'Hardcore', min: 130, max: 230, prior: 170, oct: 0.5 },
+];
+let tempoStyle = TEMPO_STYLES[0];
+const AX_MIN = 50, AX_MAX = 230;
+const TW = Math.round(8 * FR), MIN_LAG = Math.floor((60 / AX_MAX) * FR), MAX_LAG = Math.ceil((60 / AX_MIN) * FR);
 const acf = new Float64Array(4 * MAX_LAG + 4);
 const tempoState = { raw: new Float64Array(MAX_LAG + 2), score: new Float64Array(MAX_LAG + 2), shownRaw: new Float64Array(MAX_LAG + 2), shown: new Float64Array(MAX_LAG + 2), bpm: 0, at: -1, flash: 0 };
 function computeTempo(now) {
@@ -1135,9 +1232,10 @@ function computeTempo(now) {
     }
     const h0 = Math.floor(lag / 2);
     s = (s + 0.5 * Math.max(0, acf[h0], acf[h0 + 1])) / (ws + 0.5);
-    const bpm = (60 * FR) / lag, oct = Math.log2(bpm / 128) / 0.7;
+    const bpm = (60 * FR) / lag, oct = Math.log2(bpm / tempoStyle.prior) / tempoStyle.oct;
+    const inRange = bpm >= tempoStyle.min && bpm <= tempoStyle.max;
     tempoState.raw[lag] = Math.max(0, s);
-    tempoState.score[lag] = Math.max(0, s) * Math.exp(-0.5 * oct * oct);
+    tempoState.score[lag] = inRange ? Math.max(0, s) * Math.exp(-0.5 * oct * oct) : 0;
     if (tempoState.score[lag] > bestScore) { bestScore = tempoState.score[lag]; best = lag; }
   }
   // refine on the 4th harmonic (parabolic peak)
@@ -1158,23 +1256,26 @@ function drawTempo(F) {
     ts.shownRaw[l] += (ts.raw[l] - ts.shownRaw[l]) * 0.25;
   }
   const pad = { l: 12, r: 12, t: 22, b: 30 };
-  const bx = (bpm) => pad.l + (Math.log2(bpm / 60) / Math.log2(200 / 60)) * (w - pad.l - pad.r);
+  const bx = (bpm) => pad.l + (Math.log2(bpm / AX_MIN) / Math.log2(AX_MAX / AX_MIN)) * (w - pad.l - pad.r);
   const py = (v, vmax) => h - pad.b - (v / vmax) * (h - pad.t - pad.b);
   ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
   let vmax = 0.05;
   for (let l = MIN_LAG; l <= MAX_LAG; l++) vmax = Math.max(vmax, ts.shownRaw[l]);
   vmax *= 1.12;
-  for (const b of [60, 80, 100, 130, 160, 200]) {
+  for (const b of [50, 70, 100, 130, 170, 230]) {
     const x = bx(b);
     ctx.fillStyle = alpha(C['screen-ink'], 0.1); ctx.fillRect(x, pad.t, 1, h - pad.t - pad.b);
-    label(ctx, b === 60 ? '60 BPM' : String(b), x, h - 14, C['screen-muted'], b === 60 ? 'left' : b === 200 ? 'right' : 'center');
+    label(ctx, b === AX_MIN ? `${b} BPM` : String(b), x, h - 14, C['screen-muted'], b === AX_MIN ? 'left' : b === AX_MAX ? 'right' : 'center');
   }
-  // prior
+  // prior of the selected style, inside its range
   ctx.beginPath();
+  let penDown = false;
   for (let x = pad.l; x <= w - pad.r; x += 2) {
-    const bpm = 60 * Math.pow(200 / 60, (x - pad.l) / (w - pad.l - pad.r)), oct = Math.log2(bpm / 128) / 0.7;
+    const bpm = AX_MIN * Math.pow(AX_MAX / AX_MIN, (x - pad.l) / (w - pad.l - pad.r)), oct = Math.log2(bpm / tempoStyle.prior) / tempoStyle.oct;
+    if (bpm < tempoStyle.min || bpm > tempoStyle.max) { penDown = false; continue; }
     const y = py(Math.exp(-0.5 * oct * oct) * vmax * 0.9, vmax);
-    x === pad.l ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    penDown ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    penDown = true;
   }
   ctx.setLineDash([2, 4]); ctx.strokeStyle = alpha(C['screen-ink'], 0.45); ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]);
   const curve = (arr, stroke, width, fill) => {
@@ -1202,14 +1303,26 @@ function drawTempo(F) {
   }
 }
 
-/* ---------- stage 3: the phase dial and predict vs detect ---------- */
+const tempoStylesEl = $('tempoStyles');
+tempoStylesEl.innerHTML = TEMPO_STYLES.map(st => `<button type="button" data-style="${st.id}" aria-pressed="${st === tempoStyle}">${st.label}</button>`).join('');
+tempoStylesEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  tempoStyle = TEMPO_STYLES.find(st => st.id === b.dataset.style) || TEMPO_STYLES[0];
+  for (const x of tempoStylesEl.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b));
+  $('tsRange').textContent = `${tempoStyle.min}–${tempoStyle.max} BPM`;
+  $('tsPrior').textContent = `${tempoStyle.prior} BPM, ${tempoStyle.oct} octave wide`;
+  tempoState.at = -1; // recompute at once
+});
+
+/* ---------- stage 3: the grid's phase dial and the hit window ---------- */
 const dialView = surface('dialCanvas');
 function drawDial(F) {
   const { ctx, w, h } = dialView;
   ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2 + 6, R = Math.min(w, h) / 2 - 30;
   const ang = (ph) => -Math.PI / 2 + ph * Math.PI * 2;
-  // PLL search window: +-8% of a beat around the predicted beat
+  // PLL search window: +-8% of a beat around the grid beat
   ctx.beginPath(); ctx.arc(cx, cy, R, ang(-0.08), ang(0.08));
   ctx.strokeStyle = alpha(C['s-beat'], 0.35); ctx.lineWidth = 16; ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
@@ -1219,7 +1332,7 @@ function drawDial(F) {
     ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
     ctx.strokeStyle = alpha(C['screen-ink'], i % 4 === 0 ? 0.5 : 0.2); ctx.lineWidth = 1; ctx.stroke();
   }
-  label(ctx, 'PREDICTED BEAT', cx, cy - R - 16, C['s-beat'], 'center');
+  label(ctx, 'GRID BEAT', cx, cy - R - 16, C['s-beat'], 'center');
   label(ctx, 'OFF-BEAT', cx, cy + R + 16, C['screen-muted'], 'center');
   // onsets of the last 4 beats, placed at their phase relative to the clock's grid
   if (F.locked) {
@@ -1236,13 +1349,13 @@ function drawDial(F) {
     }
   }
   // the hand
-  const a = ang(F.phase), flash = Math.exp(-F.sinceBeat / 0.12);
+  const a = ang(F.gridPhase), flash = Math.exp(-F.sinceBeat / 0.12) * F.strength;
   const col = F.off ? C['s-onset'] : C['s-beat'];
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4));
   ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, cy, 30 + 10 * flash, 0, Math.PI * 2);
   ctx.fillStyle = alpha(col, 0.12 + 0.5 * flash); ctx.fill();
-  label(ctx, F.locked ? F.phase.toFixed(2) : '—', cx, cy, C['screen-ink'], 'center', 14);
+  label(ctx, F.locked ? F.gridPhase.toFixed(2) : '—', cx, cy, C['screen-ink'], 'center', 14);
   label(ctx, 'PHASE', cx, cy + 18, C['screen-muted'], 'center', 9);
   label(ctx, '● MID ONSETS', 12, h - 14, C['s-onset']);
   label(ctx, '● HATS', w - 12, h - 14, C['screen-muted'], 'right');
@@ -1251,24 +1364,40 @@ const predictView = surface('predictCanvas');
 function drawPredict(F) {
   const { ctx, w, h } = predictView;
   ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
-  // one beat window: 0.3 beat before the beat to 0.7 after; the playhead follows the clock phase
-  const lx = 104, span = w - lx - 16, tx = (u) => lx + ((u + 0.3) / 1) * span;
-  const u = (F.locked ? mod(F.phase + 0.3, 1) : 0) - 0.3;
-  const beatX = tx(0), lateX = tx(0.042 / T);   // ~40 ms: onset lag + peak decision + message + next frame
-  ctx.fillStyle = alpha(C['screen-ink'], 0.18); ctx.fillRect(beatX - 0.5, 8, 1, h - 16);
-  label(ctx, 'THE BEAT', beatX, 10, C['screen-muted'], 'center', 9);
-  const rows = [['DETECTOR', lateX, C['s-onset'], 'reacts after the peak'], ['BEAT CLOCK', beatX, C['s-beat'], 'fires on the prediction']];
-  rows.forEach(([name, x, col, note], i) => {
-    const y = 48 + i * 52;
-    label(ctx, name, 12, y, C['screen-muted'], 'left', 10);
-    ctx.fillStyle = C['screen-2']; ctx.fillRect(lx, y - 14, span, 28);
-    const lit = u >= (x - lx) / span - 0.3 && u < (x - lx) / span - 0.3 + 0.18;
-    const g = lit ? 1 - (u - ((x - lx) / span - 0.3)) / 0.18 : 0;
-    ctx.fillStyle = alpha(col, 0.25 + 0.75 * g); ctx.fillRect(x - 3, y - 14, 6, 28);
-    if (g > 0) { ctx.fillStyle = alpha(col, 0.25 * g); ctx.fillRect(x, y - 14, 60 * g, 28); }
-    if (w > 460) label(ctx, note, x + 14, y, alpha(C['screen-ink'], 0.8), 'left', 10);
+  // one beat of the grid: 0.3 beat before a grid beat to 0.7 after
+  const lx = 92, span = w - lx - 16, tx = (d) => lx + ((d / T + 0.3) / 1) * span;
+  const beatX = tx(0);
+  ctx.fillStyle = alpha(C['s-beat'], 0.18);
+  ctx.fillRect(tx(-HIT_WINDOW), 22, tx(HIT_WINDOW) - tx(-HIT_WINDOW), h - 30);
+  ctx.fillStyle = alpha(C['screen-ink'], 0.3); ctx.fillRect(beatX - 0.5, 22, 1, h - 30);
+  label(ctx, 'GRID BEAT ±50 ms', beatX, 12, C['s-beat'], 'center', 9);
+  const rowY = [58, 112];
+  ['HEARD', 'FIRES'].forEach((n, i) => {
+    label(ctx, n, 12, rowY[i], C['screen-muted'], 'left', 10);
+    ctx.fillStyle = alpha(C['screen-2'], 0.6); ctx.fillRect(lx, rowY[i] - 14, span, 28);
   });
-  ctx.fillStyle = alpha(C['screen-ink'], 0.8); ctx.fillRect(tx(u) - 1, 26, 2, h - 34);
+  if (!F.locked) return;
+  const rel = (t) => { const g = Math.round((t - S.offset * T) / T) * T + S.offset * T; return mod(t - g + 0.3 * T, T) - 0.3 * T; };
+  // every kick and mid onset of the last four beats
+  const f1 = Math.floor(F.now * FR) - 2, f0 = f1 - Math.round(4 * T * FR);
+  for (const lane of ['kick', 'mid']) {
+    for (let f = f0; f <= f1; f++) {
+      if (!peaks[lane][mod(f, N)]) continue;
+      const t = (f - LAG[lane]) / FR, d = rel(t), age = (F.now - t) / (4 * T);
+      const inside = Math.abs(d) <= HIT_WINDOW;
+      ctx.beginPath(); ctx.arc(tx(d), rowY[0] + (lane === 'kick' ? -6 : 6), 4, 0, Math.PI * 2);
+      ctx.fillStyle = alpha(inside ? C['s-onset'] : C['screen-muted'], 1 - 0.7 * age); ctx.fill();
+    }
+  }
+  // the beats that fired, a moment after their hit
+  for (const b of S.fired) {
+    const age = (F.now - b.t) / (4 * T);
+    if (age > 1 || !b.onset) continue;
+    const x = tx(rel(b.onset) + (b.t - b.onset));
+    ctx.fillStyle = alpha(b.off ? C['s-onset'] : C['s-beat'], (0.3 + 0.7 * b.str) * (1 - 0.7 * age));
+    ctx.fillRect(x - 2.5, rowY[1] - 12, 5, 24);
+  }
+  if (w > 460) label(ctx, 'outside the window: heard, ignored', w - 16, rowY[0] - 20, C['screen-muted'], 'right', 9);
 }
 
 /* ---------- stage 4: AI Beat Tracking timeline ---------- */
@@ -1281,7 +1410,7 @@ function drawAi(F) {
   const tx = (t) => xr - (F.now - t) * pps;
   ctx.fillStyle = C.screen; ctx.fillRect(0, 0, w, h);
   const rowY = [34, 84, 150];
-  const names = ['TRUE BEAT', 'BEAT CLOCK', S.ai ? 'AI WINDOWS' : 'AI OFF'];
+  const names = ['TRUE BEAT', 'BEATS', S.ai ? 'AI WINDOWS' : 'AI OFF'];
   names.forEach((n, i) => {
     ctx.fillStyle = C['screen-2']; ctx.fillRect(lx, rowY[i] - 16, xr - lx, i === 2 ? 72 : 32);
     label(ctx, n, 10, rowY[i], i === 2 ? C['s-ai'] : C['screen-muted'], 'left', 9);
@@ -1302,7 +1431,7 @@ function drawAi(F) {
   for (const b of S.fired) {
     if (b.t < F.now - PAST) continue;
     const x = tx(b.t);
-    ctx.fillStyle = b.off ? C['s-onset'] : C['s-beat'];
+    ctx.fillStyle = alpha(b.off ? C['s-onset'] : C['s-beat'], 0.35 + 0.65 * b.str);
     ctx.fillRect(x - 1.5, rowY[1] - 11, 3, 22);
   }
   for (const m of S.marks) {
@@ -1387,11 +1516,11 @@ function onLevel() {
 levelInput.addEventListener('input', onLevel);
 onLevel();
 
-/* ---------- stage 6: the AudioFrame inspector ---------- */
+/* ---------- stage 7: the AudioFrame inspector ---------- */
 const inspector = $('inspector');
 let beatFlash = 0;
 function drawInspector(F) {
-  beatFlash = F.isBeat ? 1 : beatFlash * 0.9;
+  beatFlash = F.isBeat ? F.strength : beatFlash * 0.9;
   if (textTick % 3 && !F.isBeat) return;
   const bar = (v, cls = '') => `<span class="bar ${cls}" style="width:${Math.round(clamp(v, 0, 1) * 90)}px"></span>`;
   const k = (s) => `<span class="key">${s}</span>`;
@@ -1402,7 +1531,9 @@ function drawInspector(F) {
     `${k('beat.count      ')}${F.count}`,
     `${k('beat.barBeat    ')}${F.count ? F.barBeat : 0}`,
     `${k('beat.bpm        ')}${F.bpm.toFixed(1)}`,
+    `${k('beat.tempo      ')}${F.bpm.toFixed(1)}  ${k('divisor 1 (every beat)')}`,
     `${k('beat.confidence ')}${F.conf.toFixed(2)}`,
+    `${k('beat.strength   ')}${F.count ? F.strength.toFixed(2) : '0.00'}  ${bar(F.count ? F.strength : 0)}`,
     `${k('beat.phase      ')}${F.phase.toFixed(2)}  ${bar(F.phase)}`,
     `${k('beat.sinceBeat  ')}${F.count ? F.sinceBeat.toFixed(3) : '∞'} s`,
     `${k('onsets.kick     ')}<span class="o">envelope ${on.kick.envelope.toFixed(2)}</span> ${bar(on.kick.envelope)}`,
@@ -1412,6 +1543,7 @@ function drawInspector(F) {
     `${k('bands.highMid   ')}${F.bands.highMid.toFixed(2)}  ${bar(F.bands.highMid)}`,
     `${k('level.rms       ')}${F.rms.toFixed(3)}`,
     `${k('gain            ')}<span class="g">${Math.pow(10, S.appliedDb / 20).toFixed(2)}</span>  ${k(S.agc ? 'Auto Gain on' : 'Auto Gain off')}`,
+    `${k('style           ')}auto`,
     `${k('engine.neural   ')}<span class="a">${S.ai ? 'ready' : 'off'}</span>  ${k('last: ' + F.aiLast)}`,
   ].join('\n');
 }

@@ -3,6 +3,7 @@
  * batches messages. Shared by the AudioWorklet and the ScriptProcessor fallback.
  */
 import { Analyzer, type AnalyzerEvent } from '../core/Analyzer';
+import type { StyleId } from '../core/styles';
 import { HOPS_PER_MESSAGE, type EngineToHost, type HostToEngine } from './protocol';
 
 export class AnalysisCore {
@@ -16,16 +17,21 @@ export class AnalysisCore {
   private lastTime = 0;
   private hopsSincePost = 0;
   private ctxOffset = NaN;
+  private readonly sampleRate: number;
+  private samples = 0;
 
-  constructor(sampleRate: number, post: (m: HostToEngine, transfer?: Transferable[]) => void, neural: boolean) {
-    this.analyzer = new Analyzer(sampleRate, { neural: true });
+  constructor(sampleRate: number, post: (m: HostToEngine, transfer?: Transferable[]) => void, neural: boolean, style?: StyleId) {
+    this.analyzer = new Analyzer(sampleRate, { neural: true, style });
     this.analyzer.setNeuralActive(neural);
     this.post = post;
+    this.sampleRate = sampleRate;
   }
 
   onMessage(m: EngineToHost): void {
-    if (m.type === 'neuralResult') this.analyzer.applyNeural(m.t0, m.activation, m.validFrom);
+    if (m.type === 'neuralResult') this.analyzer.applyNeural(m.t0, m.activation, m.validFrom, m.downbeat);
     else if (m.type === 'neuralActive') this.analyzer.setNeuralActive(m.active);
+    else if (m.type === 'style') this.analyzer.setStyle(m.style);
+    else if (m.type === 'songChange') this.analyzer.songChanged();
   }
 
   /** Process one block. `channels` are the input channel arrays; `contextTime` the block start. */
@@ -44,7 +50,11 @@ export class AnalysisCore {
       }
     }
     const a = this.analyzer;
-    if (Number.isNaN(this.ctxOffset)) this.ctxOffset = contextTime - a.state.time;
+    // Stream time -> context time, re-anchored every block: the worklet's currentTime can lag
+    // the context by the module load time (~350 ms in Chrome) on the first blocks, and a frozen
+    // offset would then stamp every event that much too early.
+    this.ctxOffset = contextTime - this.samples / this.sampleRate;
+    this.samples += length;
     const before = a.state.time;
     a.process(m, length);
     for (const e of a.drainEvents()) this.events.push(e);

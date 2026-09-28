@@ -1,11 +1,14 @@
 /**
- * Builds the self-contained HTML evidence report docs/reports/audio-engine-report.html from
- * the committed evaluation data (docs/reports/data/*.json) and assets.
+ * Builds the self-contained HTML evidence report docs/reports/audio-engine-report-<version>.html
+ * (the version in package.json) from the committed evaluation data (docs/reports/data/*.json)
+ * and assets. Reports of earlier versions stay next to it; the 0.23.0 report is
+ * docs/reports/audio-engine-report.html.
  *
  *   npm run report
  */
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { STYLE_PROFILES, type StyleId } from '../../src/audio/core/styles.ts';
 
 type Json = Record<string, any>;
 const DATA = 'docs/reports/data';
@@ -30,10 +33,19 @@ const liveDeep = load('live-deep.json');
 const beforeAfter = load('before-after.json');
 const agc = load('agc.json');
 const skillProof = load('skill-proof.json');
+const genres = load('eval-genres.json');
+const genres023 = load('eval-genres-v0.23.json');
+const mix023 = load('eval-mix-v0.23.json');
+const mixElectronic = load('eval-mix-electronic.json');
+// live checks on genre excerpts: docs/reports/data/live-genre-<excerpt>.json (scripts/eval/live.ts --excerpt --style)
+const liveGenres: Json[] = existsSync(DATA) ? readdirSync(DATA).filter(f => /^live-genre-.*\.json$/.test(f)).sort().map(f => load(f)!).filter(Boolean) : [];
 const manifest = JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8'));
 const roleOf = (id: string) => manifest.excerpts.find((e: Json) => e.id === id)?.role ?? '';
 const noteOf = (id: string) => manifest.excerpts.find((e: Json) => e.id === id)?.note ?? '';
 const label = (id: string) => { const e = manifest.excerpts.find((x: Json) => x.id === id); if (!e) return id; const m = Math.floor(e.start / 60), s = e.start % 60; return `${m}:${String(s).padStart(2, '0')}`; };
+const version: string = JSON.parse(readFileSync('package.json', 'utf8')).version;
+const OUT = `docs/reports/audio-engine-report-${version}.html`;
+const PREVIOUS = [{ version: '0.23.0', file: 'audio-engine-report.html', note: 'the rewrite, measured on the DJ mix' }];
 let commit = 'unknown';
 try { commit = execSync('git rev-parse --short HEAD').toString().trim(); } catch { /* not a git checkout */ }
 
@@ -152,7 +164,7 @@ function architecture(): string {
   <g class="box"><rect x="660" y="20" width="210" height="160" rx="8"/><text x="765" y="42" class="bt">VisualizerHost</text>
     <text x="765" y="64">one rAF loop</text><text x="765" y="82">resize · DPR · errors</text><text x="765" y="100">AudioFrame per frame</text><text x="765" y="118">beat · onsets · bands</text><text x="765" y="136">spectrum · waveform</text><text x="765" y="160" class="muted">dev probe (QA)</text></g>
   <g class="box"><rect x="660" y="220" width="210" height="95" rx="8"/><text x="765" y="242" class="bt">56 renderer modules</text><text x="765" y="264">frame(audio, settings)</text><text x="765" y="282">resize · dispose</text><text x="765" y="300" class="muted">+ optional React overlay</text></g>
-  <g class="box"><rect x="200" y="235" width="420" height="80" rx="8"/><text x="410" y="257" class="bt">React shell</text><text x="410" y="279">Header · Settings (Auto Gain, AI Beat Tracking) · Sendspin bar</text><text x="410" y="297">picker · shuffle · crossfade stage · URL state</text></g>
+  <g class="box"><rect x="200" y="235" width="420" height="80" rx="8"/><text x="410" y="257" class="bt">React shell</text><text x="410" y="279">Header · Settings (Music style, Auto Gain, AI) · Sendspin bar</text><text x="410" y="297">picker · shuffle · crossfade stage · URL state</text></g>
   <path class="flow" d="M160,80 H213" marker-end="url(#arr)"/>
   <path class="flow" d="M405,75 H423" marker-end="url(#arr)"/><path class="flow" d="M425,95 H407" marker-end="url(#arr)"/>
   <path class="flow" d="M620,110 H658" marker-end="url(#arr)"/>
@@ -245,6 +257,72 @@ function neuralSection(): string {
     Inference averaged <b>${f0(ms)} ms</b> per 10 s window (WebAssembly, one thread, in Node; about 1 s in Chrome on this machine), in a Worker off the audio and render threads.</p>
     ${parity ? `<p>Front-end parity with beat_this in Python (same audio, same model): log-mel mean absolute difference <b>${f3(parity.melMeanAbsDiff)}</b>
     (mean level ${f2(parity.melMeanAbsRef)}), frame lag 0, and <b>${parity.peaksMatchedWithin1Frame}/${parity.pythonPeaks}</b> beat peaks identical within one 20 ms frame.</p>` : ''}`;
+}
+
+// ---------------------------------------------------------------------------------------
+// Genres (scripts/eval/genres.json; audio stays local, see the manifest)
+// ---------------------------------------------------------------------------------------
+const genreExcerpts: Json[] = genres?.excerpts ?? [];
+const gRes = (set: Json | null, id: string, style: string, mode: string, sr = 44100) =>
+  set?.excerpts.find((e: Json) => e.id === id)?.results.find((r: Json) => r.mode === mode && r.sampleRate === sr && r.style === style);
+const g023 = (id: string, mode: string) => gRes(genres023, id, 'default', mode);
+const gAuto = (id: string, mode: string) => gRes(genres, id, 'auto', mode);
+const gStyle = (e: Json, mode: string) => gRes(genres, e.id, e.style, mode);
+const pulseF = (r: Json | undefined) => r?.pulse?.fMeasure ?? null;
+const gLabel = (e: Json) => `${e.id.replace(/^genre-/, '').replace(/-a$/, ' A').replace(/-b$/, ' B')}`;
+const styleLabel = (id: string) => STYLE_PROFILES[id as StyleId]?.label ?? id;
+const meanOf = (xs: (number | null)[]) => mean(xs.filter((v): v is number => v !== null && Number.isFinite(v)));
+const genreRole = (role: string) => genreExcerpts.filter(e => e.role === role);
+
+function genreChart(mode: string, title: string): string {
+  return groupedBars(genreExcerpts.map(gLabel), [
+    { name: '0.23 engine', cls: 's3', values: genreExcerpts.map(e => pulseF(g023(e.id, mode))) },
+    { name: 'Auto', cls: 's2', values: genreExcerpts.map(e => pulseF(gAuto(e.id, mode))) },
+    { name: 'The matching Music style', cls: 's1', values: genreExcerpts.map(e => pulseF(gStyle(e, mode))) },
+  ], { yMax: 1, yTicks: [0, 0.2, 0.4, 0.6, 0.8, 1], title });
+}
+
+function genreTable(): string {
+  const rows = genreExcerpts.map(e => {
+    const g = e.gatesByStyle?.matching?.hybrid ?? {};
+    const fails = Object.entries(g).filter(([, v]: [string, any]) => !v.pass).map(([k]) => k);
+    const lv = (r: Json | undefined) => (r ? Math.max(r.levelChanges?.tempo ?? 0, r.levelChanges?.pulse ?? 0) : null);
+    return `<tr><td>${esc(gLabel(e))}</td><td>${esc(e.role)}</td><td>${esc(styleLabel(e.style))}</td><td class="num">${e.expectedPulseBpm ?? 'either'}</td>
+      <td class="num">${f3(pulseF(g023(e.id, 'dsp')))}</td><td class="num">${f3(pulseF(g023(e.id, 'hybrid')))}</td>
+      <td class="num">${f3(pulseF(gAuto(e.id, 'dsp')))}</td><td class="num">${f3(pulseF(gAuto(e.id, 'hybrid')))}</td>
+      <td class="num">${f3(pulseF(gStyle(e, 'dsp')))}</td><td class="num strong">${f3(pulseF(gStyle(e, 'hybrid')))}</td>
+      <td class="num">${f3(gStyle(e, 'hybrid')?.trackingAmlt)}</td><td class="num">${lv(g023(e.id, 'hybrid')) ?? '–'} → ${lv(gStyle(e, 'hybrid')) ?? '–'}</td>
+      <td>${badge(!fails.length)}${fails.length ? ` <span class="muted small">${esc(fails.join(', '))}</span>` : ''}</td></tr>`;
+  }).join('');
+  return `<div class="scroll"><table><thead><tr><th>Excerpt</th><th>Role</th><th>Music style</th><th class="num">Pulse BPM</th>
+    <th class="num">0.23 DSP</th><th class="num">0.23 AI</th><th class="num">Auto DSP</th><th class="num">Auto AI</th><th class="num">Style DSP</th><th class="num">Style AI</th>
+    <th class="num">Style AI AMLt</th><th class="num">Level changes (AI)</th><th>Gates (style, AI)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function liveGenreTable(): string {
+  if (!liveGenres.length) return '<p class="muted">Not run.</p>';
+  const rows = liveGenres.flatMap(run => (run.results ?? []).map((r: Json) => `<tr><td>${esc(gLabel({ id: run.excerpt }))}</td><td>${esc(styleLabel(run.style))}</td><td>${esc(r.id)}</td>
+    <td>${badge(!!r.pass)}</td><td>${esc(r.why ?? (r.error ? 'error' : ''))}</td><td class="num">${f2(r.beat?.fMeasure)}</td><td class="num">${f0(r.beat?.medianOffsetMs)}</td>
+    <td class="num">${f0(r.fpsClean)}</td><td class="num">${r.errors?.length ?? '–'}</td></tr>`)).join('');
+  return `<div class="scroll"><table class="compact"><thead><tr><th>Excerpt</th><th>Music style</th><th>Visualizer</th><th>Result</th><th>Because</th>
+    <th class="num">Fired-beat F</th><th class="num">Offset ms</th><th class="num">FPS</th><th class="num">Errors</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="muted">Same harness and rules as section 5, AI on, 20 s after an 8 s warm-up; the fired beats are scored against the expected pulse (the half-time pulse for dubstep).</p>`;
+}
+
+function mixRegression(): string {
+  const set = (d: Json | null, mode: string) => (d?.excerpts ?? []).map((e: Json) => e.results.find((r: Json) => r.mode === mode && r.sampleRate === 44100)?.beats.confident.fMeasure ?? null);
+  const row = (name: string, d: Json | null) => {
+    if (!d) return '';
+    const lower = (mode: string) => (d.excerpts ?? []).filter((e: Json) => {
+      const before = mix023?.excerpts.find((x: Json) => x.id === e.id)?.results.find((r: Json) => r.mode === mode && r.sampleRate === 44100)?.beats.confident.fMeasure;
+      const now = e.results.find((r: Json) => r.mode === mode && r.sampleRate === 44100)?.beats.confident.fMeasure;
+      return before !== undefined && now !== undefined && now < before - 0.005;
+    }).length;
+    return `<tr><td>${esc(name)}</td><td class="num">${f3(meanOf(set(d, 'dsp')))}</td><td class="num">${f3(meanOf(set(d, 'hybrid')))}</td>
+      <td class="num">${d === mix023 ? '–' : `${lower('dsp')} / ${lower('hybrid')}`}</td></tr>`;
+  };
+  return `<div class="scroll"><table><thead><tr><th>DJ mix, 13 excerpts</th><th class="num">DSP F</th><th class="num">AI F</th><th class="num">Excerpts lower than 0.23 (DSP / AI)</th></tr></thead>
+    <tbody>${row('0.23 engine', mix023)}${row('Auto (default)', evalMix)}${row('House, techno, trance', mixElectronic)}</tbody></table></div>`;
 }
 
 function liveTable(): string {
@@ -370,8 +448,9 @@ const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta n
 <title>VoltViz Audio Engine Report</title><style>${css}</style></head><body>
 <main>
 <p class="wordmark">VoltViz<span> Music Visualizer</span></p>
-<h1>Audio engine rewrite — evidence report</h1>
-<p class="muted">Generated ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC, built on commit <code>${commit}</code> · test material: a DJ mix (2-minute excerpts) · rebuild with <code>npm run report</code>.</p>
+<h1>Audio engine — evidence report, version ${esc(version)}</h1>
+<p class="muted">Earlier reports: ${PREVIOUS.map(p => `<a href="${p.file}">${p.version}</a> (${esc(p.note)})`).join(' · ')}.</p>
+<p class="muted">Generated ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC, built on commit <code>${commit}</code> · test material: a DJ mix (2-minute excerpts) and songs from five other genres · rebuild with <code>npm run report</code>.</p>
 ${tiles()}
 <div class="card"><p><b>Verdict.</b> The new engine finds the beat on this mix far more reliably than the old per-visualizer detectors: mean beat F-measure
 <b>${f3(mean(hybridAllF))}</b> over all ${excerpts.length} excerpts (DSP-only fallback ${f3(mean(dspAllF))}) against <b>${f3(mean(baselineBest))}</b> for the best old detector, and
@@ -408,7 +487,30 @@ ${historyTable()}
 <h3>AI beat tracking</h3>
 ${neuralSection()}
 
-<h2>4. Visualizers in the running app</h2>
+<h2>4. Other genres: the Music style setting</h2>
+<p>The engine above was designed on one DJ mix: four-on-the-floor, 130–147 BPM, tempo-synced. On other music it made two kinds of mistakes: <b>wrong speed</b> (a 3:2 or 4:3 relative of the tempo, double/half flapping between the AI and the DSP clock, or flashing at 140 on dubstep that is felt at 70) and <b>lost beats</b> (confidence gates tuned on the mix that reject the beat of dense or soft music). The fix is a <b>Music style</b> setting, Auto by default, plus engine changes that help every style.</p>
+<ul>
+<li><b>Music style</b> (Settings, <code>?style=</code>): Auto · ${Object.values(STYLE_PROFILES).filter(p => p.id !== 'auto').map(p => esc(p.label)).join(' · ')}. A style sets the tempo range and prior (which metrical level wins a tie) and when effects follow the <b>half-time pulse</b>. Settings shows what the engine follows right now.</li>
+<li><b>Half-time pulse</b>: the tracker keeps its steadiest level (140 for dubstep) and fires every other beat, on the parity with the stronger accents (kick on 1, snare on 3). The Dubstep, drum &amp; bass, trap style always does this above 110 BPM; the rock style when the accents alternate; Auto and the hip-hop style only on unmistakable evidence (nothing, and no kick, on every other beat for ~7 s), so a DJ's half-time build-up still flashes on every beat.</li>
+<li><b>Tempo</b>: a beat period must repeat by itself (half-time drums are tracked at the rate of their hits); 4:3 jumps away from a tempo followed with confidence need the same evidence as 3:2 jumps; returning to a recently confident tempo is always allowed; a clock that its own estimate out-votes for 6 s without confidence may re-time.</li>
+<li><b>AI beat tracking</b>: after a confirm or re-time the DSP may not make a metrical tempo jump (octave, 3:2, 4:3) for 30 s (the phase lock stays 12 s) — this ended the 154 ↔ 77 BPM flapping on the rock song; the network may also re-time a clock stuck on a 4:3 relative or wandering without confidence, but only when the DSP's own tempo estimate does not back the clock (the network makes 4:3 errors too).</li>
+<li><b>Confidence</b>: for Auto and the genre styles the periodicity gates start lower (vocals and melody dilute the periodicity of an audible beat); the House, techno, trance style keeps the 0.23 gates. When no beat is confident, effects fall back to kick hits and, except for the dance styles, also to snare/strum hits.</li>
+</ul>
+<p><b>Test material.</b> ${genreExcerpts.length ? `${new Set(genreExcerpts.map(e => e.file)).size} songs from the user's library (dubstep, hardcore, Dutch rap, two relaxing songs, a rock song), each split into a first half used for tuning and a second half evaluated afterwards (“weak check”: not independent, the same song). The audio is not distributed; the manifest and the reference beats are in the repository.` : 'not evaluated.'} References as for the mix, except that a window counts when madmom and beat_this agree <i>at any metrical level</i> (they disagree on 77 vs 154 BPM for parts of the rock song and on 70 vs 140 for parts of the dubstep). The expected pulse per excerpt is part of the manifest: the user's choice for dubstep is the half-time pulse (bar beats 1 and 3 from madmom's downbeats); for rap either level counts. Gates: pulse F ≥ 0.80 (0.70 for the ballads), continuity AMLt ≥ 0.90, |median offset| ≤ 20 ms, at most one tempo/pulse level change after 15 s.</p>
+<div class="card"><h4>AI beat tracking on (hybrid)</h4>${genreChart('hybrid', 'Pulse F-measure per genre excerpt, AI on')}
+<h4>AI beat tracking off (DSP only)</h4>${genreChart('dsp', 'Pulse F-measure per genre excerpt, AI off')}</div>
+<details open><summary>Table</summary>${genreTable()}</details>
+<p class="muted">Dubstep B (the second half of the dubstep song) is not half-time: measured on the audio, its kick stays on bar beat 1 but the snare moves to beats 2 and 4. The half-time reference (bar beats 1 and 3, fixed in the manifest before this half was looked at) therefore does not apply there; with the Dubstep style the engine follows the snares on 2 and 4 (pulse F ${f3(gStyle(genreExcerpts.find(e => e.id === 'genre-dubstep-b') ?? {}, 'dsp')?.pulse?.alternatives?.find((a: Json) => a.name.includes('2+4'))?.fMeasure)} against that parity, AI off). The number is left as measured.</p>
+<p>Means over the tuning halves, AI on: 0.23 <b>${f3(meanOf(genreRole('tuning').map(e => pulseF(g023(e.id, 'hybrid')))))}</b>, Auto <b>${f3(meanOf(genreRole('tuning').map(e => pulseF(gAuto(e.id, 'hybrid')))))}</b>, matching style <b>${f3(meanOf(genreRole('tuning').map(e => pulseF(gStyle(e, 'hybrid')))))}</b>; weak-check halves: 0.23 <b>${f3(meanOf(genreRole('weak check').map(e => pulseF(g023(e.id, 'hybrid')))))}</b>, Auto <b>${f3(meanOf(genreRole('weak check').map(e => pulseF(gAuto(e.id, 'hybrid')))))}</b>, matching style <b>${f3(meanOf(genreRole('weak check').map(e => pulseF(gStyle(e, 'hybrid')))))}</b>.
+AI off: 0.23 ${f3(meanOf(genreExcerpts.map(e => pulseF(g023(e.id, 'dsp')))))}, Auto ${f3(meanOf(genreExcerpts.map(e => pulseF(gAuto(e.id, 'dsp')))))}, matching style ${f3(meanOf(genreExcerpts.map(e => pulseF(gStyle(e, 'dsp')))))} (all excerpts).</p>
+<h3>The DJ mix does not regress</h3>
+<p>Every change was checked against all 13 mix excerpts; Auto must never use the half-time pulse on the mix (every tracked beat fires).</p>
+${mixRegression()}
+<h3>In the running app</h3>
+<p>Four visualizers (Raw Audio, Dutch Grid, Poly Sphere, Halftone Pulse) played genre excerpts in the real app with the matching Music style.</p>
+${liveGenreTable()}
+
+<h2>5. Visualizers in the running app</h2>
 <p>Each visualizer below was run in the real app (Chrome, real GPU, 1280 × 720) on the break → drop slice of the mix via the dev-only test source, with a probe that reads the rendered frame in the same task as the render. (These browser runs used engine v3.1; v3.2 only changed when the AI arbiter may confirm a re-time — see the history above.) Measured: the beats the engine fired on screen against the reference, whether the picture changes on the beat, whether it follows the audio level, frame rate and console errors.</p>
 ${liveTable()}
 
@@ -426,21 +528,23 @@ ${beforeAfterSection()}
 <p>Bars on the same excerpt at normal level and attenuated by 18 dB (a quiet microphone), with Auto Gain off and on.</p>
 ${agcSection()}
 
-<h2>5. The new-visualizer skill</h2>
+<h2>6. The new-visualizer skill</h2>
 ${skillProof ? `<p>${esc(skillProof.summary).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>` : '<p class="muted">Not yet verified.</p>'}
 
-<h2>6. Known limitations</h2>
+<h2>7. Known limitations</h2>
 <ul>
 <li>DSP-only mode (AI beat tracking off or unavailable) still locks onto the off-beat or a pickup in some rolling-bass sections (see the DSP columns); the neural arbiter exists for exactly these cases.</li>
 <li>The network runs every ~5 s on a 10 s window; after a start or a hard cut the beat can take several seconds to become confident (the report's live runs start mid-song).</li>
-<li>Slow music (&lt; 90 BPM) is tracked at double time by design (dance-music tempo prior); the beat stays in time.</li>
+<li>With Auto, slow music (&lt; 90 BPM) may be tracked at double time and half-time dubstep flashes on every 140 BPM beat (dance-music prior; Auto only goes half-time on unmistakable evidence). The Music style setting fixes both: Acoustic, chill, ballads and Dubstep, drum &amp; bass, trap.</li>
+<li>Without AI beat tracking, soft and phase-ambiguous songs stay weak: on one relaxing song the two reference trackers themselves sit half a beat apart for the first minute, and the DSP clock follows the other one; the AI resolves it. Rap with sparse drums and dense vocals is the hardest material for both modes (see the table).</li>
+<li>The genre evaluation has one or two songs per genre, and its second halves are not independent of the tuning halves; treat the genre numbers as indicative.</li>
 <li>Frame rates depend on the GPU. On the integrated GPU used here several visualizers run below 30 fps in both the old and the new app (e.g. Sheet Music ~8, Fractal Orb ~9, Tunnel ~17, Cyber City ~19): their cost is their own drawing (large canvas shadow blurs, raymarched shaders). Replacing canvas <code>shadowBlur</code> with a cheaper glow would help a lot but changes the look, so it was left for a follow-up.</li>
 <li>${liveResults.length - livePass} visualizers do not meet the live criteria: ${liveResults.filter(r => !r.pass).map(r => esc(r.id)).join(', ')}. They render without errors, but within 20–40 s of music their picture either reacts in ways this measurement cannot resolve (random glitch triggers, slow block-by-block animation, few frames per second) or reacts weakly; the before/after measurements show the same behaviour in the old app.</li>
 <li>Some visualizers keep pre-existing quirks on purpose (unchanged look), e.g. audio-modulated speeds multiplied by elapsed time in AnunakiSphere, AuroraWaves, CyberCity, Shambhala and HexGlobe clouds.</li>
 </ul>
 
-<h2>7. Reproduce</h2>
-<p><code>npm run eval:prepare</code> (downloads the mix, cuts excerpts) · <code>uv run scripts/eval/reference.py …</code> (reference beats) · <code>npm run eval:mix</code> · <code>npm run test:unit</code> · <code>npm test</code> · <code>npm run eval:live</code> (dev server on :3101) · <code>npm run eval:before-after</code> · <code>npm run report</code>. Heavy jobs were run under a memory cap (<code>systemd-run --user --scope -p MemoryMax=…</code>).</p>
+<h2>8. Reproduce</h2>
+<p><code>npm run eval:prepare</code> (downloads the mix, cuts excerpts) · <code>npm run eval:prepare -- --manifest scripts/eval/genres.json</code> (cuts the genre excerpts from <code>$VOLTVIZ_MUSIC_DIR</code>, default <code>~/Music</code>) · <code>uv run scripts/eval/reference.py …</code> (reference beats) · <code>npm run eval:mix</code> · <code>npm run eval:mix -- --manifest scripts/eval/genres.json</code> · <code>npm run test:unit</code> · <code>npm test</code> · <code>npm run eval:live</code> (dev server on :3101) · <code>npm run eval:before-after</code> · <code>npm run report</code>. Heavy jobs were run under a memory cap (<code>systemd-run --user --scope -p MemoryMax=…</code>).</p>
 </main>
 <div id="tip" role="tooltip"></div>
 <script>
@@ -450,5 +554,5 @@ document.addEventListener('mousemove',e=>{if(tip.style.display==='block'){tip.st
 </script>
 </body></html>`;
 
-writeFileSync('docs/reports/audio-engine-report.html', html);
-console.log(`wrote docs/reports/audio-engine-report.html (${(html.length / 1024).toFixed(0)} KB)`);
+writeFileSync(OUT, html);
+console.log(`wrote ${OUT} (${(html.length / 1024).toFixed(0)} KB)`);

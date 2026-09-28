@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ChevronDown, ImagePlus, Eye, EyeOff, Palette, SlidersHorizontal } from 'lucide-react';
 import * as THREE from 'three';
-import { beatHit } from '../lib/audio';
+import { beatHit, beatStrength, STRONG_BEAT } from '../lib/audio';
 import { createRenderer, disposeObject, disposeRenderer } from '../lib/three';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -374,11 +374,14 @@ const HalftonePulse: VisualizerFactory = ({ container, width, height, dpr, metad
       const hat = Math.min(1, audio.onsets.hat.envelope * sens);
 
       if (beatHit(audio)) {
-        pulse = 1;
-        hits++;
+        const hit = beatStrength(audio);
+        pulse = Math.max(pulse, hit);
         lookBeats++;
-        waves.push({ age: 0, amp: Math.min(1.2, 0.7 * sens) });
-        if (waves.length > 3) waves.shift();
+        if (hit >= STRONG_BEAT) {
+          hits++;
+          waves.push({ age: 0, amp: Math.min(1.2, 0.7 * sens * hit) });
+          if (waves.length > 3) waves.shift();
+        }
         // switch the look on the downbeat after 8 bars (any hit without a confident tempo)
         if (lookBeats >= LOOK_BEATS && lookTime >= LOOK_MIN_SECONDS
           && (audio.beat.barBeat === 0 || audio.beat.confidence < 0.3)) nextLook();

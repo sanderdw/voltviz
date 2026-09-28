@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { beatHit } from '../lib/audio';
+import { beatStrength, STRONG_BEAT } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -271,7 +271,7 @@ const DefqonMainstage: VisualizerFactory = ({ container, width: w, height: h, dp
       // Bass drop = a (predicted) beat, gated by loudness so quiet passages don't fire
       // a real beat (engine) that is bass-heavy: the "bass drop" character of the original
       const bassDominant = bass > mid * 1.15 && bass > treble * 1.2;
-      const isBassDrop = beatHit(audio) && bassNorm > 0.25 * (1.5 - currentSettings.sensitivity) && bassDominant;
+      const isBassDrop = beatStrength(audio) >= STRONG_BEAT && bassNorm > 0.25 * (1.5 - currentSettings.sensitivity) && bassDominant;
 
       // 1. Camera Shake (Heavy impact on kicks)
       if (bassNorm > 0.85 * (1.5 - currentSettings.sensitivity)) {

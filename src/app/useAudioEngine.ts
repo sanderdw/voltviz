@@ -41,7 +41,7 @@ export function useAudioEngine(stream: MediaStream | null, options: EngineOption
 
   useEffect(() => {
     pair?.engine.setOptions(options);
-  }, [pair, options.autoGain, options.neural]);
+  }, [pair, options.autoGain, options.neural, options.style]);
 
   return pair;
 }

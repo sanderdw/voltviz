@@ -97,6 +97,54 @@ describe('beat tracking on synthetic four-on-the-floor patterns', () => {
     expect(fMeasure(after(s.beats, 40), after(beats, 40))).toBeGreaterThan(0.95);
   });
 
+  it('beat strength: full on kicks, low on a sidechain-pumped pad without a hit, back within beats on the drop', () => {
+    const period = 60 / 128;
+    const s = synth([
+      { seconds: 20, bpm: 128, kick: true, hats: 'offbeat', clap: true },
+      { seconds: 16, bpm: 128, pad: true, noise: 0.02 },
+      { seconds: 12, bpm: 128, kick: true, hats: 'offbeat', clap: true },
+    ]);
+    // a build-up: the pad ducks on every beat and swells back (sidechain pumping), no drum hit
+    for (let i = Math.round(20 * s.sampleRate); i < 36 * s.sampleRate; i++) {
+      const since = (i / s.sampleRate) % period;
+      s.samples[i] *= 1 - 0.8 * Math.exp(-since / 0.15);
+    }
+    const a = new Analyzer(s.sampleRate);
+    const beats: { time: number; strength: number }[] = [];
+    for (let i = 0; i < s.samples.length; i += 128) {
+      a.process(s.samples.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'beat') beats.push(e);
+    }
+    const strengths = (t0: number, t1: number) => beats.filter(b => b.time >= t0 && b.time < t1).map(b => b.strength);
+    expect(median(strengths(8, 20))).toBeGreaterThan(0.8);
+    const build = strengths(26, 36);
+    expect(build.length).toBeGreaterThan(8); // the clock keeps running through the build-up
+    expect(median(build)).toBeLessThan(0.3);
+    expect(Math.min(...strengths(36 + 2.5 * period, 48))).toBeGreaterThan(0.7);
+  });
+
+  it('hits: fire only on heard kicks on the beat, never between beats, and stop with the drums', () => {
+    const s = synth([
+      { seconds: 20, bpm: 128, kick: true, hats: 'offbeat', rollingBass: true },
+      { seconds: 12, bpm: 128, pad: true },
+      { seconds: 12, bpm: 128, kick: true, hats: 'offbeat' },
+    ]);
+    const a = new Analyzer(s.sampleRate);
+    const hits: number[] = [];
+    for (let i = 0; i < s.samples.length; i += 128) {
+      a.process(s.samples.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'hit') hits.push(e.time);
+    }
+    // every hit is a real kick (nothing predicted, nothing on the rolling bass between the kicks)
+    const kicks = s.beats;
+    for (const t of hits) expect(Math.min(...kicks.map(k => Math.abs(k - t)))).toBeLessThan(0.03);
+    expect(fMeasure(after(kicks, 8, 20), after(hits, 8, 20))).toBeGreaterThan(0.95);
+    // the pad breakdown has no hit, so no beat: not even the first beat after the drums stop
+    expect(after(hits, 20.05, 32)).toHaveLength(0);
+    // and the beats come back with the kicks
+    expect(fMeasure(after(kicks, 36), after(hits, 36))).toBeGreaterThan(0.9);
+  });
+
   it('produces no confident beats for silence or white noise', () => {
     const silence = run([{ seconds: 15, bpm: 120 }]);
     expect(silence.beats.length).toBe(0);
@@ -111,6 +159,30 @@ describe('beat tracking on synthetic four-on-the-floor patterns', () => {
     const ref = after(s.beats, 3);
     expect(fMeasure(ref, after(kicks, 3), 0.05)).toBeGreaterThan(0.9);
     expect(Math.abs(median(offsetsMs(ref, after(kicks, 3), 0.05)))).toBeLessThan(15);
+  });
+
+  it('searches the phase again after a song change (same tempo, half a beat later)', () => {
+    const p = 60 / 128;
+    const a1 = synth([{ seconds: 42.5 * p, bpm: 128, kick: true, hats: 'offbeat', clap: true }]);
+    const a2 = synth([{ seconds: 16, bpm: 128, kick: true, clap: true }], 44100, 2);
+    const cut = a1.samples.length / 44100;
+    const x = new Float32Array(a1.samples.length + a2.samples.length);
+    x.set(a1.samples);
+    x.set(a2.samples, a1.samples.length);
+    const a = new Analyzer(44100);
+    const beats: number[] = [];
+    let told = false;
+    for (let i = 0; i < x.length; i += 128) {
+      a.process(x.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'beat' && e.confidence >= 0.3) beats.push(e.time);
+      if (!told && a.state.time >= cut) {
+        a.songChanged(); // e.g. the Sendspin track changed
+        told = true;
+      }
+    }
+    // without the song change the clock stays on the old phase for ~6 s (relock votes)
+    const ref = a2.beats.map(b => b + cut);
+    expect(fMeasure(after(ref, cut + 3, cut + 10), after(beats, cut + 3, cut + 10))).toBeGreaterThan(0.9);
   });
 });
 
@@ -156,6 +228,51 @@ describe('neural arbiter', () => {
   it('ignores small timing offsets (the DSP loop owns fine timing)', () => {
     const d = evaluateWindow(act(beatsAt(0.5, 0.1)), { period: 0.5, nextBeatTime: 10.14 });
     expect(d.kind).toBe('confirm');
+  });
+  it('retimes a clock stuck on a 4:3 relative, but not one its own estimate backs', () => {
+    // clock at 103 BPM (0.582 s) while the DSP estimate says 154 and the network 77: stuck
+    const w = act(beatsAt(0.779, 0.1));
+    expect(evaluateWindow(w, { period: 0.582, nextBeatTime: 10.2, confidence: 0.9, estimatePeriod: 0.39 }).kind).toBe('retime');
+    // clock and DSP estimate agree on 133: the network's 4:3 tempo is the network's error
+    expect(evaluateWindow(act(beatsAt(0.6, 0.1)), { period: 0.451, nextBeatTime: 10.2, confidence: 0.2, estimatePeriod: 0.451 }).kind).toBe('none');
+  });
+  it('follows gradual tempo changes itself, unless the clock is lost and unbacked', () => {
+    const w = act(beatsAt(0.5, 0.1));
+    // 10 % apart and not metrical: a confident clock keeps its tempo (DSP follows tempo changes) ...
+    expect(evaluateWindow(w, { period: 0.55, nextBeatTime: 10.1, confidence: 0.9, estimatePeriod: 0.7 }).kind).toBe('none');
+    // ... a lost clock its own estimate does not back is retimed to the network's consistent tempo
+    expect(evaluateWindow(w, { period: 0.55, nextBeatTime: 10.1, confidence: 0.1, estimatePeriod: 0.7 }).kind).toBe('retime');
+  });
+  it('a confirm locks the phase for 12 s and the tempo octave for 30 s; reset clears both', () => {
+    const arb = new NeuralArbiter();
+    expect(arb.decide(act(beatsAt(0.5, 0.1)), { period: 0.5, nextBeatTime: 10.1 }, 10).kind).toBe('confirm');
+    expect(arb.lockUntil).toBeCloseTo(22, 6);
+    expect(arb.octaveLockUntil).toBeCloseTo(40, 6);
+    arb.reset();
+    expect(arb.lockUntil).toBeLessThan(0);
+    expect(arb.octaveLockUntil).toBeLessThan(0);
+  });
+  it('shifts on one clear window, but needs two to undo the phase the previous window confirmed', () => {
+    const offBeat = act(beatsAt(0.5, 0.1));
+    const clock = { period: 0.5, nextBeatTime: 10.35 };
+    expect(new NeuralArbiter().decide(offBeat, clock, 10).kind).toBe('shift');
+    const arb = new NeuralArbiter();
+    expect(arb.decide(act(beatsAt(0.5, 0.35)), clock, 10).kind).toBe('confirm');
+    expect(arb.decide(offBeat, clock, 15).kind).toBe('none');
+    expect(arb.decide(offBeat, clock, 20).kind).toBe('shift');
+  });
+  it('ignores the old song in a window requested before a song change', () => {
+    const s = synth([{ seconds: 20, bpm: 120, kick: true, hats: 'offbeat', clap: true }]);
+    const decide = (songChange: boolean) => {
+      const a = new Analyzer(44100, { neural: true });
+      for (let i = 0; i < s.samples.length; i += 128) a.process(s.samples.subarray(i, i + 128));
+      const t0 = a.state.time - 10;
+      const w = act(s.beats.filter(b => b >= t0), t0);
+      if (songChange) a.songChanged();
+      return a.applyNeural(w.t0, w.activation, t0)?.kind;
+    };
+    expect(decide(false)).toBe('confirm');
+    expect(decide(true)).toBe('none'); // nothing of the new song in the window yet
   });
   it('retimes an octave error only after two agreeing windows', () => {
     const arb = new NeuralArbiter();

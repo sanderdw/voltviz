@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { beatHit } from '../lib/audio';
+import { beatHit, beatStrength } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -177,6 +177,7 @@ const fragmentShader = `
 
 const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) => {
   let lastKickTime = 0;
+  let kickAmp = 1;
 
   let DPR = Math.min(dpr, 1.0) * 0.8;
 
@@ -275,8 +276,11 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
 
       // Kick: predicted beats (raw kick onsets as fallback when there is no confident beat)
       const isKick = beatHit(audio);
-      if (isKick) lastKickTime = now;
-      const kickFlash = lastKickTime > 0 ? Math.max(0, 1 - (now - lastKickTime) / 200) : 0;
+      if (isKick) {
+        lastKickTime = now;
+        kickAmp = beatStrength(audio);
+      }
+      const kickFlash = lastKickTime > 0 ? kickAmp * Math.max(0, 1 - (now - lastKickTime) / 200) : 0;
 
       const delta = dt;
 
@@ -291,7 +295,7 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       uniforms.u_scanPulse.value = 0.85 + kickFlash * 1.4 + smoothedHighs * 0.3;
       uniforms.u_lightFlash.value = kickFlash;
       // The scan plate carries the beat: a hard hit with a slightly longer tail than the windows
-      planeFlash = isKick ? 1 : planeFlash * Math.exp(-dt / 0.18);
+      planeFlash = isKick ? Math.max(kickAmp, planeFlash) : planeFlash * Math.exp(-dt / 0.18);
       uniforms.u_planeFlash.value = Math.min(1.5, planeFlash * s.sensitivity);
 
       // Fog thins with bass to reveal more of the skyline

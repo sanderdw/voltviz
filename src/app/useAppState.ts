@@ -1,9 +1,10 @@
 /**
  * All user-facing app state that lives in the URL (identical parameter semantics to the
- * previous App.tsx, plus `agc` and `aibeat`): read once on load, written back with
+ * previous App.tsx, plus `agc`, `aibeat` and `style`): read once on load, written back with
  * history.replaceState whenever it changes.
  */
 import { useEffect, useState } from 'react';
+import { DEFAULT_STYLE, isStyleId, type StyleId } from '../audio/core/styles';
 import { skins, type SkinType } from '../skins';
 import { isVisualizerType, type VisualizerType } from '../visualizers/registry';
 import type { VisualizerSettings } from '../types';
@@ -61,6 +62,10 @@ export function useAppState() {
   });
   const [autoGain, setAutoGain] = useState(() => params().get('agc') === '1');
   const [aiBeat, setAiBeat] = useState(() => params().get('aibeat') === '1');
+  const [musicStyle, setMusicStyle] = useState<StyleId>(() => {
+    const s = params().get('style');
+    return isStyleId(s) ? s : DEFAULT_STYLE;
+  });
 
   useEffect(() => {
     const p = params();
@@ -87,9 +92,11 @@ export function useAppState() {
     else p.delete('agc');
     if (aiBeat) p.set('aibeat', '1');
     else p.delete('aibeat');
+    if (musicStyle !== DEFAULT_STYLE) p.set('style', musicStyle);
+    else p.delete('style');
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [activeVisualizer, settings, activeSkin, shuffleEnabled, shuffleInterval, shufflePool, transitionMode, autoGain, aiBeat]);
+  }, [activeVisualizer, settings, activeSkin, shuffleEnabled, shuffleInterval, shufflePool, transitionMode, autoGain, aiBeat, musicStyle]);
 
   return {
     activeVisualizer, setActiveVisualizer,
@@ -101,6 +108,7 @@ export function useAppState() {
     activeSkin, setActiveSkin,
     autoGain, setAutoGain,
     aiBeat, setAiBeat,
+    musicStyle, setMusicStyle,
   };
 }
 

@@ -20,14 +20,25 @@ function compactBeats(b: Json): Json {
 
 export function compactResult(r: Json): Json {
   const decisions: Record<string, number> = {};
-  for (const d of r.neural?.decisions ?? []) decisions[d.kind] = (decisions[d.kind] ?? 0) + 1;
+  const reasons: Record<string, number> = {};
+  for (const d of r.neural?.decisions ?? []) {
+    decisions[d.kind] = (decisions[d.kind] ?? 0) + 1;
+    if (d.reason) reasons[d.reason] = (reasons[d.reason] ?? 0) + 1;
+  }
   return {
     sampleRate: r.sampleRate,
     mode: r.mode,
+    style: r.style,
     duration: r.duration,
     realtimeFactor: r.realtimeFactor,
-    neural: r.neural ? { runs: r.neural.runs, avgMs: r.neural.avgMs, decisions } : null,
+    neural: r.neural ? { runs: r.neural.runs, avgMs: r.neural.avgMs, decisions, reasons } : null,
     beats: { all: compactBeats(r.beats.all), confident: compactBeats(r.beats.confident) },
+    pulse: r.pulse ? compactBeats(r.pulse) : null,
+    trackingAmlt: r.trackingAmlt,
+    pulseShare: r.pulseShare,
+    downbeats: r.downbeats,
+    recovery: r.recovery,
+    levelChanges: r.levelChanges,
     tempoAccuracy: r.tempoAccuracy,
     lockTimeStart: r.lockTimeStart,
     lockTimeAfterBreak: r.lockTimeAfterBreak,

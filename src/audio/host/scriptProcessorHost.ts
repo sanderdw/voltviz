@@ -4,6 +4,7 @@
  * ScriptProcessorNode delivers every sample, so the analysis is identical, only on the
  * main thread.
  */
+import type { StyleId } from '../core/styles';
 import { AnalysisCore } from './analysisCore';
 import type { EngineToHost, HostToEngine } from './protocol';
 
@@ -14,12 +15,12 @@ export interface AnalysisHost {
   dispose(): void;
 }
 
-export function createScriptProcessorHost(ctx: AudioContext, neural: boolean, onMessage: (m: HostToEngine) => void): AnalysisHost {
+export function createScriptProcessorHost(ctx: AudioContext, neural: boolean, style: StyleId, onMessage: (m: HostToEngine) => void): AnalysisHost {
   const node = ctx.createScriptProcessor(1024, 2, 1);
   const sink = ctx.createGain();
   sink.gain.value = 0;
   node.connect(sink).connect(ctx.destination); // must be pulled to run
-  const core = new AnalysisCore(ctx.sampleRate, m => queueMicrotask(() => onMessage(m)), neural);
+  const core = new AnalysisCore(ctx.sampleRate, m => queueMicrotask(() => onMessage(m)), neural, style);
   const channels: Float32Array[] = [];
   node.onaudioprocess = e => {
     channels.length = 0;
@@ -38,7 +39,7 @@ export function createScriptProcessorHost(ctx: AudioContext, neural: boolean, on
   };
 }
 
-export async function createWorkletHost(ctx: AudioContext, moduleUrl: string, neural: boolean, onMessage: (m: HostToEngine) => void): Promise<AnalysisHost> {
+export async function createWorkletHost(ctx: AudioContext, moduleUrl: string, neural: boolean, style: StyleId, onMessage: (m: HostToEngine) => void): Promise<AnalysisHost> {
   await ctx.audioWorklet.addModule(moduleUrl);
   const node = new AudioWorkletNode(ctx, 'voltviz-analysis', {
     numberOfInputs: 1,
@@ -46,7 +47,7 @@ export async function createWorkletHost(ctx: AudioContext, moduleUrl: string, ne
     channelCount: 2,
     channelCountMode: 'explicit',
     channelInterpretation: 'speakers',
-    processorOptions: { neural },
+    processorOptions: { neural, style },
   });
   node.port.onmessage = (e: MessageEvent<HostToEngine>) => onMessage(e.data);
   node.onprocessorerror = () => onMessage({ type: 'error', message: 'analysis worklet crashed' });

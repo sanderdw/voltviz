@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { beatHit } from '../lib/audio';
+import { beatStrength } from '../lib/audio';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -274,10 +274,10 @@ const AurumLeaf: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       bassSmoothed += (bassRaw - bassSmoothed) * 0.15;
 
       // --- Kick: predicted beats (raw kick onsets as fallback) ---
-      const isKick = beatHit(audio);
-      if (isKick) {
-        bloomImpulse = KICK_BLOOM_PEAK - BASE_BLOOM_STRENGTH;
-        particleImpulse = KICK_PARTICLE_PEAK - BASE_PARTICLE_SPEED;
+      const kick = beatStrength(audio);
+      if (kick > 0) {
+        bloomImpulse = Math.max(bloomImpulse, kick * (KICK_BLOOM_PEAK - BASE_BLOOM_STRENGTH));
+        particleImpulse = Math.max(particleImpulse, kick * (KICK_PARTICLE_PEAK - BASE_PARTICLE_SPEED));
       }
       bloomImpulse *= Math.exp(-dt / KICK_BLOOM_TAU);
       particleImpulse *= Math.exp(-dt / KICK_PARTICLE_TAU);

@@ -5,7 +5,7 @@
  * user settings are deliberately not applied. The shared arrays are only read, never written.
  */
 import type { AudioFrame } from '../../audio/types';
-import { beatHit } from '../lib/audio';
+import { beatHit, beatStrength, STRONG_BEAT } from '../lib/audio';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { VisualizerFactory } from '../runtime/types';
 
@@ -44,6 +44,9 @@ const RawAudio: VisualizerFactory = ({ container }) => {
   // Display-only decays so single-frame events stay visible (the fields themselves are raw).
   let beatFlash = 0;
   let beatSource = '—';
+  let hitStrength = 0; // beatStrength(audio) of the last hit
+  let strengthFlash = 0;
+  let downbeatFlash = 0;
   const onsetFlash = { kick: 0, snare: 0, hat: 0 };
   let fps = 60;
   let stereoScale = 0.05;
@@ -130,6 +133,28 @@ const RawAudio: VisualizerFactory = ({ container }) => {
     }
   }
 
+  function strength(r: Rect, a: AudioFrame) {
+    const s = a.beat.strength;
+    const area = tile(r, 'Beat strength', 'beatStrength(audio) · beat.strength', strengthFlash);
+    const used = readouts(area, [
+      ['beat.strength', fmt(s)],
+      ['analysis.beatRise', `${fmt(a.analysis.beatRise, 1)} dB`],
+      ['last beatStrength()', `${fmt(hitStrength)}${hitStrength >= STRONG_BEAT ? ' · strong' : ''}`],
+    ]);
+    const h = area.h - used;
+    const barH = Math.max(6, Math.min(10, h / 8));
+    const y = area.y + Math.max(fsSmall + 4, h / 2 - barH);
+    hbar(area.x, y, area.w, barH, s, s >= STRONG_BEAT ? GREEN : AMBER);
+    // STRONG_BEAT: one-off beat events (switch a look, spawn something) need at least this
+    const mx = area.x + area.w * STRONG_BEAT;
+    ctx.fillStyle = INK;
+    ctx.fillRect(mx - 1, y - 3, 2, barH + 6);
+    if (h >= fsSmall * 5) {
+      text('STRONG_BEAT', mx, y - 7, fsSmall * 0.85, MUTED, MONO, 'center');
+      text(s >= STRONG_BEAT ? 'full beat effects' : 'a pulse without a hit: soft effects', area.x, y + barH + fsSmall + 8, fsSmall, s >= STRONG_BEAT ? MUTED : AMBER, SANS);
+    }
+  }
+
   function growDecay(r: Rect, a: AudioFrame) {
     const pulse = Math.exp(-a.beat.sinceBeat / 0.15);
     const area = tile(r, 'Grow & decay', 'Math.exp(-beat.sinceBeat / 0.15)');
@@ -150,20 +175,38 @@ const RawAudio: VisualizerFactory = ({ container }) => {
   function tempo(r: Rect, a: AudioFrame) {
     const b = a.beat;
     const area = tile(r, 'Locked to tempo', 'beat.phase · barBeat · bpm');
+    // phase runs from the last heard beat (0) over one beat period (1) and stays at 1 without beats
     const used = readouts(area, [
-      ['beat.bpm', fmt(b.bpm, 1)],
-      ['beat.period', `${fmt(b.period, 3)} s`],
-      ['beat.phase', fmt(b.phase)],
+      ['beat.bpm', b.divisor > 1 ? `${fmt(b.bpm, 1)} (half-time)` : fmt(b.bpm, 1)],
+      ['beat.tempo', fmt(b.tempo, 1)],
+      ['period · phase', `${fmt(b.period, 3)} s · ${fmt(b.phase)}`],
+      // barKnown: the bar comes from the AI's downbeats, else fired beats are counted in fours
+      ['beat.barBeat', `${b.barBeat + 1}/4 · ${b.barKnown ? 'AI' : 'counted'}`],
+      ['style', a.style],
     ]);
     const h = area.h - used;
-    // Four bar dots, the current one lit
+    // Four bar dots, the current one lit; a known "1" (barKnown) is ringed and flashes on `downbeat`
     const dot = Math.max(3, Math.min(area.w / 16, h / 6));
     if (h < dot * 2 + 16) return; // too short for the demo: the numbers above say it all
     for (let i = 0; i < 4; i++) {
+      const cx = area.x + dot + i * dot * 3;
       ctx.beginPath();
-      ctx.arc(area.x + dot + i * dot * 3, area.y + dot, dot, 0, Math.PI * 2);
+      ctx.arc(cx, area.y + dot, dot, 0, Math.PI * 2);
       ctx.fillStyle = i === b.barBeat ? PURPLE : TRACK;
       ctx.fill();
+      if (i === 0 && b.barKnown) {
+        if (downbeatFlash > 0.01) {
+          ctx.globalAlpha = downbeatFlash;
+          ctx.fillStyle = GREEN;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        ctx.beginPath();
+        ctx.arc(cx, area.y + dot, dot + 2, 0, Math.PI * 2);
+        ctx.strokeStyle = GREEN;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
     }
     // Phase progress bar
     hbar(area.x, area.y + dot * 2 + 8, area.w, Math.max(4, dot * 0.8), b.phase, PURPLE);
@@ -344,32 +387,28 @@ const RawAudio: VisualizerFactory = ({ container }) => {
     ctx.fillRect(mx - 1, y - 3, 2, barH + 6);
     if (roomy) {
       text('0.3', mx, y - 7, fsSmall * 0.85, MUTED, MONO, 'center');
-      text(conf < 0.3 ? 'fade effects out' : 'beats fire', area.x, y + barH + fsSmall + 8, fsSmall, conf < 0.3 ? AMBER : MUTED, SANS);
+      text(conf < 0.3 ? 'no beats: fade effects out' : 'heard hits fire beats', area.x, y + barH + fsSmall + 8, fsSmall, conf < 0.3 ? AMBER : MUTED, SANS);
     }
   }
 
   function engine(r: Rect, a: AudioFrame) {
     const e = a.engine;
-    const area = tile(r, 'Engine', 'audio.engine');
+    const s = a.analysis;
+    const area = tile(r, 'Engine · frame', 'audio.engine · audio.analysis');
     readouts(area, [
       ['host', e.host],
-      ['neural', e.neural],
-      ['neuralMs', fmt(e.neuralMs, 1)],
+      // the beat grid: beats fire only on hits heard on it, while it is locked and confident
+      ['grid', s.locked ? `locked · ${fmt(s.bpm, 1)} BPM` : 'searching'],
+      ['tempo estimate', s.tempoCandidateBpm > 0 ? `${fmt(s.tempoCandidateBpm, 1)} · salience ${fmt(s.tempoSalience)}` : '–'],
+      ['neural', e.neural === 'ready' ? `ready · ${fmt(e.neuralMs, 0)} ms · ${s.neural.lastDecision}` : e.neural],
+      ['songChanges', s.songChanges > 0 ? `${s.songChanges} · ${fmt(s.time - s.songChangeAt, 0)} s ago` : '0'],
       ['latency', `${fmt(e.latency * 1000, 1)} ms`],
+      ['dt · fps', `${fmt(a.dt * 1000, 1)} ms · ${fmt(fps, 0)}`],
+      ['time · sampleRate', `${fmt(a.time, 1)} s · ${a.sampleRate} Hz`],
     ], e.neural === 'error' ? RED : INK);
   }
 
-  function frameInfo(r: Rect, a: AudioFrame) {
-    const area = tile(r, 'Frame', 'time · dt · sampleRate');
-    readouts(area, [
-      ['time', `${fmt(a.time, 1)} s`],
-      ['dt', `${fmt(a.dt * 1000, 1)} ms`],
-      ['fps', fmt(fps, 0)],
-      ['sampleRate', `${a.sampleRate} Hz`],
-    ]);
-  }
-
-  const TILES = [onTheBeat, growDecay, tempo, onsets, loudness, bands, spectrum, oscilloscope, stereo, quiet, engine, frameInfo];
+  const TILES = [onTheBeat, strength, tempo, onsets, growDecay, loudness, bands, spectrum, oscilloscope, stereo, quiet, engine];
 
   return {
     resize: (w, h, dpr) => c.resize(w, h, dpr),
@@ -381,8 +420,15 @@ const RawAudio: VisualizerFactory = ({ container }) => {
       // Display decays (the raw values are shown next to them)
       if (beatHit(audio)) {
         beatFlash = 1;
-        beatSource = audio.beat.isBeat ? 'predicted beat' : 'kick (no tempo)';
-      } else beatFlash *= Math.exp(-dt / 0.12);
+        beatSource = audio.beat.isBeat ? 'heard beat' : 'onset (no tempo)';
+        hitStrength = beatStrength(audio);
+        strengthFlash = hitStrength;
+      } else {
+        beatFlash *= Math.exp(-dt / 0.12);
+        strengthFlash *= Math.exp(-dt / 0.12);
+      }
+      if (audio.beat.downbeat) downbeatFlash = 1;
+      else downbeatFlash *= Math.exp(-dt / 0.3);
       for (const k of ONSET_KEYS) {
         if (audio.onsets[k].hit) onsetFlash[k] = 1;
         else onsetFlash[k] *= Math.exp(-dt / 0.12);
