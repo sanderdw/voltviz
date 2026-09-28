@@ -151,9 +151,11 @@ const RawAudio: VisualizerFactory = ({ container }) => {
     const b = a.beat;
     const area = tile(r, 'Locked to tempo', 'beat.phase · barBeat · bpm');
     const used = readouts(area, [
-      ['beat.bpm', fmt(b.bpm, 1)],
+      ['beat.bpm', b.divisor > 1 ? `${fmt(b.bpm, 1)} (half-time)` : fmt(b.bpm, 1)],
+      ['beat.tempo', fmt(b.tempo, 1)],
       ['beat.period', `${fmt(b.period, 3)} s`],
       ['beat.phase', fmt(b.phase)],
+      ['style', a.style],
     ]);
     const h = area.h - used;
     // Four bar dots, the current one lit

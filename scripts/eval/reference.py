@@ -19,6 +19,9 @@ knowledge):
                  and much larger dataset collection
 A 10 s window counts as unambiguous ("agree") when the two agree on the beat positions
 (F-measure >= 0.9 at +-70 ms). Only unambiguous windows are used for gated metrics.
+"agreeAnyLevel" relaxes this to the same beats at a different metrical level (one tracker at
+half or double the other's tempo, e.g. 77 vs 154 BPM on a rock ballad); the genre evaluation
+gates on those windows because the expected pulse is set per excerpt.
 
 Informational extras (not used for gating):
   * grid fit: linear regression of the beat times (a tempo-synced DJ mix is a straight line)
@@ -31,7 +34,7 @@ Informational extras (not used for gating):
 Only an excerpt is analysed (default: the first 120 s). Full-length mixes need several GB of RAM
 in madmom's multi-resolution STFT; 2-minute excerpts peak below 1 GB.
 
-Usage:  uv run scripts/eval/reference.py <audio file> <out.json> [--start S] [--seconds N]
+Usage:  uv run scripts/eval/reference.py <audio file> <out.json> [--start S] [--seconds N] [--source LABEL]
 (ffmpeg must be on PATH; madmom needs cython/numpy present at build time, see header.)
 """
 import argparse
@@ -129,6 +132,12 @@ def kick_rise_offset_ms(env: np.ndarray, beats: np.ndarray) -> float | None:
     return round(float(np.argmax(rise) + lag / 2 - half) * 1000 / SR, 1)
 
 
+def level_agreement(a: np.ndarray, b: np.ndarray) -> float:
+    """Agreement allowing one tracker at half the other's tempo (either parity)."""
+    return max(f_measure(a, b), f_measure(a[::2], b), f_measure(a[1::2], b),
+               f_measure(a, b[::2]), f_measure(a, b[1::2]))
+
+
 def regression_grid(beats: np.ndarray) -> dict:
     k = np.arange(len(beats))
     slope, intercept = np.polyfit(k, beats, 1)
@@ -143,6 +152,7 @@ def main() -> None:
     ap.add_argument("out")
     ap.add_argument("--start", type=float, default=0.0)
     ap.add_argument("--seconds", type=float, default=120.0)
+    ap.add_argument("--source", default=None, help="label of the audio source (default: the UTO mix)")
     args = ap.parse_args()
     src, out = args.src, args.out
     audio = load_mono(src, args.start, args.seconds)
@@ -179,32 +189,40 @@ def main() -> None:
         a = mm_beats[(mm_beats >= t) & (mm_beats < t + WINDOW)]
         b = bt_beats[(bt_beats >= t) & (bt_beats < t + WINDOW)]
         f = f_measure(a, b)
+        fl = level_agreement(a, b)
         bpm = float(60.0 / np.median(np.diff(a))) if len(a) >= 3 else None
+        bt_bpm = float(60.0 / np.median(np.diff(b))) if len(b) >= 3 else None
         seg = audio[int(t * SR):int((t + WINDOW) * SR)]
         rms_db = float(20 * np.log10(np.sqrt(np.mean(seg ** 2)) + 1e-9))
         offs = [float(x - a[np.argmin(np.abs(a - x))]) * 1000 for x in b] if len(a) else []
         windows.append({"start": round(t, 3), "end": round(t + WINDOW, 3), "bpm": bpm,
+                        "crossCheckBpm": bt_bpm,
                         "agreement": round(f, 4),
+                        "agreementAnyLevel": round(fl, 4),
                         "crossCheckOffsetMs": round(float(np.median(offs)), 1) if offs else None,
                         "transientFoldMs": fold_offset_ms(tr_env, a),
                         "kickRiseMs": kick_rise_offset_ms(k_env, a),
                         "agree": bool(f >= 0.9 and bpm is not None),
+                        "agreeAnyLevel": bool(fl >= 0.9 and bpm is not None),
                         "rmsDb": round(rms_db, 2)})
         t += WINDOW
 
     agree = sum(w["agree"] for w in windows)
+    agree_any = sum(w["agreeAnyLevel"] for w in windows)
     print(f"grid: {grid['bpm']:.3f} BPM, residual std {grid['residualStdMs']:.1f} ms", flush=True)
-    print(f"windows agreed: {agree}/{len(windows)}", flush=True)
+    print(f"windows agreed: {agree}/{len(windows)} (any metrical level: {agree_any})", flush=True)
 
     json.dump({
-        "source": "DJ de Wildt - UTO Mix 1 (uto-oosterhout.nl)",
-        "url": "https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3",
+        **({"source": args.source} if args.source else {
+            "source": "DJ de Wildt - UTO Mix 1 (uto-oosterhout.nl)",
+            "url": "https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3"}),
         "excerpt": {"start": args.start, "seconds": args.seconds},
         "duration": round(duration, 3),
         "sampleRate": SR,
         "tools": {"primary": "madmom RNNBeatProcessor + DBNBeatTrackingProcessor (downbeats: RNNDownBeatProcessor + DBN)",
                   "crossCheck": "beat_this final0 checkpoint (transformer, ISMIR 2024), no DBN",
-                  "agreement": "per 10 s window, F-measure(madmom, beat_this) >= 0.9 at +-70 ms"},
+                  "agreement": "per 10 s window, F-measure(madmom, beat_this) >= 0.9 at +-70 ms",
+                  "agreementAnyLevel": "same, also allowing either tracker at half the other's tempo"},
         "windowSeconds": WINDOW,
         "grid": grid,
         "transientFoldMs": fold_offset_ms(tr_env, mm_beats),

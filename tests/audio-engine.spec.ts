@@ -51,14 +51,39 @@ test.describe('VoltViz – audio engine settings', () => {
     await expect(page).toHaveURL(/[?&]aibeat=1/);
   });
 
-  test('Reset to Defaults also resets Auto Gain and AI beat tracking', async ({ page }) => {
-    await page.goto('/?agc=1&aibeat=1&sensitivity=2');
+  test('Reset to Defaults also resets Auto Gain, AI beat tracking and the Music style', async ({ page }) => {
+    await page.goto('/?agc=1&aibeat=1&sensitivity=2&style=hard');
     await startMicrophone(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('button', { name: 'Reset to Defaults' }).click();
     await expect(page.getByTestId('viz-autogain-toggle')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByTestId('viz-aibeat-toggle')).toHaveAttribute('aria-pressed', 'false');
-    await expect(page).not.toHaveURL(/agc=|aibeat=|sensitivity=/);
+    await expect(page.getByTestId('viz-music-style')).toHaveValue('auto');
+    await expect(page).not.toHaveURL(/agc=|aibeat=|sensitivity=|style=/);
+  });
+
+  test('Music style is Auto by default, round-trips as style= and switches without a new AudioContext', async ({ page }) => {
+    await page.addInitScript(countContexts);
+    await page.goto('/');
+    await startMicrophone(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const select = page.getByTestId('viz-music-style');
+    await expect(select).toHaveValue('auto');
+    await expect(page).not.toHaveURL(/style=/);
+    const before = await page.evaluate(() => (window as unknown as { __ctxCount: number }).__ctxCount);
+    await select.selectOption('bass');
+    await expect(page).toHaveURL(/[?&]style=bass/);
+    // the running engine switched styles in place
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __voltviz: { engine: { analysis: { style: string } | null } } }).__voltviz.engine.analysis?.style)).toBe('bass');
+    expect(await page.evaluate(() => (window as unknown as { __ctxCount: number }).__ctxCount)).toBe(before);
+    await page.goto('/?style=hard');
+    await startMicrophone(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.getByTestId('viz-music-style')).toHaveValue('hard');
+    await page.goto('/?style=nonsense');
+    await startMicrophone(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.getByTestId('viz-music-style')).toHaveValue('auto');
   });
 
   test('one AudioContext for the whole session, also across a crossfade', async ({ page }) => {

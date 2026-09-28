@@ -86,8 +86,8 @@ http://localhost:8080
 | `npm run test:install` | Download the Playwright Chromium browser |
 | `npm run test:unit` | Run the audio engine unit tests (vitest) |
 | `npm run new:viz -- <id> "<Name>"` | Scaffold a new visualizer (see `.github/skills/adding-visualizer/SKILL.md`) |
-| `npm run eval:prepare` / `eval:mix` / `eval:live` | Beat-tracking evaluation on the test mix |
-| `npm run report` | Rebuild `docs/reports/audio-engine-report.html` |
+| `npm run eval:prepare` / `eval:mix` / `eval:live` | Beat-tracking evaluation on the test mix (`-- --manifest scripts/eval/genres.json`: on genre excerpts from your own music library) |
+| `npm run report` | Rebuild the evidence report for the current version, `docs/reports/audio-engine-report-<version>.html` (earlier reports stay next to it) |
 
 ---
 
@@ -147,11 +147,11 @@ nginx/
 ## 🎯 How It Works
 
 1. **Audio Capture**: VoltViz captures audio from your microphone, system audio, or a [Sendspin](https://www.sendspin-audio.com) server
-2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat.
+2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat. The **Music style** setting (Auto by default) adapts the tempo range to the genre and lets half-time music such as dubstep flash on the kick and snare instead of twice as fast.
 3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
 
-An animated walk-through of the engine, including the Auto Gain and AI Beat Tracking switches, is in [How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html). How well the beat detection works on a real DJ mix is documented in the [audio engine report](docs/reports/audio-engine-report.html). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
+An animated walk-through of the engine, including the Music style, Auto Gain and AI Beat Tracking settings, is in [How VoltViz hears the beat](docs/explainer/how-voltviz-hears-the-beat.html). How well the beat detection works is documented in the [audio engine report](docs/reports/audio-engine-report-0.30.0.html) (a DJ mix and songs from five other genres; the [0.23.0 report](docs/reports/audio-engine-report.html) covers the rewrite). The story of the rewrite, and what it shows about AI as an audio and software engineer, is told in a [conference talk](docs/presentation/ai-as-audio-engineer.html) (open it in a browser; press `?` for keys).
 
 ---
 
@@ -180,6 +180,7 @@ http://localhost:8080/?viz=tunnel&sensitivity=1.5&speed=2.0&hueShift=180&scale=1
 | `skin` | UI theme: `modern`, `win95`, `winamp`, or `crt` | `modern` |
 | `agc` | `1` enables Auto Gain (normalizes quiet inputs such as a microphone) | off |
 | `aibeat` | `1` enables AI Beat Tracking (keeps beat effects on the beat; uses extra CPU) | off |
+| `style` | Music style for the beat tracking: `electronic` (house, techno, trance), `hard` (hardstyle, hardcore), `bass` (dubstep, drum & bass, trap: half-time pulse), `hiphop`, `band` (rock, pop, live band), `chill` (acoustic, ballads) | `auto` |
 | `shuffle` | `1` switches to a random visualizer at an interval | off |
 | `shuffleTime` | Shuffle interval in seconds: `15`, `30`, `60`, `120`, `300` or `600` | `60` |
 | `shufflePool` | Comma-separated visualizer ids to shuffle between | all |
@@ -238,7 +239,7 @@ VoltViz includes a GitHub Actions workflow that automatically builds and publish
 
 The workflow triggers on:
 - **Push to `main`**: builds and publishes, including the `latest` tag
-- **Push to a release branch** (named like `0.23.0`): builds and publishes that branch
+- **Push to a release branch** (named like `0.30.0`): builds and publishes that branch
 - **Pull requests**: builds the image for testing (doesn't push)
 - **Manual trigger**: via the GitHub Actions UI
 
@@ -246,7 +247,7 @@ The workflow triggers on:
 
 Images are automatically tagged as:
 - `ghcr.io/sanderdw/voltviz:latest` (on `main`)
-- `ghcr.io/sanderdw/voltviz:0.23.0` (the version in `package.json`)
+- `ghcr.io/sanderdw/voltviz:0.30.0` (the version in `package.json`)
 - `ghcr.io/sanderdw/voltviz:main` (branch name)
 - `ghcr.io/sanderdw/voltviz:sha-abc123d` (commit SHA)
 

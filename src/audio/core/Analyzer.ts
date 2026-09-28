@@ -1,16 +1,17 @@
-import { BeatTracker, type BeatEvent, type TrackerTuning } from './beatTracker.ts';
+import { BeatTracker, foldPeriod, type BeatEvent, type TrackerTuning } from './beatTracker.ts';
 import { LevelTracker } from './levels.ts';
 import { NeuralArbiter, type ArbiterDecision } from './neuralArbiter.ts';
 import { MelFrontend, MODEL_FPS, N_MELS } from '../neural/melFrontend.ts';
 import { OnsetFeatures, type OnsetFrame } from './onset.ts';
 import { PeakPicker } from './peakPicker.ts';
 import { FrameHistory } from './ring.ts';
+import { DEFAULT_STYLE, STYLE_PROFILES, type StyleId } from './styles.ts';
 import { TempoEstimator } from './tempo.ts';
 
 export type OnsetKind = 'kick' | 'snare' | 'hat';
 
 export type AnalyzerEvent =
-  | { type: 'beat'; time: number; index: number; confidence: number; bpm: number }
+  | { type: 'beat'; time: number; index: number; confidence: number; bpm: number; pulse: boolean }
   | { type: OnsetKind; time: number; strength: number };
 
 /** Snapshot of the analysis, updated every hop (~5.8 ms). Times are seconds of processed audio. */
@@ -23,6 +24,8 @@ export interface AnalyzerState {
   /** Suggested Auto Gain for the display path (linear). */
   agcGain: number;
   bpm: number;
+  /** Raw tempo estimate of the latest autocorrelation (diagnostics; 0 when none). */
+  tempoCandidateBpm: number;
   tempoSalience: number;
   locked: boolean;
   confidence: number;
@@ -31,6 +34,21 @@ export interface AnalyzerState {
   /** Predicted time of the next beat and its index. */
   nextBeatTime: number;
   nextBeatIndex: number;
+  /** Music style in use. */
+  style: StyleId;
+  /**
+   * The pulse beat effects follow: every tracked beat (divisor 1) or every other one (2, the
+   * half-time pulse). Period in seconds; the next pulse beat's time and running beat index.
+   */
+  pulseDivisor: number;
+  pulsePeriod: number;
+  nextPulseTime: number;
+  nextPulseIndex: number;
+  /**
+   * Onset evidence on the pulse beats and on the beats in between (diagnostics): support rate,
+   * mean mid-band strength and kick rate, pulse parity first.
+   */
+  pulseSupport: { on: number; off: number; strength: number[]; kick: number[] };
   /** Onset functions of the newest frame (for diagnostics / display). */
   odfBroad: number;
   odfKick: number;
@@ -55,6 +73,8 @@ export interface AnalyzerOptions {
   neuralIntervalS?: number;
   /** Length of the tempo autocorrelation window (default 8 s). */
   tempoWindowS?: number;
+  /** Music style (default auto). */
+  style?: StyleId;
 }
 
 /** A request for the beat model: 500 log-mel frames (10 s) ending now. */
@@ -104,14 +124,19 @@ export class Analyzer {
 
   private readonly phaseOdf: FrameHistory;
   private readonly tempoOdf: FrameHistory;
-  private readonly tempo: TempoEstimator;
+  /** Tempo estimator of the current style (exposed for diagnostics). */
+  tempo: TempoEstimator;
+  private readonly tempoWindowS: number;
   private readonly tempoEvery: number;
-  private readonly tracker: BeatTracker;
+  /** The beat tracker (exposed for diagnostics). */
+  readonly tracker: BeatTracker;
   private readonly levels: LevelTracker;
   private readonly pickers: Record<OnsetKind, PeakPicker>;
   private readonly lags: Record<OnsetKind, number>;
   private meanBroad = 0;
   private meanMid = 0;
+  private meanKick = 0;
+  private readonly kickOdf: FrameHistory;
   private readonly meanCoef: number;
   private readonly beatScratch: BeatEvent[] = [];
   private events: AnalyzerEvent[] = [];
@@ -130,11 +155,20 @@ export class Analyzer {
     this.frameRate = this.onset.frameRate;
     this.hopBuf = new Float64Array(this.hop);
     const fr = this.frameRate;
-    this.phaseOdf = new FrameHistory(Math.ceil(fr * 40)); // comb needs up to combBeats x slowest period
+    // the comb needs up to combBeats x the slowest period of any style (32 x 1.2 s at 50 BPM)
+    this.phaseOdf = new FrameHistory(Math.ceil(fr * 45));
     this.tempoOdf = new FrameHistory(Math.ceil(fr * 10));
-    this.tempo = new TempoEstimator({ frameRate: fr, windowS: options.tempoWindowS ?? 8 });
+    this.kickOdf = new FrameHistory(Math.ceil(fr * 4));
+    this.tempoWindowS = options.tempoWindowS ?? 8;
+    const style = options.style ?? DEFAULT_STYLE;
+    this.tempo = this.makeTempo(style);
     this.tempoEvery = Math.round(fr / 4);
     this.tracker = new BeatTracker({ frameRate: fr, lag: MID_LAG_S * fr, tuning: options.tuning });
+    this.tracker.kickOdf = this.kickOdf;
+    this.tracker.kickLag = KICK_LAG_S * fr;
+    const prof = STYLE_PROFILES[style].tempo;
+    this.tracker.setTuning(STYLE_PROFILES[style].tracker);
+    this.tracker.setRange(prof.minBpm, prof.maxBpm, STYLE_PROFILES[style].pulse.mode, STYLE_PROFILES[style].pulse.maxBpm);
     this.levels = new LevelTracker({ frameRate: fr });
     this.meanCoef = 1 - Math.exp(-1 / (4 * fr));
     this.pickers = {
@@ -150,11 +184,34 @@ export class Analyzer {
     this.neuralStartedAt = 0;
     this.state = {
       time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1,
-      bpm: 0, tempoSalience: 0, locked: false, confidence: 0, period: 0,
+      bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0, locked: false, confidence: 0, period: 0,
       nextBeatTime: 0, nextBeatIndex: 0,
+      style, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
       odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
       neural: { enabled: !!options.neural, runs: 0, lastDecision: options.neural ? 'pending' : 'off', consistency: 0, lockActive: false },
     };
+  }
+
+  private makeTempo(style: StyleId): TempoEstimator {
+    const t = STYLE_PROFILES[style].tempo;
+    return new TempoEstimator({
+      frameRate: this.frameRate, windowS: this.tempoWindowS,
+      minBpm: t.minBpm, maxBpm: t.maxBpm, priorBpm: t.priorBpm, priorOctaves: t.priorOctaves,
+    });
+  }
+
+  /**
+   * Switch the Music style at runtime: new tempo range and prior, the current tempo folded
+   * into the range and the phase re-locked on the next tempo update. Beats keep coming.
+   */
+  setStyle(style: StyleId): void {
+    if (style === this.state.style) return;
+    const p = STYLE_PROFILES[style];
+    this.tempo = this.makeTempo(style);
+    this.tracker.setTuning(p.tracker);
+    this.tracker.setRange(p.tempo.minBpm, p.tempo.maxBpm, p.pulse.mode, p.pulse.maxBpm);
+    this.arbiter?.reset();
+    this.state.style = style;
   }
 
   /**
@@ -164,6 +221,8 @@ export class Analyzer {
   setNeuralActive(active: boolean): void {
     if (active === this.neuralActive) return;
     this.neuralActive = active;
+    // a stale neural lock must not keep blocking the DSP (and a fresh start starts unlocked)
+    this.arbiter?.reset();
     // the mel history is stale after a pause: start over like a fresh start
     if (active && this.mel) this.mel.reset();
     this.neuralStartedAt = this.state.time;
@@ -211,7 +270,10 @@ export class Analyzer {
     if (skip > 0) activation = activation.map((v, i) => (i < skip + MODEL_FPS ? 0 : v));
     const tr = this.tracker;
     const now = this.frameIndex; // frames (position of the next frame start)
-    const clock = { period: tr.period / this.frameRate, nextBeatTime: this.frameTime(tr.nextBeat) };
+    const clock = {
+      period: tr.period / this.frameRate, nextBeatTime: this.frameTime(tr.nextBeat), confidence: tr.confidence,
+      estimatePeriod: this.state.tempoCandidateBpm > 0 ? 60 / this.state.tempoCandidateBpm : undefined,
+    };
     const d = this.arbiter.decide({ t0, fps: MODEL_FPS, activation }, clock, this.state.time);
     const toFrames = (t: number) => (t * this.sampleRate) / this.hop;
     if (d.kind === 'shift') tr.shiftPhase(toFrames(d.shiftSeconds), now);
@@ -221,7 +283,12 @@ export class Analyzer {
       const offset = d.offsetFraction * clock.period;
       if (Math.abs(offset) > NEURAL_NUDGE_MIN_S) tr.shiftPhase(toFrames(0.5 * offset), now);
     }
-    else if (d.kind === 'retime') tr.retime(d.period * this.frameRate, toFrames(d.nextBeatTime), now);
+    else if (d.kind === 'retime') {
+      // the network's metrical level, folded into the style's range (a narrow range and the
+      // network would otherwise disagree forever)
+      const t = STYLE_PROFILES[this.state.style].tempo;
+      tr.retime(foldPeriod(d.period * this.frameRate, this.frameRate, t.minBpm, t.maxBpm), toFrames(d.nextBeatTime), now);
+    }
     if (d.kind === 'confirm' || d.kind === 'shift' || d.kind === 'retime') {
       tr.neuralConfidence = Math.max(tr.neuralConfidence, d.consistency);
     }
@@ -259,10 +326,17 @@ export class Analyzer {
     const midN = f.mid / (this.meanMid + 0.005);
     this.phaseOdf.push(midN);
     this.tempoOdf.push(midN + broadN);
+    this.meanKick += (f.kick - this.meanKick) * this.meanCoef;
+    this.kickOdf.push(f.kick / (this.meanKick + 0.005));
 
-    if (this.arbiter) this.tracker.dspJumpsAllowed = this.state.time > this.arbiter.lockUntil;
+    if (this.arbiter) {
+      this.tracker.dspJumpsAllowed = this.state.time > this.arbiter.lockUntil;
+      this.tracker.octaveJumpsAllowed = this.state.time > this.arbiter.octaveLockUntil;
+    }
     if (h % this.tempoEvery === 0) {
-      this.tracker.onTempo(this.tempo.estimate(this.tempoOdf), h, this.phaseOdf);
+      const cand = this.tempo.estimate(this.tempoOdf);
+      this.state.tempoCandidateBpm = cand ? cand.bpm : 0;
+      this.tracker.onTempo(cand, h, this.phaseOdf);
     }
     const beats = this.beatScratch;
     beats.length = 0;
@@ -275,6 +349,7 @@ export class Analyzer {
         index: b.index,
         confidence: silent ? 0 : b.confidence,
         bpm: (60 * this.frameRate) / b.period,
+        pulse: b.pulse,
       });
     }
 
@@ -301,6 +376,18 @@ export class Analyzer {
     st.period = tr.period > 0 ? tr.period / this.frameRate : 0;
     st.nextBeatTime = this.frameTime(tr.nextBeat);
     st.nextBeatIndex = tr.index;
+    const pulse = tr.nextPulse;
+    st.pulseDivisor = tr.pulse.divisor;
+    st.pulsePeriod = pulse.period > 0 ? pulse.period / this.frameRate : 0;
+    st.nextPulseTime = this.frameTime(pulse.position);
+    st.nextPulseIndex = pulse.index;
+    st.pulseSupport.on = tr.pulse.on;
+    st.pulseSupport.off = tr.pulse.off;
+    const ps = tr.pulse.stats;
+    st.pulseSupport.strength[0] = ps.strength[0];
+    st.pulseSupport.strength[1] = ps.strength[1];
+    st.pulseSupport.kick[0] = ps.kick[0];
+    st.pulseSupport.kick[1] = ps.kick[1];
     st.odfBroad = f.broad;
     st.odfKick = f.kick;
     st.odfSnare = f.mid;

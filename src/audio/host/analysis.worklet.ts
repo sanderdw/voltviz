@@ -3,6 +3,7 @@
  * AudioWorklet host of the analysis core. Runs the complete DSP analysis on the audio
  * thread, independent of the render frame rate, and posts compact results to the engine.
  */
+import type { StyleId } from '../core/styles';
 import { AnalysisCore } from './analysisCore';
 import type { EngineToHost } from './protocol';
 
@@ -17,12 +18,13 @@ declare class AudioWorkletProcessor {
 class VoltvizAnalysisProcessor extends AudioWorkletProcessor {
   private readonly core: AnalysisCore;
 
-  constructor(options: { processorOptions?: { neural?: boolean } }) {
+  constructor(options: { processorOptions?: { neural?: boolean; style?: StyleId } }) {
     super(options);
     this.core = new AnalysisCore(
       sampleRate,
       (m, transfer) => this.port.postMessage(m, transfer ?? []),
       !!options.processorOptions?.neural,
+      options.processorOptions?.style,
     );
     this.port.onmessage = (e: MessageEvent<EngineToHost>) => this.core.onMessage(e.data);
   }

@@ -20,7 +20,7 @@ export default function App() {
   const {
     activeVisualizer, setActiveVisualizer, shuffleEnabled, setShuffleEnabled, shuffleInterval, setShuffleInterval,
     shufflePool, setShufflePool, transitionMode, setTransitionMode, settings, setSettings, activeSkin,
-    autoGain, setAutoGain, aiBeat, setAiBeat,
+    autoGain, setAutoGain, aiBeat, setAiBeat, musicStyle, setMusicStyle,
   } = useAppState();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [testAudio, setTestAudio] = useState<TestAudio | null>(null);
@@ -37,7 +37,7 @@ export default function App() {
   const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
   const sendspinRef = useRef<SendspinController | null>(null);
 
-  const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat });
+  const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -244,6 +244,9 @@ export default function App() {
             setAutoGain={setAutoGain}
             aiBeat={aiBeat}
             setAiBeat={setAiBeat}
+            musicStyle={musicStyle}
+            setMusicStyle={setMusicStyle}
+            engine={audio?.engine ?? null}
             bottomInset={sendspin.active}
           />
 

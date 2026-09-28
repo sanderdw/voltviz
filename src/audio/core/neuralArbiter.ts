@@ -19,10 +19,17 @@ export interface ClockView {
   /** Beat period (s) and predicted next beat time (s). */
   period: number;
   nextBeatTime: number;
+  /** The DSP clock's own confidence (0..1). */
+  confidence?: number;
+  /**
+   * The DSP's latest raw tempo estimate (beat period, s). When it agrees with the clock, the
+   * clock's tempo is backed by the audio and only octave / 3:2 disagreements are arbitrated.
+   */
+  estimatePeriod?: number;
 }
 
 export type ArbiterDecision =
-  | { kind: 'none'; reason: string; beats: number }
+  | { kind: 'none'; reason: string; beats: number; /** The network's tempo, when it found one (diagnostics). */ bpm?: number }
   | { kind: 'confirm'; consistency: number; beats: number; offsetFraction: number }
   | { kind: 'shift'; shiftSeconds: number; consistency: number; beats: number }
   | { kind: 'retime'; period: number; nextBeatTime: number; consistency: number; beats: number };
@@ -35,9 +42,13 @@ const CONSISTENCY_MIN = 0.7;
 // The network arbitrates *metrical* phase only (pickups ~0.16, sixteenths 0.25, off-beat 0.5
 // of a period). Smaller offsets are timing, which the DSP loop measures more precisely.
 const SHIFT_MIN_FRACTION = 0.13;
-// Only octave-type tempo disagreements are the network's business; gradual tempo changes
-// are followed by the DSP tracker itself.
+// Only metrical tempo disagreements (octaves, 3:2) are the network's business; gradual tempo
+// changes are followed by the DSP tracker itself. A clock whose tempo its own estimate no
+// longer backs (stuck on a 4:3 relative, or wandering without confidence) is also retimed by a
+// consistent network - but a backed clock is not: the network makes 4:3 errors too.
 const OCTAVE_RATIOS = [2, 0.5, 1.5, 2 / 3];
+const STUCK_RATIOS = [4 / 3, 3 / 4];
+const LOST_CLOCK_CONFIDENCE = 0.3;
 const OCTAVE_TOL = 0.06;
 const SAME_PERIOD = 0.04;
 /** Minimum time between a proposal and the window that confirms it (s). */
@@ -84,11 +95,15 @@ export function evaluateWindow(w: NeuralWindow, clock: ClockView): ArbiterDecisi
 
   const ratio = nPeriod / clock.period;
   if (Math.abs(ratio - 1) > SAME_PERIOD) {
-    if (!OCTAVE_RATIOS.some(r => Math.abs(ratio / r - 1) < OCTAVE_TOL)) {
-      return { kind: 'none', reason: 'tempo differs (not an octave); DSP follows tempo changes', beats: beats.length };
+    const near = (rs: number[]) => rs.some(r => Math.abs(ratio / r - 1) < OCTAVE_TOL);
+    const backed = clock.estimatePeriod !== undefined && Math.abs(clock.estimatePeriod / clock.period - 1) < 0.03;
+    const unbacked = clock.estimatePeriod !== undefined && !backed;
+    const lost = (clock.confidence ?? 1) < LOST_CLOCK_CONFIDENCE;
+    if (!near(OCTAVE_RATIOS) && !(unbacked && (lost || near(STUCK_RATIOS)))) {
+      return { kind: 'none', reason: 'tempo differs (not an octave); DSP follows tempo changes', beats: beats.length, bpm: 60 / nPeriod };
     }
     const c = circular(beats, weights, nPeriod, beats[beats.length - 1]);
-    if (c.consistency < CONSISTENCY_MIN) return { kind: 'none', reason: 'inconsistent neural tempo', beats: beats.length };
+    if (c.consistency < CONSISTENCY_MIN) return { kind: 'none', reason: 'inconsistent neural tempo', beats: beats.length, bpm: 60 / nPeriod };
     return { kind: 'retime', period: nPeriod, nextBeatTime: projectNext(beats, nPeriod, end), consistency: c.consistency, beats: beats.length };
   }
 
@@ -131,19 +146,39 @@ function projectNext(beats: number[], period: number, after: number): number {
 /**
  * Persistence rules: a phase shift or retime is applied only when two consecutive windows
  * agree (the network is not infallible either); a phase shift may also be applied at once
- * when a single window is very consistent. Every confirmation also refreshes a "neural lock" during which the DSP
- * clock may not relock or jump octaves on its own.
+ * when a single window is very consistent. Every confirmation also refreshes two "neural
+ * locks": a short one during which the DSP clock may not relock its phase, and a longer one
+ * during which it may not jump the tempo by an octave or 3:2. The network abstains now and
+ * then (soft passages, live tempo drift), and a DSP octave jump in such a gap would only be
+ * undone by the next retime (154 <-> 77 BPM flapping on a rock song).
  */
 export class NeuralArbiter {
-  /** Stream time until which the DSP clock is not allowed to change metrical phase / octave. */
+  /** Stream time until which the DSP clock is not allowed to change metrical phase. */
   lockUntil = -1;
+  /** Stream time until which the DSP clock is not allowed to change the tempo octave. */
+  octaveLockUntil = -1;
   last: ArbiterDecision | null = null;
   private pending: ArbiterDecision | null = null;
   private pendingAt = 0;
   readonly lockSeconds: number;
+  readonly octaveLockSeconds: number;
 
-  constructor(lockSeconds = 12) {
+  constructor(lockSeconds = 12, octaveLockSeconds = 30) {
     this.lockSeconds = lockSeconds;
+    this.octaveLockSeconds = octaveLockSeconds;
+  }
+
+  /** Forget locks and pending decisions (AI switched off/on, new Music style). */
+  reset(): void {
+    this.lockUntil = -1;
+    this.octaveLockUntil = -1;
+    this.pending = null;
+    this.last = null;
+  }
+
+  private lock(now: number): void {
+    this.lockUntil = now + this.lockSeconds;
+    this.octaveLockUntil = now + this.octaveLockSeconds;
   }
 
   decide(w: NeuralWindow, clock: ClockView, now: number): ArbiterDecision {
@@ -151,7 +186,7 @@ export class NeuralArbiter {
     this.last = d;
     if (d.kind === 'confirm') {
       this.pending = null;
-      this.lockUntil = now + this.lockSeconds;
+      this.lock(now);
       return d;
     }
     if (d.kind === 'none') {
@@ -166,7 +201,7 @@ export class NeuralArbiter {
     const agrees = same && now - this.pendingAt >= MIN_CONFIRM_GAP_S;
     if (strong || agrees) {
       this.pending = null;
-      this.lockUntil = now + this.lockSeconds;
+      this.lock(now);
       return d;
     }
     if (!same) {

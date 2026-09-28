@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-09-28
+
+### Added
+- **Music style** (Settings, Auto by default): tells the beat tracking what kind of music is playing. Pick House/techno/trance, Hardstyle/hardcore, Dubstep/drum & bass/trap, Hip-hop/rap/R&B, Rock/pop/live band or Acoustic/chill when the beat effects run at double or half the speed you feel. Settings also shows what the engine is following right now. Link it with `?style=`.
+- **Half-time pulse**: with the Dubstep, drum & bass, trap style, beat effects follow the kick and snare of half-time beats (70 BPM at 140 BPM) instead of flashing twice as fast. The Rock style does the same when the drums are laid out that way.
+
+### Changed
+- Beat effects on music without a steady kick drum (acoustic, piano, many rock and hip-hop songs) now also react to snare and strum hits while no steady beat is found.
+- Songs with vocals, melodies or dense drums (rap, hardcore, ballads) lose the beat less often.
+- Hardcore, gabber and uptempo up to 230 BPM can be followed with the Hardstyle/hardcore style.
+
+### Fixed
+- Half-time drums (hits on every other beat) no longer leave the beat tracker without a tempo.
+- The tempo no longer suddenly runs a third too fast or too slow on rock and pop songs.
+- With AI Beat Tracking on, the tempo no longer flips between double and half speed on some songs.
+- After an update, the page always loads the new version; a tab that was open during the update reloads once instead of failing to load a visualizer.
+
 ## [0.23.0] - 2026-09-27
 
 ### Added

@@ -79,7 +79,8 @@ const AudioDebug: VisualizerFactory = ({ container }) => {
       const HISTORY_SIZE = kickHistory.length;
       const kickThreshold = SUPPORT_LEVEL;
       const kickCount = beatCount;
-      const bpmEstimate = beat.bpm > 0 ? beat.bpm.toFixed(1) : '-';
+      // on a half-time pulse: the pulse BPM plus the tracked tempo
+      const bpmEstimate = beat.bpm > 0 ? `${beat.bpm.toFixed(1)}${beat.divisor > 1 ? ` (½ of ${beat.tempo.toFixed(0)})` : ''}` : '-';
       const kickBassEnergy = audio.analysis.odfSnare;
       let avgBassEnergy = 0;
       for (let i = 0; i < fluxHistory.length; i++) avgBassEnergy += fluxHistory[i];
@@ -253,8 +254,8 @@ const AudioDebug: VisualizerFactory = ({ container }) => {
       const statsX = histX;
       ctx.fillText(`Beats: ${kickCount}`, statsX, histY + histH + 16);
       ctx.fillText(`BPM: ${bpmEstimate}`, statsX + 100, histY + histH + 16);
-      ctx.fillText(`Conf: ${(beat.confidence * 100).toFixed(0)}%`, statsX + 200, histY + histH + 16);
-      ctx.fillText(`Bar: ${beat.barBeat + 1}/4`, statsX + 290, histY + histH + 16);
+      ctx.fillText(`Conf: ${(beat.confidence * 100).toFixed(0)}%`, statsX + 230, histY + histH + 16);
+      ctx.fillText(`Bar: ${beat.barBeat + 1}/4`, statsX + 320, histY + histH + 16);
       // beat phase bar + onset lamps
       ctx.fillStyle = 'rgba(40, 40, 60, 0.6)';
       ctx.fillRect(histX, histY - 10, histW, 4);

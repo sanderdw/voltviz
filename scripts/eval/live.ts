@@ -11,6 +11,7 @@
  * `--reanalyze` without a browser.
  *
  *   node scripts/eval/live.ts [--base http://127.0.0.1:3101] [--ids a,b] [--deep] [--out path] [--reanalyze]
+ *     [--excerpt <id from excerpts.json or genres.json>] [--style <Music style>] [--start s]
  *
  * Requires the dev server (DISABLE_HMR=true npx vite --port 3101 --strictPort) and system
  * Chrome. Runs one page at a time (memory).
@@ -19,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium, type Browser } from 'playwright';
 import { visualizers } from '../../src/visualizers/registry.ts';
 import { fMeasure, median, offsetsMs } from './lib/metrics.ts';
+import { buildPulseRefs } from './lib/pulse.ts';
 import { beatLock, coupling, type Sample } from './lib/visual.ts';
 
 function arg(name: string, def: string): string {
@@ -29,6 +31,8 @@ const has = (name: string) => process.argv.includes(`--${name}`);
 
 const BASE = arg('base', 'http://127.0.0.1:3101');
 const EXCERPT = arg('excerpt', 'uto-0-120');
+/** Music style to run the app with (`?style=`); default: the app default (auto). */
+const STYLE = arg('style', '');
 const OUT = arg('out', has('deep') ? 'docs/reports/data/live-deep.json' : 'docs/reports/data/live-all.json');
 const SECONDS = parseFloat(arg('seconds', '20'));
 const WARMUP = parseFloat(arg('warmup', '8'));
@@ -51,7 +55,16 @@ export const SEGMENTS = [
   { name: 'break → drop', start: 85 },
 ];
 
-const ref: { beats: number[] } = JSON.parse(readFileSync(`tests/fixtures/${EXCERPT}.reference.json`, 'utf8'));
+const manifestExcerpts: { id: string; seconds: number; expectedPulseBpm?: number | null }[] = [
+  ...JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8')).excerpts,
+  ...JSON.parse(readFileSync('scripts/eval/genres.json', 'utf8')).excerpts,
+];
+const excerptInfo = manifestExcerpts.find(e => e.id === EXCERPT);
+const reference = JSON.parse(readFileSync(`tests/fixtures/${EXCERPT}.reference.json`, 'utf8'));
+// genre excerpts: fired beats are scored against the pulse effects should follow (e.g. 70 BPM dubstep)
+const ref: { beats: number[] } = excerptInfo?.expectedPulseBpm
+  ? { beats: buildPulseRefs(reference, excerptInfo.expectedPulseBpm)[0]?.beats ?? reference.beats }
+  : reference;
 
 interface Raw {
   id: string; start: number; samples: Sample[]; errors: string[]; fpsClean: number;
@@ -60,14 +73,14 @@ interface Raw {
 
 async function capture(browser: Browser, id: string, start: number, shots: boolean): Promise<Raw> {
   const end = start + WARMUP + SECONDS;
-  const excerptSeconds = JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8')).excerpts.find((e: { id: string }) => e.id === EXCERPT)?.seconds ?? 120;
+  const excerptSeconds = excerptInfo?.seconds ?? 120;
   if (end > excerptSeconds - 0.5) throw new Error(`segment ${start}+${WARMUP}+${SECONDS}s runs past the ${excerptSeconds}s excerpt`);
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errors: string[] = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
   try {
-    await page.goto(`${BASE}/?viz=${id}&testAudio=/__testaudio/${EXCERPT}.wav&testAudioStart=${start}&probe=1&transition=instant&aibeat=1`);
+    await page.goto(`${BASE}/?viz=${id}&testAudio=/__testaudio/${EXCERPT}.wav&testAudioStart=${start}&probe=1&transition=instant&aibeat=1${STYLE ? `&style=${STYLE}` : ''}`);
     await page.waitForFunction(() => (window as any).__voltviz?.probe?.samples?.length > 5, null, { timeout: 30000 });
     if (UPLOADS[id]) await page.locator('input[type=file]').first().setInputFiles(UPLOADS[id]);
     await page.locator('header').getByRole('button', { name: 'Hide UI' }).click().catch(() => {});
@@ -133,7 +146,7 @@ const plan = has('deep')
   ? ids.filter(id => DEEP.includes(id)).flatMap(id => SEGMENTS.map(seg => ({ id, start: seg.start, segment: seg.name })))
   : ids.map(id => ({ id, start: parseFloat(arg('start', '85')), segment: 'break → drop' }));
 mkdirSync(RAW, { recursive: true });
-const rawPath = (id: string, start: number) => `${RAW}/${EXCERPT}-${id}-${start}.json`;
+const rawPath = (id: string, start: number) => `${RAW}/${EXCERPT}${STYLE ? `-${STYLE}` : ''}-${id}-${start}.json`;
 
 let browser: Browser | null = null;
 if (!has('reanalyze')) {
@@ -167,5 +180,5 @@ for (const job of plan) {
 }
 await browser?.close();
 mkdirSync('docs/reports/data', { recursive: true });
-writeFileSync(OUT, JSON.stringify({ generated: new Date().toISOString(), excerpt: EXCERPT, seconds: SECONDS, warmup: WARMUP, results }));
+writeFileSync(OUT, JSON.stringify({ generated: new Date().toISOString(), excerpt: EXCERPT, style: STYLE || 'auto', seconds: SECONDS, warmup: WARMUP, results }));
 console.log(`\n${results.filter(r => r.pass).length}/${results.length} passed -> ${OUT}`);

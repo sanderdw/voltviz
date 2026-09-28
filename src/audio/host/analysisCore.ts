@@ -3,6 +3,7 @@
  * batches messages. Shared by the AudioWorklet and the ScriptProcessor fallback.
  */
 import { Analyzer, type AnalyzerEvent } from '../core/Analyzer';
+import type { StyleId } from '../core/styles';
 import { HOPS_PER_MESSAGE, type EngineToHost, type HostToEngine } from './protocol';
 
 export class AnalysisCore {
@@ -17,8 +18,8 @@ export class AnalysisCore {
   private hopsSincePost = 0;
   private ctxOffset = NaN;
 
-  constructor(sampleRate: number, post: (m: HostToEngine, transfer?: Transferable[]) => void, neural: boolean) {
-    this.analyzer = new Analyzer(sampleRate, { neural: true });
+  constructor(sampleRate: number, post: (m: HostToEngine, transfer?: Transferable[]) => void, neural: boolean, style?: StyleId) {
+    this.analyzer = new Analyzer(sampleRate, { neural: true, style });
     this.analyzer.setNeuralActive(neural);
     this.post = post;
   }
@@ -26,6 +27,7 @@ export class AnalysisCore {
   onMessage(m: EngineToHost): void {
     if (m.type === 'neuralResult') this.analyzer.applyNeural(m.t0, m.activation, m.validFrom);
     else if (m.type === 'neuralActive') this.analyzer.setNeuralActive(m.active);
+    else if (m.type === 'style') this.analyzer.setStyle(m.style);
   }
 
   /** Process one block. `channels` are the input channel arrays; `contextTime` the block start. */

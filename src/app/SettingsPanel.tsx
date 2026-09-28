@@ -1,5 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Shuffle, Gauge, BrainCircuit } from 'lucide-react';
+import type { AudioEngine } from '../audio/AudioEngine';
+import type { AnalyzerState } from '../audio/core/Analyzer';
+import { DEFAULT_STYLE, STYLE_IDS, STYLE_PROFILES, type StyleId } from '../audio/core/styles';
 import type { SkinDefinition, SkinType } from '../skins';
 import type { VisualizerSettings } from '../types';
 import { visualizers, type VisualizerType } from '../visualizers/registry';
@@ -25,14 +28,19 @@ interface SettingsPanelProps {
   setAutoGain: (v: boolean) => void;
   aiBeat: boolean;
   setAiBeat: (v: boolean) => void;
+  musicStyle: StyleId;
+  setMusicStyle: (s: StyleId) => void;
+  /** The running engine (for the live beat status under Music style), or null. */
+  engine: AudioEngine | null;
   /** Leave room at the bottom for the fixed Sendspin bar. */
   bottomInset: boolean;
 }
 
 export default function SettingsPanel({ skin, activeSkin, showSettings, showControls, setShowSettings, settings, setSettings,
   shuffleEnabled, setShuffleEnabled, shuffleInterval, setShuffleInterval, shufflePool, transitionMode, setTransitionMode,
-  autoGain, setAutoGain, aiBeat, setAiBeat, bottomInset }: SettingsPanelProps) {
+  autoGain, setAutoGain, aiBeat, setAiBeat, musicStyle, setMusicStyle, engine, bottomInset }: SettingsPanelProps) {
   const open = showSettings && showControls;
+  const beatStatus = useBeatStatus(engine, open);
 
   useEffect(() => {
     if (!open) return;
@@ -186,6 +194,25 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
         </div>
 
         <div>
+          <div className="flex justify-between mb-2">
+            <label className={skin.settingsLabel} htmlFor="viz-music-style">Music style</label>
+          </div>
+          <select
+            id="viz-music-style"
+            value={musicStyle}
+            onChange={e => setMusicStyle(e.target.value as StyleId)}
+            className={`${skin.select} w-full`}
+            data-testid="viz-music-style"
+          >
+            {STYLE_IDS.map(id => (
+              <option key={id} value={id} className={skin.selectOption}>{STYLE_PROFILES[id].label}</option>
+            ))}
+          </select>
+          <p className={skin.settingsDescription}>{STYLE_PROFILES[musicStyle].description}</p>
+          {beatStatus && <p className={skin.settingsDescription} data-testid="viz-beat-status">Now: {beatStatus}</p>}
+        </div>
+
+        <div>
           <div className="flex justify-between mb-2 items-center">
             <label className={skin.settingsLabel}>AI Beat Tracking</label>
             <button
@@ -202,7 +229,7 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
         </div>
 
         <button
-          onClick={() => { setSettings(DEFAULT_SETTINGS); setAutoGain(false); setAiBeat(false); }}
+          onClick={() => { setSettings(DEFAULT_SETTINGS); setAutoGain(false); setAiBeat(false); setMusicStyle(DEFAULT_STYLE); }}
           className={skin.settingsButton}
         >
           Reset to Defaults
@@ -210,4 +237,27 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
       </div>
           </div>
   );
+}
+
+/** What the engine currently follows, polled twice a second while Settings is open. */
+function useBeatStatus(engine: AudioEngine | null, active: boolean): string | null {
+  const [status, setStatus] = useState<string | null>(null);
+  useEffect(() => {
+    if (!engine || !active) {
+      setStatus(null);
+      return;
+    }
+    const tick = () => setStatus(describeBeat(engine.analysis));
+    tick();
+    const id = window.setInterval(tick, 500);
+    return () => window.clearInterval(id);
+  }, [engine, active]);
+  return status;
+}
+
+function describeBeat(st: AnalyzerState | null): string {
+  if (!st || st.silent) return 'waiting for music';
+  if (!st.locked || st.bpm <= 0 || st.confidence < 0.3) return 'listening for a steady beat';
+  const tempo = Math.round(st.bpm);
+  return st.pulseDivisor === 2 ? `half-time pulse, ${Math.round(st.bpm / 2)} BPM (tempo ${tempo})` : `every beat, ${tempo} BPM`;
 }

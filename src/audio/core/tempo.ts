@@ -123,6 +123,13 @@ export class TempoEstimator {
       }
     }
     if (best < 0 || bestScore <= 0) return null;
+    // A beat period must itself repeat. Half-time drums (hits on every other beat only) give a
+    // lag at which nothing repeats harmonic support from 2L and 4L, and a prior centred above
+    // the hit rate can then prefer it: take the lag at which the hits actually repeat. Only
+    // when practically nothing repeats at L: a weak repetition (a pickup before every other
+    // beat, 0.15-0.2 on the DJ mix) is still the beat.
+    const atBest = this.peakNear(best, 1).value;
+    if (2 * best <= maxLag && atBest < 0.08 && atBest < 0.3 * this.peakNear(2 * best, 2).value) best *= 2;
     const salience = Math.max(0, this.peakNear(best, 1).value);
     // Refine the period on the highest harmonic still inside the window: a peak located at
     // k*L with +-0.5 frame error gives L to within +-0.5/k frames.
@@ -131,6 +138,19 @@ export class TempoEstimator {
     const refined = this.peakNear(k * best, Math.max(1, k));
     const period = refined.pos / k;
     return { period, bpm: (60 * this.frameRate) / period, salience };
+  }
+
+  /**
+   * Score of the latest estimate at a beat period (frames): the prior-weighted harmonic score
+   * (best within +-1 frame) and the raw normalized autocorrelation there. 0 outside the range.
+   */
+  scoreAt(period: number): { score: number; acf: number } {
+    const lag = Math.round(period);
+    if (lag - 1 < this.minLag || lag + 1 >= this.score.length) return { score: 0, acf: 0 };
+    return {
+      score: Math.max(this.score[lag - 1], this.score[lag], this.score[lag + 1]),
+      acf: Math.max(this.acf[lag - 1], this.acf[lag], this.acf[lag + 1]),
+    };
   }
 
   /** Parabolic-interpolated ACF peak within +-radius frames of `center`. */

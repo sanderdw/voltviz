@@ -157,6 +157,29 @@ describe('neural arbiter', () => {
     const d = evaluateWindow(act(beatsAt(0.5, 0.1)), { period: 0.5, nextBeatTime: 10.14 });
     expect(d.kind).toBe('confirm');
   });
+  it('retimes a clock stuck on a 4:3 relative, but not one its own estimate backs', () => {
+    // clock at 103 BPM (0.582 s) while the DSP estimate says 154 and the network 77: stuck
+    const w = act(beatsAt(0.779, 0.1));
+    expect(evaluateWindow(w, { period: 0.582, nextBeatTime: 10.2, confidence: 0.9, estimatePeriod: 0.39 }).kind).toBe('retime');
+    // clock and DSP estimate agree on 133: the network's 4:3 tempo is the network's error
+    expect(evaluateWindow(act(beatsAt(0.6, 0.1)), { period: 0.451, nextBeatTime: 10.2, confidence: 0.2, estimatePeriod: 0.451 }).kind).toBe('none');
+  });
+  it('follows gradual tempo changes itself, unless the clock is lost and unbacked', () => {
+    const w = act(beatsAt(0.5, 0.1));
+    // 10 % apart and not metrical: a confident clock keeps its tempo (DSP follows tempo changes) ...
+    expect(evaluateWindow(w, { period: 0.55, nextBeatTime: 10.1, confidence: 0.9, estimatePeriod: 0.7 }).kind).toBe('none');
+    // ... a lost clock its own estimate does not back is retimed to the network's consistent tempo
+    expect(evaluateWindow(w, { period: 0.55, nextBeatTime: 10.1, confidence: 0.1, estimatePeriod: 0.7 }).kind).toBe('retime');
+  });
+  it('a confirm locks the phase for 12 s and the tempo octave for 30 s; reset clears both', () => {
+    const arb = new NeuralArbiter();
+    expect(arb.decide(act(beatsAt(0.5, 0.1)), { period: 0.5, nextBeatTime: 10.1 }, 10).kind).toBe('confirm');
+    expect(arb.lockUntil).toBeCloseTo(22, 6);
+    expect(arb.octaveLockUntil).toBeCloseTo(40, 6);
+    arb.reset();
+    expect(arb.lockUntil).toBeLessThan(0);
+    expect(arb.octaveLockUntil).toBeLessThan(0);
+  });
   it('retimes an octave error only after two agreeing windows', () => {
     const arb = new NeuralArbiter();
     const w = act(beatsAt(0.46, 0.0));

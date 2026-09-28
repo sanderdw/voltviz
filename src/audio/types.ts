@@ -3,6 +3,7 @@
  * touch Web Audio themselves.
  */
 import type { AnalyzerState } from './core/Analyzer';
+import type { StyleId } from './core/styles';
 
 export type FftSize = 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768;
 
@@ -13,21 +14,31 @@ export interface SpectrumOptions {
   smoothing?: number;
 }
 
+/**
+ * The beat as beat effects should follow it: the *pulse*. Usually every tracked beat; on
+ * half-time music (dubstep, trap: kick on 1, snare on 3 at 140 BPM) every other tracked beat,
+ * so `bpm`, `period` and `phase` describe the 70 BPM pulse while `tempo` stays 140.
+ */
 export interface BeatInfo {
-  /** True in exactly the frame in which a (confident) beat lands. */
+  /** True in exactly the frame in which a (confident) pulse beat lands. */
   isBeat: boolean;
   /** Running count of fired beats. */
   count: number;
-  /** Position within the bar (0-3), counting fired beats. */
+  /** Position within a group of four fired beats (0-3); on a half-time pulse this spans two bars. */
   barBeat: number;
+  /** Tempo of the pulse (tempo / divisor). */
   bpm: number;
+  /** Tracked tempo (BPM), e.g. 140 for dubstep while the pulse is 70. */
+  tempo: number;
+  /** 1: every tracked beat fires; 2: half-time pulse. */
+  divisor: number;
   /** 0..1; beats below 0.3 are not fired. */
   confidence: number;
-  /** 0..1 progress from the previous to the next predicted beat (continuous, for smooth motion). */
+  /** 0..1 progress from the previous to the next predicted pulse beat (continuous, for smooth motion). */
   phase: number;
   /** Seconds since the last fired beat. */
   sinceBeat: number;
-  /** Beat period in seconds (0 when unknown). */
+  /** Pulse period in seconds (0 when unknown). */
   period: number;
 }
 
@@ -72,6 +83,8 @@ export interface AudioFrame {
   beat: BeatInfo;
   onsets: { kick: OnsetInfo; snare: OnsetInfo; hat: OnsetInfo };
   silent: boolean;
+  /** Music style in use (Settings). */
+  style: StyleId;
   /** Current Auto Gain factor applied to the display path (1 when Auto Gain is off). */
   gain: number;
   autoGain: boolean;
@@ -101,4 +114,6 @@ export interface EngineOptions {
   autoGain: boolean;
   /** AI beat tracking (neural phase arbitration). */
   neural: boolean;
+  /** Music style (default auto). */
+  style?: StyleId;
 }

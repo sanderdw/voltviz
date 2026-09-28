@@ -1,3 +1,4 @@
+import { STYLE_PROFILES } from '../../audio/core/styles';
 import type { AudioFrame } from '../../audio/types';
 
 /**
@@ -27,9 +28,14 @@ export function binFor(hz: number, sampleRate: number, bins: number): number {
 
 
 /**
- * The trigger for beat-driven effects: a confident (predicted, on-time) beat, or – when the
- * beat tracker has no confidence (e.g. non-4/4 material) – a raw kick onset.
+ * The trigger for beat-driven effects: a confident (predicted, on-time) pulse beat, or – when
+ * the beat tracker has no confidence (e.g. non-4/4 material) – a raw onset: a kick, or for
+ * Music styles without a steady kick (Auto, hip-hop, band, chill) also a snare/mid-band hit,
+ * so acoustic music still pulses on strums and piano chords.
  */
 export function beatHit(audio: AudioFrame): boolean {
-  return audio.beat.isBeat || (audio.beat.confidence < 0.3 && audio.onsets.kick.hit);
+  if (audio.beat.isBeat) return true;
+  if (audio.beat.confidence >= 0.3) return false;
+  if (audio.onsets.kick.hit) return true;
+  return STYLE_PROFILES[audio.style]?.fallback === 'accent' && audio.onsets.snare.hit;
 }

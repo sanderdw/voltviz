@@ -10,6 +10,8 @@
  * which the beat is heard (compensated for output latency), not one detection delay later.
  */
 import type { AnalyzerEvent, AnalyzerState } from './core/Analyzer';
+import { BeatFirer, type DueBeat } from './beatFirer';
+import { DEFAULT_STYLE } from './core/styles';
 import { AnalyserPool } from './host/analyserPool';
 import type { HostToEngine } from './host/protocol';
 import { createScriptProcessorHost, createWorkletHost, type AnalysisHost } from './host/scriptProcessorHost';
@@ -52,9 +54,7 @@ export class AudioEngine {
   private frameStamp = -1;
   private startedAt = performance.now();
   private cached: AudioFrame | null = null;
-  private beatCount = 0;
-  private lastBeatCtx = -Infinity;
-  private firedBeatIndex = -1;
+  private readonly firer = new BeatFirer(BEAT_CONFIDENCE_MIN);
   private readonly onsetState: Record<OnsetKind, { at: number; strength: number }> = {
     kick: { at: -Infinity, strength: 0 },
     snare: { at: -Infinity, strength: 0 },
@@ -99,13 +99,13 @@ export class AudioEngine {
     let host: AnalysisHost;
     if (this.context.audioWorklet && typeof AudioWorkletNode !== 'undefined') {
       try {
-        host = await createWorkletHost(this.context, workletUrl, this.options.neural, onMessage);
+        host = await createWorkletHost(this.context, workletUrl, this.options.neural, this.style, onMessage);
       } catch (err) {
         console.warn('VoltViz: AudioWorklet unavailable, using ScriptProcessor fallback', err);
-        host = createScriptProcessorHost(this.context, this.options.neural, onMessage);
+        host = createScriptProcessorHost(this.context, this.options.neural, this.style, onMessage);
       }
     } else {
-      host = createScriptProcessorHost(this.context, this.options.neural, onMessage);
+      host = createScriptProcessorHost(this.context, this.options.neural, this.style, onMessage);
     }
     if (this.disposed) {
       host.dispose();
@@ -116,8 +116,19 @@ export class AudioEngine {
     if (this.options.neural) this.neural.start();
   }
 
+  private get style() {
+    return this.options.style ?? DEFAULT_STYLE;
+  }
+
+  /** Latest analysis state without advancing the frame clock (for UI status displays). */
+  get analysis(): AnalyzerState | null {
+    return this.state;
+  }
+
   setOptions(options: Partial<EngineOptions>): void {
+    const style = this.style;
     this.options = { ...this.options, ...options };
+    if (this.style !== style) this.host?.send({ type: 'style', style: this.style });
     if (options.neural !== undefined) {
       this.host?.send({ type: 'neuralActive', active: options.neural });
       if (options.neural) this.neural.start();
@@ -153,7 +164,7 @@ export class AudioEngine {
     h.kick.set(kick, HISTORY - n);
     h.threshold.set(threshold, HISTORY - n);
     h.beats.fill(0, HISTORY - n);
-    if (events.some(e => e.type === 'beat')) h.beats[HISTORY - 1] = 1;
+    if (events.some(e => e.type === 'beat' && e.pulse)) h.beats[HISTORY - 1] = 1;
   }
 
   /** Current AudioContext time corrected to what is being heard right now. */
@@ -188,41 +199,18 @@ export class AudioEngine {
     }
 
     // --- beats ------------------------------------------------------------------------
-    let isBeat = false;
-    let confidence = st ? st.confidence : 0;
-    // 1) predicted beat: fire exactly when it becomes audible
-    if (st && st.period > 0 && st.locked) {
-      const nextCtx = st.nextBeatTime + this.ctxOffset;
-      const prevIndex = st.nextBeatIndex - 1;
-      const prevCtx = nextCtx - st.period;
-      if (ctxNow >= nextCtx && st.nextBeatIndex > this.firedBeatIndex) {
-        isBeat = confidence >= BEAT_CONFIDENCE_MIN;
-        this.firedBeatIndex = st.nextBeatIndex;
-        if (isBeat) this.lastBeatCtx = nextCtx;
-      } else if (ctxNow >= prevCtx && prevIndex > this.firedBeatIndex) {
-        isBeat = confidence >= BEAT_CONFIDENCE_MIN;
-        this.firedBeatIndex = prevIndex;
-        if (isBeat) this.lastBeatCtx = prevCtx;
-      }
-    }
-    // 2) queued events (beats already emitted by the analysis; onsets)
+    // Queued events: beats already emitted by the analysis (fired by the BeatFirer once
+    // audible, together with the predicted next pulse beat) and onsets.
     const keep: AnalyzerEvent[] = [];
+    const due: DueBeat[] = [];
     for (const e of this.queue) {
       const at = e.time + this.ctxOffset;
       if (at > ctxNow) {
         keep.push(e);
         continue;
       }
-      if (e.type === 'beat') {
-        if (e.index > this.firedBeatIndex) {
-          this.firedBeatIndex = e.index;
-          if (e.confidence >= BEAT_CONFIDENCE_MIN) {
-            isBeat = true;
-            this.lastBeatCtx = at;
-            confidence = e.confidence;
-          }
-        }
-      } else {
+      if (e.type === 'beat') due.push({ at, index: e.index, pulse: e.pulse, confidence: e.confidence });
+      else {
         const o = this.onsetState[e.type];
         o.at = at;
         o.strength = e.strength;
@@ -230,22 +218,27 @@ export class AudioEngine {
     }
     // drop stale events (e.g. after a tab was hidden)
     this.queue = keep.filter(e => e.time + this.ctxOffset < ctxNow + 2);
-    if (isBeat) this.beatCount++;
+    const fired = this.firer.frame(ctxNow, Math.max(0.06, 1.5 * dt), st, this.ctxOffset, due);
 
-    const period = st && st.period > 0 ? st.period : 0;
+    // The pulse is what beat effects follow: every tracked beat, or every other one on a
+    // half-time pulse. phase/period/bpm describe the pulse; tempo is the tracked tempo.
+    const divisor = st && st.pulseDivisor > 0 ? st.pulseDivisor : 1;
+    const period = st && st.pulsePeriod > 0 ? st.pulsePeriod : 0;
     let phase = 0;
     if (period > 0 && st) {
-      const nextCtx = st.nextBeatTime + this.ctxOffset;
+      const nextCtx = st.nextPulseTime + this.ctxOffset;
       phase = 1 - Math.min(1, Math.max(0, (nextCtx - ctxNow) / period));
     }
     const beat: BeatInfo = {
-      isBeat,
-      count: this.beatCount,
-      barBeat: (this.beatCount + 3) % 4,
-      bpm: st?.bpm ?? 0,
-      confidence,
+      isBeat: fired.isBeat,
+      count: this.firer.count,
+      barBeat: (this.firer.count + 3) % 4,
+      bpm: st ? st.bpm / divisor : 0,
+      tempo: st?.bpm ?? 0,
+      divisor,
+      confidence: fired.confidence,
       phase,
-      sinceBeat: Math.max(0, ctxNow - this.lastBeatCtx),
+      sinceBeat: Math.max(0, ctxNow - this.firer.lastBeatAt),
       period,
     };
 
@@ -288,6 +281,7 @@ export class AudioEngine {
       beat,
       onsets: { kick: onset('kick'), snare: onset('snare'), hat: onset('hat') },
       silent: st ? st.silent : true,
+      style: this.style,
       gain: this.currentGain,
       autoGain: this.options.autoGain,
       analysis: st ?? EMPTY_STATE,
@@ -339,8 +333,9 @@ function computeBands(spec: Uint8Array, sampleRate: number): Bands {
 }
 
 const EMPTY_STATE: AnalyzerState = {
-  time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1, bpm: 0, tempoSalience: 0,
+  time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1, bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0,
   locked: false, confidence: 0, period: 0, nextBeatTime: 0, nextBeatIndex: 0,
+  style: DEFAULT_STYLE, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
   odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
   neural: { enabled: false, runs: 0, lastDecision: 'off', consistency: 0, lockActive: false },
 };
