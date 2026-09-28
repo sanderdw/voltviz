@@ -44,6 +44,7 @@ const RawAudio: VisualizerFactory = ({ container }) => {
   // Display-only decays so single-frame events stay visible (the fields themselves are raw).
   let beatFlash = 0;
   let beatSource = '—';
+  let downbeatFlash = 0;
   const onsetFlash = { kick: 0, snare: 0, hat: 0 };
   let fps = 60;
   let stereoScale = 0.05;
@@ -153,19 +154,34 @@ const RawAudio: VisualizerFactory = ({ container }) => {
     const used = readouts(area, [
       ['beat.bpm', b.divisor > 1 ? `${fmt(b.bpm, 1)} (half-time)` : fmt(b.bpm, 1)],
       ['beat.tempo', fmt(b.tempo, 1)],
-      ['beat.period', `${fmt(b.period, 3)} s`],
-      ['beat.phase', fmt(b.phase)],
+      ['period · phase', `${fmt(b.period, 3)} s · ${fmt(b.phase)}`],
+      // barKnown: the bar comes from the AI's downbeats, else fired beats are counted in fours
+      ['beat.barBeat', `${b.barBeat + 1}/4 · ${b.barKnown ? 'AI' : 'counted'}`],
       ['style', a.style],
     ]);
     const h = area.h - used;
-    // Four bar dots, the current one lit
+    // Four bar dots, the current one lit; a known "1" (barKnown) is ringed and flashes on `downbeat`
     const dot = Math.max(3, Math.min(area.w / 16, h / 6));
     if (h < dot * 2 + 16) return; // too short for the demo: the numbers above say it all
     for (let i = 0; i < 4; i++) {
+      const cx = area.x + dot + i * dot * 3;
       ctx.beginPath();
-      ctx.arc(area.x + dot + i * dot * 3, area.y + dot, dot, 0, Math.PI * 2);
+      ctx.arc(cx, area.y + dot, dot, 0, Math.PI * 2);
       ctx.fillStyle = i === b.barBeat ? PURPLE : TRACK;
       ctx.fill();
+      if (i === 0 && b.barKnown) {
+        if (downbeatFlash > 0.01) {
+          ctx.globalAlpha = downbeatFlash;
+          ctx.fillStyle = GREEN;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        ctx.beginPath();
+        ctx.arc(cx, area.y + dot, dot + 2, 0, Math.PI * 2);
+        ctx.strokeStyle = GREEN;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
     }
     // Phase progress bar
     hbar(area.x, area.y + dot * 2 + 8, area.w, Math.max(4, dot * 0.8), b.phase, PURPLE);
@@ -352,11 +368,13 @@ const RawAudio: VisualizerFactory = ({ container }) => {
 
   function engine(r: Rect, a: AudioFrame) {
     const e = a.engine;
-    const area = tile(r, 'Engine', 'audio.engine');
+    const s = a.analysis;
+    const area = tile(r, 'Engine', 'audio.engine · audio.analysis');
     readouts(area, [
       ['host', e.host],
-      ['neural', e.neural],
-      ['neuralMs', fmt(e.neuralMs, 1)],
+      ['neural', e.neural === 'ready' ? `ready · ${fmt(e.neuralMs, 0)} ms` : e.neural],
+      ['lastDecision', s.neural.lastDecision],
+      ['songChanges', s.songChanges > 0 ? `${s.songChanges} · ${fmt(s.time - s.songChangeAt, 0)} s ago` : '0'],
       ['latency', `${fmt(e.latency * 1000, 1)} ms`],
     ], e.neural === 'error' ? RED : INK);
   }
@@ -385,6 +403,8 @@ const RawAudio: VisualizerFactory = ({ container }) => {
         beatFlash = 1;
         beatSource = audio.beat.isBeat ? 'predicted beat' : 'kick (no tempo)';
       } else beatFlash *= Math.exp(-dt / 0.12);
+      if (audio.beat.downbeat) downbeatFlash = 1;
+      else downbeatFlash *= Math.exp(-dt / 0.3);
       for (const k of ONSET_KEYS) {
         if (audio.onsets[k].hit) onsetFlash[k] = 1;
         else onsetFlash[k] *= Math.exp(-dt / 0.12);

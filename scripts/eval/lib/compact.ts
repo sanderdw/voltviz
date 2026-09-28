@@ -36,6 +36,8 @@ export function compactResult(r: Json): Json {
     pulse: r.pulse ? compactBeats(r.pulse) : null,
     trackingAmlt: r.trackingAmlt,
     pulseShare: r.pulseShare,
+    downbeats: r.downbeats,
+    recovery: r.recovery,
     levelChanges: r.levelChanges,
     tempoAccuracy: r.tempoAccuracy,
     lockTimeStart: r.lockTimeStart,

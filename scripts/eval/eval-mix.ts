@@ -3,7 +3,7 @@
  * excerpt of a manifest: scripts/eval/excerpts.json (the DJ mix, default) or
  * scripts/eval/genres.json (the genre excerpts from the user's local music library).
  *
- *   node scripts/eval/eval-mix.ts [--manifest path] [--styles auto,matching] [--only <id>]
+ *   node scripts/eval/eval-mix.ts [--manifest path] [--styles auto,matching] [--only <id,id...>]
  *     [--roles tuning] [--out path] [--rates 44100,48000] [--modes dsp,hybrid]
  *
  * The excerpt is streamed from ffmpeg in 128-sample blocks (exactly the AudioWorklet render
@@ -22,7 +22,7 @@ import { Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer.ts';
 import { createBeatModel, type BeatModel } from '../../src/audio/neural/beatModel.ts';
 import { BaselineRunner, type BaselineResult } from './lib/baselines.ts';
 import { amlt, classifyTempo, cmlt, fMeasure, lockTime, median, offsetsMs, within } from './lib/metrics.ts';
-import { buildPulseRefs, type PulseRef } from './lib/pulse.ts';
+import { bpmOf, buildPulseRefs, pulseFromRule, type PulseRef } from './lib/pulse.ts';
 import { streamMono } from './lib/stream.ts';
 import { compactReport } from './lib/compact.ts';
 import { DEFAULT_MANIFEST, excerptPath, loadManifest, type Excerpt } from './prepare-audio.ts';
@@ -45,6 +45,8 @@ const GENRE_GATES = {
   medianOffsetMs: 20,
   /** Tempo/pulse level changes allowed after the first 15 s. */
   levelChanges: 1,
+  /** Song-change clips: seconds from the new song's established beat until four of its beats are matched. */
+  recoveryS: 6,
 };
 
 interface Reference {
@@ -53,6 +55,7 @@ interface Reference {
   beats: number[];
   downbeats?: number[];
   crossCheckBeats?: number[];
+  crossCheckDownbeats?: number[];
   windows: { start: number; end: number; bpm: number | null; agree: boolean; agreeAnyLevel?: boolean; rmsDb: number }[];
   grid: { bpm: number };
 }
@@ -67,7 +70,7 @@ const manifest = loadManifest(manifestPath);
 const isGenre = manifest.excerpts.some(e => e.file);
 const outPath = arg('out', isGenre ? 'docs/reports/data/eval-genres.json' : 'docs/reports/data/eval-mix.json');
 const rates = arg('rates', '44100,48000').split(',').map(Number);
-const only = arg('only', '');
+const only = arg('only', '').split(',').filter(Boolean);
 const roles = arg('roles', '').split(',').filter(Boolean);
 const modes = arg('modes', 'dsp,hybrid').split(',') as ('dsp' | 'hybrid')[];
 /** Music styles to run ('' = the Analyzer's default). */
@@ -75,6 +78,10 @@ const styles = arg('styles', isGenre ? 'auto,matching' : 'auto').split(',');
 const modelPath = arg('model', 'public/models/beat_this_small0.onnx');
 /** Experiments only: tracker tuning overrides (JSON), applied on top of every style. */
 const tuning = JSON.parse(arg('tuning', '{}'));
+/** Withhold the model's downbeats (reproduces the 0.30.0 engine, which ignored them). */
+const noDownbeats = process.argv.includes('--no-downbeats');
+/** Disable song-change detection (with --no-downbeats: the 0.30.0 engine). */
+const noSongChange = process.argv.includes('--no-song-change');
 /** Stream seconds between a neural request and applying its result (models async inference). */
 const NEURAL_LATENCY_S = 1.0;
 ort.env.wasm.numThreads = 1;
@@ -101,12 +108,64 @@ function scoreBeats(est: number[], reference = refGated) {
   };
 }
 
+/** The excerpt's expected pulse: given, or resolved from its pulse rule and the reference tempo. */
+let expectedPulse: number | null | undefined;
+/** Whether madmom's and beat_this's downbeats disagree (F < 0.5) on this excerpt. */
+let barsDisagree = false;
+/** Song-change clips: when the new song's beat is established (both references agree on 4 beats). */
+let beatStartsAt: number | null = null;
+
 /** Pulse score: against the primary expected-pulse reference, or the best level when none is expected. */
 function scorePulse(pulses: number[]) {
   const scored = pulseRefs.map(p => ({ name: p.name, bpm: p.bpm, ...scoreBeats(pulses, within(p.beats, gated)) }));
   if (!scored.length) return null;
-  const primary = excerpt.expectedPulseBpm ? scored[0] : scored.reduce((a, b) => (b.fMeasure > a.fMeasure ? b : a));
+  // With an expected pulse, the first reference at that pulse is primary - unless the two
+  // trackers place the bar differently (madmom's downbeats are unreliable on some songs): then
+  // the half-time pulse on bar beats 1+3 of either tracker counts.
+  let primary = expectedPulse ? scored[0] : scored.reduce((a, b) => (b.fMeasure > a.fMeasure ? b : a));
+  if (expectedPulse && barsDisagree) {
+    const h13 = scored.filter(s => s.name.endsWith('(bar beats 1+3)'));
+    if (h13.length) primary = h13.reduce((a, b) => (b.fMeasure > a.fMeasure ? b : a));
+  }
   return { ...primary, reference: primary.name, alternatives: scored.map(s => ({ name: s.name, bpm: s.bpm, fMeasure: s.fMeasure })) };
+}
+
+/**
+ * Song-change clips: seconds from the change until four consecutive reference beats of the new
+ * song are matched (any metrical level: madmom, beat_this, or madmom at half tempo, either
+ * parity), and the confident beats fired in between that match no reference beat.
+ */
+function scoreRecovery(tracked: number[]) {
+  const at = excerpt.changeAt;
+  if (at === undefined) return { seconds: null, wrongBeats: null, fromBeatStart: null };
+  const after = (xs: number[]) => xs.filter(t => t >= at);
+  const levels = [ref.beats, ref.crossCheckBeats ?? [], ref.beats.filter((_, i) => i % 2 === 0), ref.beats.filter((_, i) => i % 2 === 1)]
+    .map(after).filter(r => r.length >= 4);
+  const locks = levels.map(r => lockTime(r, tracked, at)).filter((v): v is number => v !== null);
+  const seconds = locks.length ? Math.min(...locks) : null;
+  const until = seconds === null ? Infinity : at + seconds;
+  const all = levels.flat();
+  const wrongBeats = tracked.filter(t => t >= at && t < until && !all.some(r => Math.abs(r - t) <= 0.07)).length;
+  // the same, counted from when the new song's beat is established
+  const fromBeatStart = seconds === null || beatStartsAt === null ? null : Math.max(0, at + seconds - beatStartsAt);
+  return { seconds, wrongBeats, fromBeatStart, beatStartsAt };
+}
+
+/**
+ * Downbeats: confident tracked beats on bar position 0 against the reference downbeats (madmom,
+ * and beat_this where available), in the gated windows; plus the share of time the bar is known.
+ */
+function scoreDownbeats(beats: AnalyzerEvent[], timeline: { t: number; bar: number }[]) {
+  const known = timeline.filter(p => p.t >= WARMUP_S && within([p.t], gated).length);
+  const coverage = known.length ? known.filter(p => p.bar >= 0).length / known.length : 0;
+  const est = within(beats.filter(b => (b as { bar?: number }).bar === 0).map(b => b.time), gated);
+  if (!ref.downbeats?.length) return { coverage, count: est.length, fMeasure: null, fMeasureCrossCheck: null };
+  const f = (r: number[]) => fMeasure(within(r, gated), est);
+  return {
+    coverage, count: est.length,
+    fMeasure: f(ref.downbeats),
+    fMeasureCrossCheck: ref.crossCheckDownbeats?.length ? f(ref.crossCheckDownbeats) : null,
+  };
 }
 
 function perWindow(est: number[], bpmAt: (t: number) => number) {
@@ -137,15 +196,15 @@ function levelChanges(values: { t: number; v: number }[], from = 15): number {
 async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: string) {
   const neural = mode === 'hybrid';
   if (neural && !model) model = await createBeatModel(ort as never, new Uint8Array(readFileSync(modelPath)));
-  const analyzer = new Analyzer(sampleRate, { neural, tuning, ...(style ? { style: style as never } : {}) });
+  const analyzer = new Analyzer(sampleRate, { neural, tuning, songChange: !noSongChange, ...(style ? { style: style as never } : {}) });
   const baseline = !isGenre && sampleRate === 44100 && (mode === 'dsp' || !modes.includes('dsp')) && style === styles[0]
     ? new BaselineRunner(sampleRate) : null;
-  const pendingNeural: { applyAt: number; t0: number; validFrom: number; act: Float32Array }[] = [];
+  const pendingNeural: { applyAt: number; t0: number; validFrom: number; act: Float32Array; down: Float32Array }[] = [];
   const decisions: { t: number; kind: string; reason?: string; bpm?: number; clockBpm: number }[] = [];
   let neuralMs = 0;
   let neuralRuns = 0;
   const events: AnalyzerEvent[] = [];
-  const timeline: { t: number; bpm: number; conf: number; locked: boolean; salience: number; raw: number; div: number; pulseBpm: number }[] = [];
+  const timeline: { t: number; bpm: number; conf: number; locked: boolean; salience: number; raw: number; div: number; pulseBpm: number; bar: number }[] = [];
   let nextSample = 0;
   const started = performance.now();
   const duration = await streamMono(audioPath, { sampleRate, block: 128 }, async block => {
@@ -154,14 +213,14 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
       const req = analyzer.takeNeuralRequest();
       if (req && model) {
         const t = performance.now();
-        const act = await model.run(req.frames);
+        const { beat: act, downbeat: down } = await model.run(req.frames);
         neuralMs += performance.now() - t;
         neuralRuns++;
-        pendingNeural.push({ applyAt: analyzer.state.time + NEURAL_LATENCY_S, t0: req.t0, validFrom: req.validFrom, act });
+        pendingNeural.push({ applyAt: analyzer.state.time + NEURAL_LATENCY_S, t0: req.t0, validFrom: req.validFrom, act, down });
       }
       while (pendingNeural.length && pendingNeural[0].applyAt <= analyzer.state.time) {
         const p = pendingNeural.shift()!;
-        const d = analyzer.applyNeural(p.t0, p.act, p.validFrom);
+        const d = analyzer.applyNeural(p.t0, p.act, p.validFrom, noDownbeats ? undefined : p.down);
         if (d) decisions.push({
           t: +analyzer.state.time.toFixed(2), kind: d.kind,
           ...(d.kind === 'none' ? { reason: d.reason, ...(d.bpm ? { bpm: +d.bpm.toFixed(1) } : {}) } : {}),
@@ -180,6 +239,7 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
         t: +st.time.toFixed(2), bpm: +st.bpm.toFixed(2), conf: +st.confidence.toFixed(3), locked: st.locked,
         salience: +st.tempoSalience.toFixed(3), raw: +(st.tempoCandidateBpm ?? 0).toFixed(1), div,
         pulseBpm: +(st.bpm / div).toFixed(2),
+        bar: (st as { barPhase?: number }).barPhase ?? -1,
       });
     }
   });
@@ -218,12 +278,14 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
     pulse: isGenre ? scorePulse(confident) : null,
     trackingAmlt,
     pulseShare: trackedConfident.length ? confident.length / trackedConfident.length : 1,
+    downbeats: scoreDownbeats(confidentBeats, timeline),
     levelChanges: {
       tempo: levelChanges(timeline.map(p => ({ t: p.t, v: p.bpm }))),
       pulse: levelChanges(timeline.map(p => ({ t: p.t, v: p.pulseBpm }))),
     },
     tempoAccuracy,
     lockTimeStart: lockTime(ref.beats, confident, 0),
+    recovery: scoreRecovery(trackedConfident),
     lockTimeAfterBreak: breakWin ? lockTime(ref.beats, confident, breakWin.end) : null,
     windows,
     timeline,
@@ -268,6 +330,13 @@ function gatesFor(results: Result[], baselineBest: number) {
 function genreGatesFor(results: Result[]) {
   const primary = results[0];
   const p = primary.pulse;
+  if (excerpt.changeAt !== undefined) {
+    // song-change clips: how fast the engine finds the new song's beat
+    const rec = primary.recovery;
+    return {
+      recoveryS: { value: rec.fromBeatStart, max: GENRE_GATES.recoveryS, pass: rec.fromBeatStart !== null && rec.fromBeatStart <= GENRE_GATES.recoveryS },
+    };
+  }
   const pulseMin = excerpt.style === 'chill' ? GENRE_GATES.pulseFChill : GENRE_GATES.pulseF;
   const pulseF = p?.fMeasure ?? 0;
   return {
@@ -288,7 +357,7 @@ function genreGatesFor(results: Result[]) {
 const fmt = (x: number | null | undefined, d = 3) => (x === null || x === undefined || Number.isNaN(x) ? '-' : x.toFixed(d));
 const excerpts = [];
 for (const ex of manifest.excerpts) {
-  if (only && ex.id !== only) continue;
+  if (only.length && !only.includes(ex.id)) continue;
   if (roles.length && !roles.includes(ex.role)) continue;
   excerpt = ex;
   audioPath = excerptPath(ex.id);
@@ -297,7 +366,21 @@ for (const ex of manifest.excerpts) {
   const agreed: [number, number][] = ref.windows.filter(w => (isGenre ? (w.agreeAnyLevel ?? w.agree) : w.agree)).map(w => [w.start, w.end]);
   gated = agreed.map(([a, b]) => [Math.max(a, WARMUP_S), b] as [number, number]).filter(([a, b]) => b > a);
   refGated = within(ref.beats, gated);
-  pulseRefs = isGenre ? buildPulseRefs(ref, ex.expectedPulseBpm) : [];
+  expectedPulse = ex.expectedPulseBpm ?? pulseFromRule(ex.pulseRule,
+    bpmOf(ex.changeAt !== undefined ? ref.beats.filter(t => t >= ex.changeAt!) : ref.beats));
+  pulseRefs = isGenre ? buildPulseRefs(ref, expectedPulse) : [];
+  barsDisagree = !!(ref.downbeats?.length && ref.crossCheckDownbeats?.length) && fMeasure(ref.downbeats!, ref.crossCheckDownbeats!) < 0.5;
+  beatStartsAt = null;
+  if (ex.changeAt !== undefined) {
+    // the new song's beat is established once both references (any metrical level) agree on
+    // four consecutive beats; a song may start with a beatless intro
+    const bt = ref.crossCheckBeats ?? [];
+    const agreeing = ref.beats.filter(b => b >= ex.changeAt! && (bt.some(x => Math.abs(x - b) <= 0.07)));
+    for (let i = 0; i + 3 < agreeing.length; i++) {
+      const gaps = [1, 2, 3].map(k => agreeing[i + k] - agreeing[i + k - 1]);
+      if (Math.max(...gaps) < 1.5 * Math.min(...gaps)) { beatStartsAt = agreeing[i]; break; }
+    }
+  }
   const results: Result[] = [];
   const gatesByStyle: Record<string, Record<string, ReturnType<typeof gatesFor> | ReturnType<typeof genreGatesFor>>> = {};
   for (const s of styles) {
@@ -322,7 +405,7 @@ for (const ex of manifest.excerpts) {
   const gates = gatesByMode[modes.includes('hybrid') ? 'hybrid' : modes[0]];
   excerpts.push({ ...ex, refGridBpm: ref.grid.bpm, gatedRanges: gated, pulseRefs: pulseRefs.map(p => ({ name: p.name, bpm: p.bpm })), gates, gatesByMode, gatesByStyle, results });
 
-  console.log(`\n=== ${ex.id} (${ex.role}) reference ~${ref.grid.bpm.toFixed(1)} BPM${isGenre ? `, expected pulse ${ex.expectedPulseBpm ?? 'either'}` : ''}`);
+  console.log(`\n=== ${ex.id} (${ex.role}) reference ~${ref.grid.bpm.toFixed(1)} BPM${isGenre ? `, expected pulse ${expectedPulse ? expectedPulse.toFixed(0) : 'either'}` : ''}${ex.changeAt !== undefined ? `, song change at ${ex.changeAt} s` : ''}`);
   for (const r of results) {
     const a = r.beats.all, k = r.beats.confident;
     console.log(`[${r.style} ${r.mode} ${r.sampleRate} Hz]  ${fmt(r.realtimeFactor, 0)}x realtime${r.neural ? `  neural ${r.neural.runs} runs, ${fmt(r.neural.avgMs, 0)} ms avg, decisions ${r.neural.decisions.map(d => d.kind[0]).join('')}` : ''}`);
@@ -334,6 +417,8 @@ for (const ex of manifest.excerpts) {
       console.log(`  confident      F=${fmt(k.fMeasure)} CMLt=${fmt(k.cmlt)} AMLt=${fmt(k.amlt)} offset=${fmt(k.medianOffsetMs, 1)}ms n=${k.count}`);
       console.log(`  tempo windows  ${fmt(r.tempoAccuracy)}  lock@start=${fmt(r.lockTimeStart, 2)}s lock@afterBreak=${fmt(r.lockTimeAfterBreak, 2)}s  pulse share=${fmt(r.pulseShare, 2)}`);
     }
+    if (r.recovery.seconds !== null || excerpt.changeAt !== undefined) console.log(`  recovery       ${fmt(r.recovery.seconds, 1)} s after the change (${fmt(r.recovery.fromBeatStart, 1)} s after the new beat starts at ${fmt(r.recovery.beatStartsAt, 1)} s), ${r.recovery.wrongBeats ?? '-'} wrong beats in between`);
+    if (r.mode === 'hybrid') console.log(`  downbeats      F=${fmt(r.downbeats.fMeasure)} (beat_this ${fmt(r.downbeats.fMeasureCrossCheck)}) n=${r.downbeats.count} bar known ${fmt(100 * r.downbeats.coverage, 0)}% of the time`);
     console.log(`  windows: ${r.windows.map(w => `${w.start}:${w.bpm.toFixed(1)}/${(w.refBpm ?? 0).toFixed(1)}/${w.fMeasure.toFixed(2)}${w.agree ? '' : '*'}`).join(' ')}`);
     const reasons = (r.neural?.decisions ?? []).filter(d => d.reason).map(d => `${d.t}:${d.reason}`);
     if (reasons.length) console.log(`  abstentions: ${reasons.join(' | ')}`);

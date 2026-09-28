@@ -27,9 +27,10 @@ export interface NeuralRequestMessage {
 export type HostToEngine = AnalysisMessage | NeuralRequestMessage | { type: 'error'; message: string };
 
 export type EngineToHost =
-  | { type: 'neuralResult'; t0: number; validFrom: number; activation: Float32Array }
+  | { type: 'neuralResult'; t0: number; validFrom: number; activation: Float32Array; downbeat?: Float32Array }
   | { type: 'neuralActive'; active: boolean }
-  | { type: 'style'; style: StyleId };
+  | { type: 'style'; style: StyleId }
+  | { type: 'songChange' };
 
 /** Hops between analysis messages (~11.6 ms). */
 export const HOPS_PER_MESSAGE = 2;

@@ -39,6 +39,15 @@ export default function App() {
 
   const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
 
+  // Sendspin (Music Assistant) says exactly when the track changes: let the beat tracking
+  // start over on the new song instead of detecting the change from the audio.
+  const track = sendspin.metadata ? `${sendspin.metadata.artist ?? ''}\u0000${sendspin.metadata.title ?? ''}` : null;
+  const lastTrack = useRef<string | null>(null);
+  useEffect(() => {
+    if (track && lastTrack.current !== null && track !== lastTrack.current) audio?.engine.notifySongChange();
+    lastTrack.current = track;
+  }, [track, audio]);
+
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
 

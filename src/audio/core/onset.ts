@@ -15,6 +15,14 @@ export interface OnsetFrame {
   mid: number;
   /** Hi-hat / cymbal flux, 6 kHz and up. */
   hat: number;
+  /**
+   * Rise of the *linear* energy in the snare band (1-5 kHz) and in the kick band (35-150 Hz)
+   * over the last 2-3 hops. Linear, unlike the log-domain functions above, so a loud snare or
+   * kick stands out against hi-hats and a wobble bass: used for the bar-level half-time
+   * signature, not for the beat phase.
+   */
+  snareRise: number;
+  kickRise: number;
   /** RMS and peak of the raw hop. */
   rms: number;
   peak: number;
@@ -61,6 +69,9 @@ export class OnsetFeatures {
   private readonly kickLp1: Biquad;
   private readonly kickLp2: Biquad;
   private readonly kickLog: Float64Array;
+  private readonly kickLin: Float64Array;
+  private readonly snareLin: Float64Array;
+  private readonly snareBins: [number, number];
 
   constructor(sampleRate: number) {
     this.sampleRate = sampleRate;
@@ -90,6 +101,14 @@ export class OnsetFeatures {
     this.kickLp1 = Biquad.lowpass(sampleRate, 150);
     this.kickLp2 = Biquad.lowpass(sampleRate, 150);
     this.kickLog = new Float64Array(KICK_LAG + 1);
+    this.kickLin = new Float64Array(KICK_LAG + 1);
+    this.snareLin = new Float64Array(FLUX_LAG + 1);
+    this.snareBins = [Math.round(1000 / binHz), Math.min(FFT_SIZE / 2 - 1, Math.round(5000 / binHz))];
+  }
+
+  /** Log band magnitudes of the latest hop (quarter-octave bands up to 16 kHz). */
+  get currentBands(): Float64Array {
+    return this.logBands[(this.frame + FLUX_LAG) % (FLUX_LAG + 1)];
   }
 
   get bandCount(): number {
@@ -158,6 +177,13 @@ export class OnsetFeatures {
     out.broad = broad / nb;
     out.mid = nMid ? mid / nMid : 0;
     out.hat = nHat ? hat / nHat : 0;
+    let se = 0;
+    for (let k = this.snareBins[0]; k <= this.snareBins[1]; k++) se += re[k] * re[k] + im[k] * im[k];
+    se *= norm * norm / (this.snareBins[1] - this.snareBins[0] + 1);
+    const sSlot = this.frame % (FLUX_LAG + 1);
+    this.snareLin[sSlot] = se;
+    const sRise = warm ? se - this.snareLin[(this.frame + 1) % (FLUX_LAG + 1)] : 0;
+    out.snareRise = sRise > 0 ? sRise : 0;
 
     // --- kick ---------------------------------------------------------------------------
     const kl = this.kickLog;
@@ -166,6 +192,10 @@ export class OnsetFeatures {
     const kRef = kl[(this.frame + 1) % (KICK_LAG + 1)]; // frame - KICK_LAG
     const kd = this.frame >= KICK_LAG ? kl[kSlot] - kRef : 0;
     out.kick = kd > 0 ? kd : 0;
+    const ke = kickSq / hop;
+    this.kickLin[kSlot] = ke;
+    const kRise = this.frame >= KICK_LAG ? ke - this.kickLin[(this.frame + 1) % (KICK_LAG + 1)] : 0;
+    out.kickRise = kRise > 0 ? kRise : 0;
 
     this.frame++;
   }

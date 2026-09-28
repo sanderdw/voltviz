@@ -1,3 +1,4 @@
+import { BarTracker, BEATS_PER_BAR, type ClockBeat } from './bars.ts';
 import { BeatTracker, foldPeriod, type BeatEvent, type TrackerTuning } from './beatTracker.ts';
 import { LevelTracker } from './levels.ts';
 import { NeuralArbiter, type ArbiterDecision } from './neuralArbiter.ts';
@@ -5,13 +6,18 @@ import { MelFrontend, MODEL_FPS, N_MELS } from '../neural/melFrontend.ts';
 import { OnsetFeatures, type OnsetFrame } from './onset.ts';
 import { PeakPicker } from './peakPicker.ts';
 import { FrameHistory } from './ring.ts';
+import { SongChangeDetector } from './songChange.ts';
 import { DEFAULT_STYLE, STYLE_PROFILES, type StyleId } from './styles.ts';
 import { TempoEstimator } from './tempo.ts';
 
 export type OnsetKind = 'kick' | 'snare' | 'hat';
 
 export type AnalyzerEvent =
-  | { type: 'beat'; time: number; index: number; confidence: number; bpm: number; pulse: boolean }
+  | {
+    type: 'beat'; time: number; index: number; confidence: number; bpm: number; pulse: boolean;
+    /** Position in the bar (0 = the "1"), from the AI downbeats; -1 when unknown. */
+    bar: number;
+  }
   | { type: OnsetKind; time: number; strength: number };
 
 /** Snapshot of the analysis, updated every hop (~5.8 ms). Times are seconds of processed audio. */
@@ -36,6 +42,13 @@ export interface AnalyzerState {
   nextBeatIndex: number;
   /** Music style in use. */
   style: StyleId;
+  /** Running beat index modulo 4 that is the "1" of the bar (AI downbeats); -1 while unknown. */
+  barPhase: number;
+  /** Song changes detected so far, and the timbre novelty behind them (diagnostics). */
+  songChanges: number;
+  novelty: number;
+  /** Stream time (s) of the latest song change; -1 before the first. */
+  songChangeAt: number;
   /**
    * The pulse beat effects follow: every tracked beat (divisor 1) or every other one (2, the
    * half-time pulse). Period in seconds; the next pulse beat's time and running beat index.
@@ -75,6 +88,8 @@ export interface AnalyzerOptions {
   tempoWindowS?: number;
   /** Music style (default auto). */
   style?: StyleId;
+  /** Detect song changes and restart the beat search quickly (default true). */
+  songChange?: boolean;
 }
 
 /** A request for the beat model: 500 log-mel frames (10 s) ending now. */
@@ -117,7 +132,7 @@ export class Analyzer {
   readonly state: AnalyzerState;
 
   private readonly onset: OnsetFeatures;
-  private readonly frame: OnsetFrame = { broad: 0, kick: 0, mid: 0, hat: 0, rms: 0, peak: 0 };
+  private readonly frame: OnsetFrame = { broad: 0, kick: 0, mid: 0, hat: 0, snareRise: 0, kickRise: 0, rms: 0, peak: 0 };
   private readonly hopBuf: Float64Array;
   private hopFill = 0;
   private frameIndex = 0;
@@ -136,13 +151,24 @@ export class Analyzer {
   private meanBroad = 0;
   private meanMid = 0;
   private meanKick = 0;
+  private meanSnare = 0;
+  private meanKickRise = 0;
   private readonly kickOdf: FrameHistory;
+  private readonly snareOdf: FrameHistory;
+  private readonly kickRiseOdf: FrameHistory;
   private readonly meanCoef: number;
   private readonly beatScratch: BeatEvent[] = [];
   private events: AnalyzerEvent[] = [];
 
   private readonly mel: MelFrontend | null;
   private readonly arbiter: NeuralArbiter | null;
+  private readonly bars = new BarTracker();
+  private readonly change: SongChangeDetector | null;
+  /** First frame of the new song after a song change, while the tempo window still reaches back into the old one. */
+  private songStartFrame = -1;
+  /** Stream time before which audio is ignored by the next neural windows (the previous song). */
+  private neuralValidFrom = 0;
+  private tempoLeaps = 0;
   private readonly neuralInterval: number;
   private nextNeuralAt = 0;
   private neuralActive = true;
@@ -159,12 +185,16 @@ export class Analyzer {
     this.phaseOdf = new FrameHistory(Math.ceil(fr * 45));
     this.tempoOdf = new FrameHistory(Math.ceil(fr * 10));
     this.kickOdf = new FrameHistory(Math.ceil(fr * 4));
+    this.snareOdf = new FrameHistory(Math.ceil(fr * 4));
+    this.kickRiseOdf = new FrameHistory(Math.ceil(fr * 4));
     this.tempoWindowS = options.tempoWindowS ?? 8;
     const style = options.style ?? DEFAULT_STYLE;
     this.tempo = this.makeTempo(style);
     this.tempoEvery = Math.round(fr / 4);
     this.tracker = new BeatTracker({ frameRate: fr, lag: MID_LAG_S * fr, tuning: options.tuning });
     this.tracker.kickOdf = this.kickOdf;
+    this.tracker.snareOdf = this.snareOdf;
+    this.tracker.kickRiseOdf = this.kickRiseOdf;
     this.tracker.kickLag = KICK_LAG_S * fr;
     const prof = STYLE_PROFILES[style].tempo;
     this.tracker.setTuning(STYLE_PROFILES[style].tracker);
@@ -177,6 +207,7 @@ export class Analyzer {
       hat: new PeakPicker({ frameRate: fr, k: 2, delta: 0.01, minIntervalS: 0.05 }),
     };
     this.lags = { kick: KICK_LAG_S, snare: MID_LAG_S, hat: MID_LAG_S };
+    this.change = options.songChange === false ? null : new SongChangeDetector(fr, this.onset.bandCount);
     this.mel = options.neural ? new MelFrontend(sampleRate, NEURAL_WINDOW_FRAMES + 50) : null;
     this.arbiter = options.neural ? new NeuralArbiter() : null;
     this.neuralInterval = options.neuralIntervalS ?? 5;
@@ -186,7 +217,7 @@ export class Analyzer {
       time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1,
       bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0, locked: false, confidence: 0, period: 0,
       nextBeatTime: 0, nextBeatIndex: 0,
-      style, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
+      style, barPhase: -1, songChanges: 0, novelty: 0, songChangeAt: -1, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
       odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
       neural: { enabled: !!options.neural, runs: 0, lastDecision: options.neural ? 'pending' : 'off', consistency: 0, lockActive: false },
     };
@@ -223,6 +254,7 @@ export class Analyzer {
     this.neuralActive = active;
     // a stale neural lock must not keep blocking the DSP (and a fresh start starts unlocked)
     this.arbiter?.reset();
+    this.bars.reset();
     // the mel history is stale after a pause: start over like a fresh start
     if (active && this.mel) this.mel.reset();
     this.neuralStartedAt = this.state.time;
@@ -257,13 +289,18 @@ export class Analyzer {
     const first = this.mel.latestPadded(NEURAL_WINDOW_FRAMES, frames);
     const settling = this.state.time - this.neuralStartedAt < NEURAL_STARTUP_S;
     this.nextNeuralAt = this.state.time + (settling ? Math.min(NEURAL_STARTUP_INTERVAL_S, this.neuralInterval) : this.neuralInterval);
-    const validFrom = Math.max(first, this.mel.firstAvailableFrame) / MODEL_FPS;
+    const validFrom = Math.max(first, this.mel.firstAvailableFrame, this.neuralValidFrom * MODEL_FPS) / MODEL_FPS;
     return { t0: first / MODEL_FPS, validFrom, frames };
   }
 
-  /** Apply the beat activation (sigmoid, one value per frame) computed for a request. */
-  applyNeural(t0: number, activation: Float32Array, validFrom = t0): ArbiterDecision | null {
+  /**
+   * Apply the beat activation (sigmoid, one value per frame) computed for a request, and the
+   * downbeat activation when the model provides it.
+   */
+  applyNeural(t0: number, activation: Float32Array, validFrom = t0, downbeat?: Float32Array): ArbiterDecision | null {
     if (!this.arbiter) return null;
+    // a window requested before a song change: only the new song's part counts
+    validFrom = Math.max(validFrom, this.neuralValidFrom);
     // Beats near the start of real audio have no left context: ignore the padded part and
     // the first second after it (the arbiter itself also ignores the window's first second).
     const skip = Math.max(0, Math.round((validFrom - t0) * MODEL_FPS));
@@ -292,11 +329,45 @@ export class Analyzer {
     if (d.kind === 'confirm' || d.kind === 'shift' || d.kind === 'retime') {
       tr.neuralConfidence = Math.max(tr.neuralConfidence, d.consistency);
     }
+    // Bar position: only when the network and the clock agree on the beat (the clock may just
+    // have shifted onto it); the downbeats are read at the clock's own beats.
+    if (downbeat && (d.kind === 'confirm' || d.kind === 'shift') && tr.period > 0) {
+      const period = tr.period / this.frameRate;
+      const next = this.frameTime(tr.nextBeat);
+      const from = validFrom + 1, to = t0 + downbeat.length / MODEL_FPS - 0.5;
+      const beats: ClockBeat[] = [];
+      for (let k = Math.ceil((from - next) / period); next + k * period < to; k++) beats.push({ time: next + k * period, index: tr.index + k });
+      this.bars.update({ t0, fps: MODEL_FPS, activation: downbeat }, beats, tr.jumps);
+    }
     const n = this.state.neural;
     n.runs++;
     n.lastDecision = d.kind;
     n.consistency = 'consistency' in d ? d.consistency : 0;
     return d;
+  }
+
+  /** The source reports a new song (e.g. track metadata): same as a detected song change. */
+  songChanged(): void {
+    this.onSongChange();
+  }
+
+  /**
+   * A new song: drop what belongs to the old one (AI locks and pending decisions, the bar
+   * position, the remembered tempo), search the beat phase again on the new song's onsets, and
+   * let the AI look again at once, at its start-up cadence, at the new song's audio only. The
+   * DSP clock keeps running.
+   */
+  private onSongChange(): void {
+    const t = this.frameTime(this.frameIndex);
+    this.arbiter?.reset();
+    this.bars.reset();
+    this.tracker.newSong(this.frameIndex);
+    this.songStartFrame = this.frameIndex;
+    this.neuralValidFrom = t;
+    this.neuralStartedAt = t;
+    this.nextNeuralAt = t + NEURAL_FIRST_S;
+    this.state.songChanges++;
+    this.state.songChangeAt = t;
   }
 
   /** Take all events produced since the previous call. */
@@ -328,15 +399,30 @@ export class Analyzer {
     this.tempoOdf.push(midN + broadN);
     this.meanKick += (f.kick - this.meanKick) * this.meanCoef;
     this.kickOdf.push(f.kick / (this.meanKick + 0.005));
+    this.meanSnare += (f.snareRise - this.meanSnare) * this.meanCoef;
+    this.snareOdf.push(f.snareRise / (this.meanSnare + 1e-9));
+    this.meanKickRise += (f.kickRise - this.meanKickRise) * this.meanCoef;
+    this.kickRiseOdf.push(f.kickRise / (this.meanKickRise + 1e-9));
 
+    this.tracker.barPhase = this.bars.validFor(this.tracker.jumps) ? this.bars.phase : -1;
     if (this.arbiter) {
       this.tracker.dspJumpsAllowed = this.state.time > this.arbiter.lockUntil;
       this.tracker.octaveJumpsAllowed = this.state.time > this.arbiter.octaveLockUntil;
     }
     if (h % this.tempoEvery === 0) {
-      const cand = this.tempo.estimate(this.tempoOdf);
+      // after a song change the tempo window holds the new song only, once it has enough of it
+      const since = this.songStartFrame >= 0 ? h + 1 - this.songStartFrame : Infinity;
+      if (since >= this.tempo.windowFrames) this.songStartFrame = -1;
+      const cand = this.tempo.estimate(this.tempoOdf, since >= this.tempo.warmupFrames ? since : Infinity);
       this.state.tempoCandidateBpm = cand ? cand.bpm : 0;
       this.tracker.onTempo(cand, h, this.phaseOdf);
+    }
+    const leapt = this.tracker.tempoLeaps !== this.tempoLeaps;
+    this.tempoLeaps = this.tracker.tempoLeaps;
+    const t = this.frameTime(h + 1);
+    if (this.change?.update(t, this.levels.silent, this.onset.currentBands, this.state.tempoCandidateBpm, this.tracker.bpm)
+      || (leapt && this.change?.tempoLeap(t))) {
+      this.onSongChange();
     }
     const beats = this.beatScratch;
     beats.length = 0;
@@ -350,6 +436,7 @@ export class Analyzer {
         confidence: silent ? 0 : b.confidence,
         bpm: (60 * this.frameRate) / b.period,
         pulse: b.pulse,
+        bar: this.tracker.barPhase >= 0 ? (((b.index - this.tracker.barPhase) % BEATS_PER_BAR) + BEATS_PER_BAR) % BEATS_PER_BAR : -1,
       });
     }
 
@@ -376,6 +463,8 @@ export class Analyzer {
     st.period = tr.period > 0 ? tr.period / this.frameRate : 0;
     st.nextBeatTime = this.frameTime(tr.nextBeat);
     st.nextBeatIndex = tr.index;
+    st.barPhase = tr.barPhase;
+    st.novelty = this.change?.novelty ?? 0;
     const pulse = tr.nextPulse;
     st.pulseDivisor = tr.pulse.divisor;
     st.pulsePeriod = pulse.period > 0 ? pulse.period / this.frameRate : 0;

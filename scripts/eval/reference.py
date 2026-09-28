@@ -175,8 +175,9 @@ def main() -> None:
     print(f"madmom downbeats: {len(mm_downbeats)}", flush=True)
 
     from beat_this.inference import Audio2Beats
-    bt_beats, _ = Audio2Beats(checkpoint_path="final0", device="cpu", dbn=False)(audio, SR)
+    bt_beats, bt_downbeats = Audio2Beats(checkpoint_path="final0", device="cpu", dbn=False)(audio, SR)
     bt_beats = np.asarray(bt_beats, dtype=float)
+    bt_downbeats = np.asarray(bt_downbeats, dtype=float)
     print(f"beat_this beats: {len(bt_beats)}", flush=True)
 
     tr_env = transient_envelope(audio)
@@ -230,6 +231,7 @@ def main() -> None:
         "beats": [round(float(x), 3) for x in mm_beats],
         "downbeats": [round(float(x), 3) for x in mm_downbeats],
         "crossCheckBeats": [round(float(x), 3) for x in bt_beats],
+        "crossCheckDownbeats": [round(float(x), 3) for x in bt_downbeats],
         "windows": windows,
     }, open(out, "w"), separators=(",", ":"))
     print(f"wrote {out}")

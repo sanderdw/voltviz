@@ -14,7 +14,7 @@ export class NeuralClient {
   private worker: Worker | null = null;
   private busy = false;
   private nextId = 1;
-  private pending = new Map<number, (a: Float32Array | null) => void>();
+  private pending = new Map<number, (a: { beat: Float32Array; downbeat: Float32Array } | null) => void>();
 
   start(): void {
     if (this.worker || this.status === 'unsupported') return;
@@ -31,7 +31,7 @@ export class NeuralClient {
       else if (m.type === 'result') {
         this.lastMs = m.ms;
         this.busy = false;
-        this.pending.get(m.id)?.(m.activation);
+        this.pending.get(m.id)?.({ beat: m.activation, downbeat: m.downbeat });
         this.pending.delete(m.id);
       } else if (m.type === 'error') {
         this.fail(m.message);
@@ -42,8 +42,8 @@ export class NeuralClient {
     worker.postMessage({ type: 'init', modelUrl, wasmUrl: new URL(wasmUrl, document.baseURI).href });
   }
 
-  /** Runs the model if ready and idle; resolves null when skipped or failed. */
-  run(frames: Float32Array): Promise<Float32Array | null> {
+  /** Runs the model if ready and idle; resolves the beat and downbeat activations, or null when skipped or failed. */
+  run(frames: Float32Array): Promise<{ beat: Float32Array; downbeat: Float32Array } | null> {
     if (!this.worker || this.status !== 'ready' || this.busy) return Promise.resolve(null);
     this.busy = true;
     const id = this.nextId++;

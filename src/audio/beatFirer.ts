@@ -35,8 +35,11 @@ export class BeatFirer {
   /** AudioContext time of the last fired beat. */
   lastBeatAt = -Infinity;
   private fired = -1;
+  private readonly minConfidence: number;
 
-  constructor(private readonly minConfidence = 0.3) {}
+  constructor(minConfidence = 0.3) {
+    this.minConfidence = minConfidence;
+  }
 
   /**
    * @param now     AudioContext time being heard right now
@@ -45,8 +48,9 @@ export class BeatFirer {
    * @param offset  stream time -> AudioContext time
    * @param due     queued beat events with `at <= now`, oldest first
    */
-  frame(now: number, maxLate: number, clock: PulseClock | null, offset: number, due: readonly DueBeat[]): { isBeat: boolean; confidence: number } {
+  frame(now: number, maxLate: number, clock: PulseClock | null, offset: number, due: readonly DueBeat[]): { isBeat: boolean; confidence: number; index: number } {
     let isBeat = false;
+    let index = -1;
     let confidence = clock ? clock.confidence : 0;
     if (clock && clock.locked && clock.pulsePeriod > 0) {
       const nextAt = clock.nextPulseTime + offset;
@@ -54,8 +58,10 @@ export class BeatFirer {
       const prevAt = nextAt - clock.pulsePeriod;
       if (now >= nextAt && clock.nextPulseIndex > this.fired) {
         isBeat = this.fire(clock.nextPulseIndex, nextAt, confidence);
+        if (isBeat) index = clock.nextPulseIndex;
       } else if (now >= prevAt && now - prevAt <= maxLate && prevIndex > this.fired) {
         isBeat = this.fire(prevIndex, prevAt, confidence);
+        if (isBeat) index = prevIndex;
       }
     }
     for (const e of due) {
@@ -63,12 +69,13 @@ export class BeatFirer {
       this.fired = e.index;
       if (e.pulse && e.confidence >= this.minConfidence) {
         isBeat = true;
+        index = e.index;
         this.lastBeatAt = e.at;
         confidence = e.confidence;
       }
     }
     if (isBeat) this.count++;
-    return { isBeat, confidence };
+    return { isBeat, confidence, index };
   }
 
   private fire(index: number, at: number, confidence: number): boolean {

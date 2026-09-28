@@ -317,9 +317,11 @@
       <p>A detector can only react after it has heard an onset, so its flash always comes late. The VoltViz beat clock works like a metronome that listens. It fires each beat at the <b>predicted</b> time, then checks the onsets around that moment and moves its phase a quarter of the error (a phase-locked loop).</p>
       <p>Four times a second a comb over the last 32 beats scores every possible phase. When the comb keeps disagreeing with the clock, the clock re-locks. A jump of half a beat, onto the off-beat, needs twice as much evidence, because off-beat hats and basslines are the classic trap.</p>
       <p>The engine converts beat times to what the speakers are playing right now, so <code>beat.isBeat</code> is true in the frame in which you hear the beat.</p>
+      <p>A new song resets that caution. The engine notices one after half a second of silence, or when the sound and the tempo change together (a DJ mix keeps its tempo and is left alone); a Sendspin track change counts too. The clock keeps running, but the comb and the tempo estimate then listen to the new song only, and the clock takes the new phase as soon as six beats of it are clear.</p>
       <dl class="facts">
         <div><dt class="k">PLL search window</dt><dd class="v">±8% of a beat</dd></div>
         <div><dt class="k">Re-lock</dt><dd class="v">8 votes (~2 s), off-beat 16 (~4 s)</dd></div>
+        <div><dt class="k">After a new song</dt><dd class="v">phase from its first 6 clear beats</dd></div>
         <div><dt class="k">Fired only above</dt><dd class="v">confidence 0.3</dd></div>
       </dl>
     </div>
@@ -374,10 +376,12 @@
       <p>Every 5 seconds (every 2.5 s while it settles in) the worklet sends the last 10 seconds of audio, as a 128-band log-mel spectrogram at 50 frames per second, to <b>beat_this small0</b> (2.1 M parameters, MIT licence). The model runs in a Web Worker, on your device. The arbiter compares the beats it finds with the clock:</p>
       <dl class="facts">
         <div><dt class="k">Same phase</dt><dd class="v">confirm, nudge ½ if &gt; 15 ms</dd></div>
-        <div><dt class="k">Off by ≥ 13% of a beat</dt><dd class="v">shift the phase</dd></div>
+        <div><dt class="k">Off by ≥ 13% of a beat</dt><dd class="v">shift the phase (two windows agree if the previous one confirmed it)</dd></div>
         <div><dt class="k">Double, half or 3:2 tempo</dt><dd class="v">retime (two windows agree)</dd></div>
         <div><dt class="k">4:3 tempo, or clock lost</dt><dd class="v">retime, only if the DSP's own estimate no longer backs its clock</dd></div>
         <div><dt class="k">After a decision</dt><dd class="v">12 s: no phase jump · 30 s: no octave, 3:2 or 4:3 tempo jump</dd></div>
+        <div><dt class="k">Downbeats</dt><dd class="v">which clock beat is the “1” of the bar; a change needs two windows</dd></div>
+        <div><dt class="k">New song</dt><dd class="v">locks and bar forgotten; a window of the new song only after 4 s, then every 2.5 s</dd></div>
       </dl>
       <p class="aside">It is off by default, in the app and on this page: the clock is left to the DSP comb, which in this groove falls onto the off-beat at the drop and only finds its way back after several bars. Switch it on to let the network put the clock back on the beat. In the app, off stops the model's worker, so the 9.9 MB model is not loaded and costs no CPU. If the model can't run, the engine falls back to DSP-only tracking.</p>
     </div>
@@ -433,7 +437,7 @@ flash *= 0.9;
 ring.rotation = audio.beat.phase * Math.PI * 2;
 kickPulse = audio.onsets.kick.envelope;
 bars = audio.spectrum({ fftSize: 2048 });</pre>
-      <p class="aside"><code>isBeat</code> is true in one frame per beat of the pulse. <code>phase</code> runs from 0 to 1 between pulse beats for smooth motion. On a half-time pulse <code>bpm</code> is the pulse (70) and <code>tempo</code> the tracked tempo (140). Onset envelopes decay with a 150 ms time constant. <code>gain</code> reports what Auto Gain applies.</p>
+      <p class="aside"><code>isBeat</code> is true in one frame per beat of the pulse. <code>phase</code> runs from 0 to 1 between pulse beats for smooth motion. On a half-time pulse <code>bpm</code> is the pulse (70) and <code>tempo</code> the tracked tempo (140). Onset envelopes decay with a 150 ms time constant. <code>gain</code> reports what Auto Gain applies. With AI Beat Tracking on, <code>barBeat</code> counts from the network's downbeats (<code>barKnown</code>) and <code>downbeat</code> marks the “1”.</p>
     </div>
   </div>
 </section>

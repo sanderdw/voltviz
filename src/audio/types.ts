@@ -24,8 +24,16 @@ export interface BeatInfo {
   isBeat: boolean;
   /** Running count of fired beats. */
   count: number;
-  /** Position within a group of four fired beats (0-3); on a half-time pulse this spans two bars. */
+  /**
+   * Position of the last fired beat in the bar (0-3, 0 = the "1"). With AI Beat Tracking the
+   * network's downbeats place it (`barKnown`); otherwise it counts fired beats in groups of four
+   * from an arbitrary start. On a half-time pulse the fired beats are bar beats 0 and 2.
+   */
   barBeat: number;
+  /** Whether `barBeat` comes from detected downbeats. */
+  barKnown: boolean;
+  /** True in the frame in which a beat on the "1" of the bar fires (only when `barKnown`). */
+  downbeat: boolean;
   /** Tempo of the pulse (tempo / divisor). */
   bpm: number;
   /** Tracked tempo (BPM), e.g. 140 for dubstep while the pulse is 70. */

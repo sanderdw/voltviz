@@ -55,6 +55,7 @@ export class AudioEngine {
   private startedAt = performance.now();
   private cached: AudioFrame | null = null;
   private readonly firer = new BeatFirer(BEAT_CONFIDENCE_MIN);
+  private barBeat = 3;
   private readonly onsetState: Record<OnsetKind, { at: number; strength: number }> = {
     kick: { at: -Infinity, strength: 0 },
     snare: { at: -Infinity, strength: 0 },
@@ -120,6 +121,11 @@ export class AudioEngine {
     return this.options.style ?? DEFAULT_STYLE;
   }
 
+  /** The source says a new song started (e.g. Sendspin track metadata): restart the beat search. */
+  notifySongChange(): void {
+    this.host?.send({ type: 'songChange' });
+  }
+
   /** Latest analysis state without advancing the frame clock (for UI status displays). */
   get analysis(): AnalyzerState | null {
     return this.state;
@@ -146,8 +152,10 @@ export class AudioEngine {
       this.pushHistory(m.phase, m.kick, m.threshold, m.events);
     } else if (m.type === 'neuralRequest') {
       if (!this.options.neural) return;
-      this.neural.run(m.frames).then(activation => {
-        if (activation && this.host && !this.disposed) this.host.send({ type: 'neuralResult', t0: m.t0, validFrom: m.validFrom, activation });
+      this.neural.run(m.frames).then(out => {
+        if (out && this.host && !this.disposed) {
+          this.host.send({ type: 'neuralResult', t0: m.t0, validFrom: m.validFrom, activation: out.beat, downbeat: out.downbeat });
+        }
       });
     } else if (m.type === 'error') {
       console.error('VoltViz audio engine:', m.message);
@@ -229,10 +237,15 @@ export class AudioEngine {
       const nextCtx = st.nextPulseTime + this.ctxOffset;
       phase = 1 - Math.min(1, Math.max(0, (nextCtx - ctxNow) / period));
     }
+    // Bar position: from the AI downbeats when known (0 = the "1"), else counting fired beats.
+    const barKnown = !!st && st.barPhase >= 0;
+    if (fired.isBeat) this.barBeat = barKnown ? (((fired.index - st!.barPhase) % 4) + 4) % 4 : (this.firer.count + 3) % 4;
     const beat: BeatInfo = {
       isBeat: fired.isBeat,
       count: this.firer.count,
-      barBeat: (this.firer.count + 3) % 4,
+      barBeat: this.barBeat,
+      barKnown,
+      downbeat: fired.isBeat && barKnown && this.barBeat === 0,
       bpm: st ? st.bpm / divisor : 0,
       tempo: st?.bpm ?? 0,
       divisor,
@@ -335,7 +348,7 @@ function computeBands(spec: Uint8Array, sampleRate: number): Bands {
 const EMPTY_STATE: AnalyzerState = {
   time: 0, rms: 0, peak: 0, loudnessDb: -100, silent: true, agcGain: 1, bpm: 0, tempoCandidateBpm: 0, tempoSalience: 0,
   locked: false, confidence: 0, period: 0, nextBeatTime: 0, nextBeatIndex: 0,
-  style: DEFAULT_STYLE, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
+  style: DEFAULT_STYLE, barPhase: -1, songChanges: 0, novelty: 0, songChangeAt: -1, pulseDivisor: 1, pulsePeriod: 0, nextPulseTime: 0, nextPulseIndex: 0, pulseSupport: { on: 0, off: 0, strength: [0, 0], kick: [0, 0] },
   odfBroad: 0, odfKick: 0, odfSnare: 0, odfHat: 0, kickThreshold: 0,
   neural: { enabled: false, runs: 0, lastDecision: 'off', consistency: 0, lockActive: false },
 };

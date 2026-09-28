@@ -11,7 +11,7 @@
  * `--reanalyze` without a browser.
  *
  *   node scripts/eval/live.ts [--base http://127.0.0.1:3101] [--ids a,b] [--deep] [--out path] [--reanalyze]
- *     [--excerpt <id from excerpts.json or genres.json>] [--style <Music style>] [--start s]
+ *     [--excerpt <id from excerpts.json, genres.json or library2025.json>] [--style <Music style>] [--start s]
  *
  * Requires the dev server (DISABLE_HMR=true npx vite --port 3101 --strictPort) and system
  * Chrome. Runs one page at a time (memory).
@@ -58,6 +58,8 @@ export const SEGMENTS = [
 const manifestExcerpts: { id: string; seconds: number; expectedPulseBpm?: number | null }[] = [
   ...JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8')).excerpts,
   ...JSON.parse(readFileSync('scripts/eval/genres.json', 'utf8')).excerpts,
+  // the music-library manifest is local only
+  ...(existsSync('scripts/eval/library2025.json') ? JSON.parse(readFileSync('scripts/eval/library2025.json', 'utf8')).excerpts : []),
 ];
 const excerptInfo = manifestExcerpts.find(e => e.id === EXCERPT);
 const reference = JSON.parse(readFileSync(`tests/fixtures/${EXCERPT}.reference.json`, 'utf8'));

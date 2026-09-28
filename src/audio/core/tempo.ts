@@ -62,9 +62,15 @@ export class TempoEstimator {
     return Math.round(this.n * 0.5);
   }
 
-  estimate(odf: FrameHistory): TempoCandidate | null {
+  /** Length of the analysis window (frames). */
+  get windowFrames(): number {
+    return this.n;
+  }
+
+  /** Tempo of the latest window; `recent` limits it to that many frames (the new song's). */
+  estimate(odf: FrameHistory, recent = Infinity): TempoCandidate | null {
     const n = this.n;
-    const avail = Math.min(n, odf.count);
+    const avail = Math.min(n, odf.count, recent);
     if (avail < this.warmupFrames) return null;
     const buf = this.buf;
     odf.latest(n, buf);

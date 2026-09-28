@@ -147,7 +147,7 @@ nginx/
 ## 🎯 How It Works
 
 1. **Audio Capture**: VoltViz captures audio from your microphone, system audio, or a [Sendspin](https://www.sendspin-audio.com) server
-2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat. The **Music style** setting (Auto by default) adapts the tempo range to the genre and lets half-time music such as dubstep flash on the kick and snare instead of twice as fast.
+2. **Audio Engine**: one engine analyzes the audio on the audio thread (AudioWorklet): spectra, levels, kick/snare/hat onsets, tempo and a *predictive* beat clock, so beat effects land in the frame in which the beat is heard. Optional **AI Beat Tracking** (a small neural network running locally in the browser) keeps the clock on the beat rather than the off-beat, and finds the first beat of each bar. When a new song starts (or Sendspin reports a new track), the engine looks for the beat again. The **Music style** setting (Auto by default) adapts the tempo range to the genre and lets half-time music such as dubstep flash on the kick and snare instead of twice as fast.
 3. **Visualization**: every visualizer receives the same analysis each frame and renders with Three.js or Canvas
 4. **Interactivity**: Switch between different visual styles on-the-fly
 

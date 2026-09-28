@@ -25,9 +25,10 @@ export class AnalysisCore {
   }
 
   onMessage(m: EngineToHost): void {
-    if (m.type === 'neuralResult') this.analyzer.applyNeural(m.t0, m.activation, m.validFrom);
+    if (m.type === 'neuralResult') this.analyzer.applyNeural(m.t0, m.activation, m.validFrom, m.downbeat);
     else if (m.type === 'neuralActive') this.analyzer.setNeuralActive(m.active);
     else if (m.type === 'style') this.analyzer.setStyle(m.style);
+    else if (m.type === 'songChange') this.analyzer.songChanged();
   }
 
   /** Process one block. `channels` are the input channel arrays; `contextTime` the block start. */

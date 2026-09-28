@@ -112,6 +112,30 @@ describe('beat tracking on synthetic four-on-the-floor patterns', () => {
     expect(fMeasure(ref, after(kicks, 3), 0.05)).toBeGreaterThan(0.9);
     expect(Math.abs(median(offsetsMs(ref, after(kicks, 3), 0.05)))).toBeLessThan(15);
   });
+
+  it('searches the phase again after a song change (same tempo, half a beat later)', () => {
+    const p = 60 / 128;
+    const a1 = synth([{ seconds: 42.5 * p, bpm: 128, kick: true, hats: 'offbeat', clap: true }]);
+    const a2 = synth([{ seconds: 16, bpm: 128, kick: true, clap: true }], 44100, 2);
+    const cut = a1.samples.length / 44100;
+    const x = new Float32Array(a1.samples.length + a2.samples.length);
+    x.set(a1.samples);
+    x.set(a2.samples, a1.samples.length);
+    const a = new Analyzer(44100);
+    const beats: number[] = [];
+    let told = false;
+    for (let i = 0; i < x.length; i += 128) {
+      a.process(x.subarray(i, i + 128));
+      for (const e of a.drainEvents()) if (e.type === 'beat' && e.confidence >= 0.3) beats.push(e.time);
+      if (!told && a.state.time >= cut) {
+        a.songChanged(); // e.g. the Sendspin track changed
+        told = true;
+      }
+    }
+    // without the song change the clock stays on the old phase for ~6 s (relock votes)
+    const ref = a2.beats.map(b => b + cut);
+    expect(fMeasure(after(ref, cut + 3, cut + 10), after(beats, cut + 3, cut + 10))).toBeGreaterThan(0.9);
+  });
 });
 
 describe('Auto Gain (level tracker)', () => {
@@ -179,6 +203,28 @@ describe('neural arbiter', () => {
     arb.reset();
     expect(arb.lockUntil).toBeLessThan(0);
     expect(arb.octaveLockUntil).toBeLessThan(0);
+  });
+  it('shifts on one clear window, but needs two to undo the phase the previous window confirmed', () => {
+    const offBeat = act(beatsAt(0.5, 0.1));
+    const clock = { period: 0.5, nextBeatTime: 10.35 };
+    expect(new NeuralArbiter().decide(offBeat, clock, 10).kind).toBe('shift');
+    const arb = new NeuralArbiter();
+    expect(arb.decide(act(beatsAt(0.5, 0.35)), clock, 10).kind).toBe('confirm');
+    expect(arb.decide(offBeat, clock, 15).kind).toBe('none');
+    expect(arb.decide(offBeat, clock, 20).kind).toBe('shift');
+  });
+  it('ignores the old song in a window requested before a song change', () => {
+    const s = synth([{ seconds: 20, bpm: 120, kick: true, hats: 'offbeat', clap: true }]);
+    const decide = (songChange: boolean) => {
+      const a = new Analyzer(44100, { neural: true });
+      for (let i = 0; i < s.samples.length; i += 128) a.process(s.samples.subarray(i, i + 128));
+      const t0 = a.state.time - 10;
+      const w = act(s.beats.filter(b => b >= t0), t0);
+      if (songChange) a.songChanged();
+      return a.applyNeural(w.t0, w.activation, t0)?.kind;
+    };
+    expect(decide(false)).toBe('confirm');
+    expect(decide(true)).toBe('none'); // nothing of the new song in the window yet
   });
   it('retimes an octave error only after two agreeing windows', () => {
     const arb = new NeuralArbiter();

@@ -183,6 +183,7 @@ export class NeuralArbiter {
 
   decide(w: NeuralWindow, clock: ClockView, now: number): ArbiterDecision {
     const d = evaluateWindow(w, clock);
+    const previous = this.last;
     this.last = d;
     if (d.kind === 'confirm') {
       this.pending = null;
@@ -193,8 +194,10 @@ export class NeuralArbiter {
       this.pending = null;
       return d;
     }
-    // a single very consistent window may shift phase; a retime always needs two windows
-    const strong = d.kind === 'shift' && d.consistency >= 0.9 && d.beats >= 8;
+    // a single very consistent window may shift the phase at once - but not the phase the
+    // previous window confirmed: the small model now and then flips the phase of a song for one
+    // window, and contradicting itself takes two agreeing windows
+    const strong = d.kind === 'shift' && d.consistency >= 0.9 && d.beats >= 8 && previous?.kind !== 'confirm';
     const same = this.pending !== null && this.pending.kind === d.kind && sameDecision(this.pending, d, clock.period);
     // The confirming window must contain mostly new audio: windows are 10 s long but can come
     // every 2.5 s, and two heavily overlapping windows are nearly the same evidence twice.

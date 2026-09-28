@@ -25,8 +25,8 @@ self.onmessage = async (e: MessageEvent<In>) => {
     } else if (m.type === 'run') {
       if (!model) throw new Error('model not loaded');
       const t = performance.now();
-      const activation = await model.run(m.frames);
-      (self as unknown as Worker).postMessage({ type: 'result', id: m.id, activation, ms: performance.now() - t }, [activation.buffer]);
+      const { beat, downbeat } = await model.run(m.frames);
+      (self as unknown as Worker).postMessage({ type: 'result', id: m.id, activation: beat, downbeat, ms: performance.now() - t }, [beat.buffer, downbeat.buffer]);
     }
   } catch (err) {
     (self as unknown as Worker).postMessage({ type: 'error', message: err instanceof Error ? err.message : String(err) });
