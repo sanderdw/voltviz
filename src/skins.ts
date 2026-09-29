@@ -34,7 +34,6 @@ export interface SkinDefinition {
   dialogButtonPrimary: string;
   dialogButtonSecondary: string;
   errorBanner: string;
-  mobileHint: string;
   title: string;
   subtitle: string;
   heroIcon: string;
@@ -105,7 +104,6 @@ export const skins: Record<SkinType, SkinDefinition> = {
     dialogButtonPrimary: 'px-4 py-2 rounded-lg bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
     dialogButtonSecondary: 'px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-colors cursor-pointer',
     errorBanner: 'fixed w-max max-w-[calc(100vw-2rem)] top-6 left-1/2 -translate-x-1/2 bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-3 rounded-xl backdrop-blur-md z-[110] flex items-center gap-3',
-    mobileHint: 'md:hidden flex items-center justify-center gap-2 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-red-400 tracking-wide',
     title: 'text-base sm:text-lg md:text-2xl font-light tracking-[0.15em] sm:tracking-[0.2em] md:tracking-widest uppercase truncate',
     subtitle: 'mt-1 text-xs tracking-[0.2em] text-white/60',
     heroIcon: 'w-24 h-24 mx-auto border border-white/10 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm',
@@ -172,7 +170,6 @@ export const skins: Record<SkinType, SkinDefinition> = {
     dialogButtonPrimary: 'px-4 py-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-sm font-bold cursor-pointer disabled:text-[#808080] active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white',
     dialogButtonSecondary: 'px-4 py-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-sm cursor-pointer active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white',
     errorBanner: 'fixed w-max max-w-[calc(100vw-2rem)] top-6 left-1/2 -translate-x-1/2 bg-white border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] text-red-700 px-4 py-2 z-[110] flex items-center gap-3',
-    mobileHint: 'md:hidden flex items-center justify-center gap-2 bg-[#ffff00] border-b-2 border-b-[#808080] px-4 py-1 text-xs text-black font-bold',
     title: 'text-lg font-bold uppercase text-[#000080] truncate',
     subtitle: 'text-xs text-[#808080]',
     heroIcon: 'w-24 h-24 mx-auto border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white flex items-center justify-center bg-white',
@@ -239,7 +236,6 @@ export const skins: Record<SkinType, SkinDefinition> = {
     dialogButtonPrimary: 'px-4 py-2 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-sm text-[#d0d0d0] font-bold uppercase cursor-pointer disabled:text-[#606070] active:border-t-[#1a1a2a] active:border-l-[#1a1a2a] active:border-b-[#6a6a7a] active:border-r-[#6a6a7a]',
     dialogButtonSecondary: 'px-4 py-2 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-sm text-[#a0a0a0] uppercase cursor-pointer active:border-t-[#1a1a2a] active:border-l-[#1a1a2a] active:border-b-[#6a6a7a] active:border-r-[#6a6a7a]',
     errorBanner: 'fixed w-max max-w-[calc(100vw-2rem)] top-6 left-1/2 -translate-x-1/2 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a] text-[#ff6666] px-6 py-3 z-[110] flex items-center gap-3 text-sm',
-    mobileHint: 'md:hidden flex items-center justify-center gap-2 bg-[#3a3a4a] border-b-2 border-b-[#1a1a2a] px-4 py-2 text-xs text-[#ff6666]',
     title: 'text-base sm:text-lg md:text-xl font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[#d0d0d0] truncate',
     subtitle: 'mt-1 text-xs tracking-wider text-[#808090]',
     heroIcon: 'w-24 h-24 mx-auto border-2 border-t-[#1a1a2a] border-l-[#1a1a2a] border-b-[#6a6a7a] border-r-[#6a6a7a] flex items-center justify-center bg-[#0a0a14]',
@@ -306,7 +302,6 @@ export const skins: Record<SkinType, SkinDefinition> = {
     dialogButtonPrimary: 'px-4 py-1.5 bg-transparent border border-[#00ff00] text-sm text-[#00ff00] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#00ff00]/10 hover:shadow-[0_0_8px_rgba(0,255,0,0.3)]',
     dialogButtonSecondary: 'px-4 py-1.5 bg-transparent border border-[#00ff00]/50 text-sm text-[#00ff00]/80 cursor-pointer hover:border-[#00ff00] hover:text-[#00ff00]',
     errorBanner: 'fixed w-max max-w-[calc(100vw-2rem)] top-6 left-1/2 -translate-x-1/2 bg-[#0a0a0a] border border-[#ff3333] text-[#ff3333] px-5 py-2 z-[110] flex items-center gap-3 text-sm shadow-[0_0_12px_rgba(255,51,51,0.3)]',
-    mobileHint: 'md:hidden flex items-center justify-center gap-2 bg-[#0a0a0a] border-b border-[#ff3333]/30 px-4 py-1.5 text-xs text-[#ff3333]',
     title: 'text-base sm:text-lg font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em] text-[#00ff00] truncate',
     subtitle: 'text-[10px] tracking-[0.2em] text-[#00ff00]/40',
     heroIcon: 'w-24 h-24 mx-auto border border-[#00ff00]/30 flex items-center justify-center bg-[#0a0a0a] shadow-[0_0_20px_rgba(0,255,0,0.1)]',

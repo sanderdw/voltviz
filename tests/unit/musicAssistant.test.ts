@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { configurePlayerInMA, discoverMusicAssistant, MaError, maApi, MusicAssistantClient, pickImage } from '../../src/audio/sources/musicAssistant';
+import { configurePlayerInMA, discoverMusicAssistant, imageproxyViaIngress, MaError, maApi, MusicAssistantClient, pickImage } from '../../src/audio/sources/musicAssistant';
 
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
@@ -216,6 +216,19 @@ describe('MusicAssistantClient', () => {
     expect((await pending).code).toBe('disconnected');
     vi.advanceTimersByTime(60000);
     expect(FakeWebSocket.instances).toHaveLength(1);
+  });
+
+  it('routes Music Assistant\'s own artwork URLs through ingress once it said where it is', () => {
+    const ma = client();
+    const artwork = 'http://192.168.1.2:8095/imageproxy/e416ca57dc9724c6b3724798eb9b75122206e89de0c6e9c430f26c62e3ce2050?size=512&fmt=jpg';
+    ma.connect();
+    expect(ma.localImageUrl(artwork)).toBe(artwork);
+    FakeWebSocket.last.receive({ server_id: 'x', server_version: '2.10.4', base_url: 'http://192.168.1.2:8095' });
+    expect(ma.localImageUrl(artwork)).toBe('/api/hassio_ingress/abc/imageproxy/e416ca57dc9724c6b3724798eb9b75122206e89de0c6e9c430f26c62e3ce2050?size=512&fmt=jpg');
+    // Artwork from elsewhere stays as it is
+    expect(ma.localImageUrl('https://i.scdn.co/image/abc')).toBe('https://i.scdn.co/image/abc');
+    expect(imageproxyViaIngress('http://other:8095/imageproxy/x', 'http://192.168.1.2:8095/', '/ma/')).toBe('http://other:8095/imageproxy/x');
+    expect(imageproxyViaIngress('http://192.168.1.2:8095/imageproxy/x', 'http://192.168.1.2:8095/', '/ma/')).toBe('/ma/imageproxy/x');
   });
 
   it('builds image URLs through the image proxy, or uses safe remote ones', () => {

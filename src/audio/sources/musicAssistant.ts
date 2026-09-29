@@ -97,6 +97,8 @@ export interface MusicAssistantApi {
   onStatus(listener: (status: MaStatus) => void): () => void;
   /** URL for an image, resized by Music Assistant where possible, or null. */
   imageUrl(image: MaImage | null | undefined, size: number): string | null;
+  /** Music Assistant's own image URL (such as a track's artwork_url) through ingress; others unchanged. */
+  localImageUrl(url: string): string;
   close(): void;
 }
 
@@ -124,6 +126,17 @@ export async function discoverMusicAssistant(loc: PageLocation = window.location
   } catch {
     return null;
   }
+}
+
+/**
+ * Music Assistant hands out image URLs on its own base_url (http://<host>:8095/imageproxy/<id>…),
+ * which an https:// page may not load and a phone away from home can't reach. Its image proxy is
+ * also reachable through ingress, same-origin: rewrite to that. Other URLs come back unchanged.
+ */
+export function imageproxyViaIngress(url: string, baseUrl: string | null, httpBase: string): string {
+  if (!baseUrl) return url;
+  const prefix = `${baseUrl.replace(/\/+$/, '')}/imageproxy/`;
+  return url.startsWith(prefix) ? `${httpBase}imageproxy/${url.slice(prefix.length)}` : url;
 }
 
 type Pending = {
@@ -174,6 +187,8 @@ export class MusicAssistantClient implements MusicAssistantApi {
   private readonly statusListeners = new Set<(status: MaStatus) => void>();
   private readonly opts: MusicAssistantClientOptions;
   serverVersion: string | null = null;
+  /** Where Music Assistant says it can be reached, from its server info. */
+  baseUrl: string | null = null;
 
   constructor(options: MusicAssistantClientOptions) {
     this.opts = options;
@@ -225,6 +240,10 @@ export class MusicAssistantClient implements MusicAssistantApi {
     const secure = (this.opts.pageProtocol ?? globalThis.location?.protocol) === 'https:';
     if (image.path.startsWith('https://') || (!secure && image.path.startsWith('http://'))) return image.path;
     return null;
+  }
+
+  localImageUrl(url: string): string {
+    return imageproxyViaIngress(url, this.baseUrl, this.opts.httpBase);
   }
 
   close(): void {
@@ -279,6 +298,7 @@ export class MusicAssistantClient implements MusicAssistantApi {
       // The server introduces itself first; only then does it take commands
       if (typeof msg.server_version === 'string') {
         this.serverVersion = msg.server_version;
+        if (typeof msg.base_url === 'string') this.baseUrl = msg.base_url;
         this.everConnected = true;
         this.failures = 0;
         this.backoffMs = 1000;

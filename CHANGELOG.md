@@ -12,12 +12,14 @@
 ### Changed
 - The Sendspin bar says **Nothing playing** when there is no track, with a hint where to start music, and shows when playback is paused, stopped or reconnecting. Reconnect attempts show in the bar instead of the red banner.
 - Shuffle, repeat and the new queue button now look switched on when they are on.
+- Phones are supported: the "Small screens are not supported" notice is gone.
 
 ### Fixed
 - When the queue ends, the last track's title and cover no longer stay in the bar and in the visualizers, and the next track no longer counts as two song changes.
 - Moving the volume while muted no longer fails on a Sendspin server without mute.
 - Shuffle and repeat show their new setting right away. Music Assistant 2.10 only reports them over Sendspin with the next track, so the buttons looked unchanged and a second click did the same thing again instead of undoing the first. In the Home Assistant App they follow Music Assistant's queue, and they are locked while the queue is a dynamic mix.
 - **Sendspin on Android** now shows the visualizer. On Android the Sendspin SDK plays straight to the speakers (to keep the phone's media controls working) instead of through the stream VoltViz visualizes, so the music played but the visualizer never started. The same happened in Chrome's device toolbar with an Android phone selected.
+- **Track covers** show in the Home Assistant App on https:// and away from home. Music Assistant links them on its own port (http://…:8095), which the browser blocks on an https:// page and a phone outside the network can't reach; they now load through Home Assistant, also in the visualizers that use the cover.
 - Artwork Music Assistant can no longer fetch (for example a Spotify playlist cover that was removed) shows the note icon in the Start list instead of a broken image.
 - **Microphone** and **System Audio** say why they can't start instead of "Cannot read properties of undefined (reading 'getUserMedia')": browsers only allow them on https:// pages, and phones and tablets can't share system audio at all.
 

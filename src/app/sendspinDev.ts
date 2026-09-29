@@ -5,7 +5,11 @@
  */
 import type { Dispatch, SetStateAction } from 'react';
 import { initialSendspinState, type SendspinSession, type SendspinState, type TrackProgress } from '../audio/sources/sendspinState';
-import type { MaEvent, MaImage, MaMediaItem, MaPlayerQueue, MaQueueItem, MaSearchResults, MaStatus, MusicAssistantApi } from '../audio/sources/musicAssistant';
+import { imageproxyViaIngress, type MaEvent, type MaImage, type MaMediaItem, type MaPlayerQueue, type MaQueueItem, type MaSearchResults, type MaStatus, type MusicAssistantApi } from '../audio/sources/musicAssistant';
+
+/** Where the fake Music Assistant says it is, and its ingress path. */
+const FAKE_MA_BASE_URL = 'http://ma.local:8095';
+const FAKE_MA_HTTP_BASE = '/api/hassio_ingress/ma/';
 
 export type FakeMaFixtures = {
   queue?: MaPlayerQueue | null;
@@ -62,6 +66,10 @@ class FakeMusicAssistant implements MusicAssistantApi {
 
   imageUrl(image: MaImage | null | undefined): string | null {
     return image?.path ?? null;
+  }
+
+  localImageUrl(url: string): string {
+    return imageproxyViaIngress(url, FAKE_MA_BASE_URL, FAKE_MA_HTTP_BASE);
   }
 
   close(): void {

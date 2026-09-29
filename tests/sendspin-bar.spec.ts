@@ -175,6 +175,12 @@ test.describe('Sendspin bar with Music Assistant', () => {
     });
   });
 
+  test('loads Music Assistant\'s artwork through ingress', async ({ page }) => {
+    const id = 'e416ca57dc9724c6b3724798eb9b75122206e89de0c6e9c430f26c62e3ce2050';
+    await inject(page, { state: { metadata: { ...playing, artwork_url: `http://ma.local:8095/imageproxy/${id}?size=512&fmt=jpg` } }, progress, ma: { queue } });
+    await expect(page.getByTestId('sendspin-track').locator('img')).toHaveAttribute('src', `/api/hassio_ingress/ma/imageproxy/${id}?size=512&fmt=jpg`);
+  });
+
   test('shows the note icon for artwork Music Assistant cannot fetch', async ({ page }) => {
     await inject(page, { ma: { queue: emptyQueue, playlists: [{ ...playlist('1', 'Gone from Spotify'), image: { path: '/no-such-cover.png' } }] } });
     await page.getByTestId('sendspin-start').click();

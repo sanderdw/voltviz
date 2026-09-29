@@ -52,6 +52,12 @@ test.describe('VoltViz – landing page (no stream)', () => {
     await expect(page.getByText('This browser can\'t share system audio')).toBeVisible();
   });
 
+  test('works on a phone without a small-screen warning', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByRole('heading', { name: 'Visualize Your Sound' })).toBeVisible();
+    await expect(page.getByText('Small screens are not supported')).toHaveCount(0);
+  });
+
   test('Sendspin button is visible and enabled', async ({ page }) => {
     const btn = page.getByRole('button', { name: 'Sendspin' });
     await expect(btn).toBeVisible();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MonitorUp, X, Minimize } from 'lucide-react';
 import type { ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import { skins } from '../skins';
@@ -16,6 +16,7 @@ import SettingsPanel from './SettingsPanel';
 import VisualizerStage from './VisualizerStage';
 import { removeUrlParam, useAppState } from './useAppState';
 import { useAudioEngine } from './useAudioEngine';
+import { useMaStatus } from './useMusicAssistant';
 
 export default function App() {
   const appVersion = __APP_VERSION__;
@@ -40,6 +41,18 @@ export default function App() {
   const sendspinRef = useRef<SendspinSession | null>(null);
   // Music Assistant's API, only inside the Home Assistant add-on
   const [ma, setMa] = useState<MusicAssistantApi | null>(null);
+  const maStatus = useMaStatus(ma);
+  // Music Assistant's artwork URLs point at its own port (http://<host>:8095), which an https://
+  // page can't load and a phone away from home can't reach: through ingress when available.
+  // Memoized, so the metadata only changes when the server sends new metadata.
+  const sendspinMetadata = useMemo(() => {
+    const metadata = sendspin.metadata;
+    const artwork = metadata?.artwork_url;
+    if (!metadata || !artwork || !ma) return metadata;
+    const local = ma.localImageUrl(artwork);
+    return local === artwork ? metadata : { ...metadata, artwork_url: local };
+    // maStatus: the rewrite needs Music Assistant's base_url from its handshake
+  }, [sendspin.metadata, ma, maStatus]);
 
   const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
 
@@ -197,12 +210,6 @@ export default function App() {
 
   return (
     <div className={skin.root}>
-      {/* Mobile hint */}
-      <div className={skin.mobileHint}>
-        <MonitorUp size={12} />
-        <span>Small screens are not supported, use "Desktopsite"</span>
-      </div>
-
       {/* Atmospheric background */}
       {!running && skin.atmosphericBg && (
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
@@ -247,7 +254,7 @@ export default function App() {
                   host={audio.host}
                   visualizer={activeVisualizer}
                   settings={settings}
-                  sendspinMetadata={sendspin.metadata}
+                  sendspinMetadata={sendspinMetadata}
                   transition={transitionMode}
                 />
               )}
@@ -299,7 +306,7 @@ export default function App() {
       {sendspin.active && showControls && (
         <SendspinBar
           skin={skin}
-          sendspin={sendspin}
+          sendspin={sendspinMetadata === sendspin.metadata ? sendspin : { ...sendspin, metadata: sendspinMetadata }}
           sendspinCommand={sendspinCommand}
           sendspinSeek={sendspinSeek}
           getProgress={getSendspinProgress}
