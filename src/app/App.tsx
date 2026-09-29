@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MonitorUp, X, Minimize } from 'lucide-react';
 import type { ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import { skins } from '../skins';
 import { visualizerIds } from '../visualizers/registry';
 import VisualizerPicker from '../components/VisualizerPicker';
 import { captureMicrophone, captureSystemAudio } from '../audio/sources/capture';
-import { SendspinController, initialSendspinState, type SendspinState } from '../audio/sources/sendspin';
+import { SendspinController, initialSendspinState, type SendspinSession, type SendspinState } from '../audio/sources/sendspin';
+import { trackKey } from '../audio/sources/sendspinState';
+import type { MusicAssistantApi } from '../audio/sources/musicAssistant';
 import { startTestAudio, testAudioParams, type TestAudio } from '../audio/sources/testFile';
 import Header from './Header';
 import SendspinBar from './SendspinBar';
@@ -14,6 +16,7 @@ import SettingsPanel from './SettingsPanel';
 import VisualizerStage from './VisualizerStage';
 import { removeUrlParam, useAppState } from './useAppState';
 import { useAudioEngine } from './useAudioEngine';
+import { useMaStatus } from './useMusicAssistant';
 
 export default function App() {
   const appVersion = __APP_VERSION__;
@@ -35,18 +38,52 @@ export default function App() {
   const [sendspinConnecting, setSendspinConnecting] = useState(false);
   const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
   const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
-  const sendspinRef = useRef<SendspinController | null>(null);
+  const sendspinRef = useRef<SendspinSession | null>(null);
+  // Music Assistant's API, only inside the Home Assistant add-on
+  const [ma, setMa] = useState<MusicAssistantApi | null>(null);
+  const maStatus = useMaStatus(ma);
+  // Music Assistant's artwork URLs point at its own port (http://<host>:8095), which an https://
+  // page can't load and a phone away from home can't reach: through ingress when available.
+  // Memoized, so the metadata only changes when the server sends new metadata.
+  const sendspinMetadata = useMemo(() => {
+    const metadata = sendspin.metadata;
+    const artwork = metadata?.artwork_url;
+    if (!metadata || !artwork || !ma) return metadata;
+    const local = ma.localImageUrl(artwork);
+    return local === artwork ? metadata : { ...metadata, artwork_url: local };
+    // maStatus: the rewrite needs Music Assistant's base_url from its handshake
+  }, [sendspin.metadata, ma, maStatus]);
 
   const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
 
   // Sendspin (Music Assistant) says exactly when the track changes: let the beat tracking
-  // start over on the new song instead of detecting the change from the audio.
-  const track = sendspin.metadata ? `${sendspin.metadata.artist ?? ''}\u0000${sendspin.metadata.title ?? ''}` : null;
+  // start over on the new song instead of detecting the change from the audio. A cleared
+  // track (queue ended, stopped) is not a change: A → nothing → B counts once.
+  const track = trackKey(sendspin.metadata);
   const lastTrack = useRef<string | null>(null);
   useEffect(() => {
-    if (track && lastTrack.current !== null && track !== lastTrack.current) audio?.engine.notifySongChange();
+    if (!sendspin.active) {
+      lastTrack.current = null;
+      return;
+    }
+    if (!track) return;
+    if (lastTrack.current !== null && track !== lastTrack.current) audio?.engine.notifySongChange();
     lastTrack.current = track;
-  }, [track, audio]);
+  }, [track, audio, sendspin.active]);
+
+  // development / tests only: window.__voltvizSendspin drives the Sendspin bar without a server
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    let dispose: (() => void) | null = null;
+    let cancelled = false;
+    import('./sendspinDev').then(m => {
+      if (!cancelled) dispose = m.installSendspinDevApi({ sendspinRef, setSendspin, setMa });
+    });
+    return () => {
+      cancelled = true;
+      dispose?.();
+    };
+  }, []);
 
   useEffect(() => {
     (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
@@ -99,6 +136,7 @@ export default function App() {
       sendspinRef.current = null;
     }
     setSendspin(initialSendspinState);
+    setMa(null);
     removeUrlParam('sendspin');
   };
 
@@ -139,18 +177,24 @@ export default function App() {
         sendspinRef.current = null;
         setSendspinConnecting(false);
         setSendspin(initialSendspinState);
+        setMa(null);
         removeUrlParam('sendspin');
         // The connection is gone for good: back to the source selection instead of a dead stream
         setStream(null);
+      },
+      onMusicAssistant: client => {
+        if (sendspinRef.current === controller) setMa(client);
       },
     });
     sendspinRef.current = controller;
     await controller.connect(serverUrl);
   };
 
-  const sendspinCommand = <T extends ControllerCommand>(command: T, params?: ControllerCommands[T]) => {
-    sendspinRef.current?.command(command, params);
-  };
+  const sendspinCommand = <T extends ControllerCommand>(command: T, params?: ControllerCommands[T]) =>
+    sendspinRef.current?.command(command, params) ?? false;
+  const sendspinSeek = (positionMs: number) => sendspinRef.current?.seek(positionMs) ?? false;
+  // Stable, so the progress bar's timer isn't restarted on every render
+  const getSendspinProgress = useCallback(() => sendspinRef.current?.trackProgress ?? null, []);
 
   const stopStream = (currentStream: MediaStream | null = stream) => {
     cleanupSendspin();
@@ -166,12 +210,6 @@ export default function App() {
 
   return (
     <div className={skin.root}>
-      {/* Mobile hint */}
-      <div className={skin.mobileHint}>
-        <MonitorUp size={12} />
-        <span>Small screens are not supported, use "Desktopsite"</span>
-      </div>
-
       {/* Atmospheric background */}
       {!running && skin.atmosphericBg && (
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
@@ -216,7 +254,7 @@ export default function App() {
                   host={audio.host}
                   visualizer={activeVisualizer}
                   settings={settings}
-                  sendspinMetadata={sendspin.metadata}
+                  sendspinMetadata={sendspinMetadata}
                   transition={transitionMode}
                 />
               )}
@@ -266,7 +304,15 @@ export default function App() {
       </div>
 
       {sendspin.active && showControls && (
-        <SendspinBar skin={skin} sendspin={sendspin} sendspinCommand={sendspinCommand} updateSendspin={updateSendspin} />
+        <SendspinBar
+          skin={skin}
+          sendspin={sendspinMetadata === sendspin.metadata ? sendspin : { ...sendspin, metadata: sendspinMetadata }}
+          sendspinCommand={sendspinCommand}
+          sendspinSeek={sendspinSeek}
+          getProgress={getSendspinProgress}
+          updateSendspin={updateSendspin}
+          ma={ma}
+        />
       )}
 
       {error && (

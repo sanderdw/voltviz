@@ -162,6 +162,24 @@ VoltViz has [Music Assistant](https://music-assistant.io) support through [Sends
 
 Demo Sendspin server link: https://voltviz.com/?sendspin=https://sendspin-demo.voltviz.com
 
+### Playback controls
+
+Once connected, the bar at the bottom controls the player. It works with every Sendspin server:
+
+- **Now playing**: artwork, title, artist and album. Without a track it says **Nothing playing** and where to start music.
+- **Status**: *Paused*, *Stopped* or *Reconnecting (n/10)…*.
+- **Progress**: elapsed and total time, or **LIVE** for a radio stream. Drag it to seek when the server supports seeking (Music Assistant 2.10).
+- Previous, play/pause, stop and next, volume and mute, shuffle and repeat.
+- **Hide**: the tab on top of the bar slides it down out of the way, leaving the tab with the current title; click it to bring the bar back.
+
+In the [Home Assistant App](https://github.com/sanderdw/hassio-addons), opened from the Home Assistant sidebar, VoltViz also talks to Music Assistant's own API and adds:
+
+- **Start**: when the queue is empty, pick one of your playlists (favorites first), something you played recently, or search the library, and it plays on VoltViz. Play on an empty queue opens the same list.
+- **Queue**: the current and upcoming tracks; tap one to play it, or add music.
+- **Favorite**: a heart that adds the current track to your Music Assistant favorites.
+
+These Music Assistant controls are not shown on voltviz.com, in Docker or on the App's direct port.
+
 ### Deep-Link Visualizer & Settings via URL
 
 You can link directly to a specific visualizer with custom settings using URL parameters:

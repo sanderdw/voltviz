@@ -73,8 +73,8 @@ test.describe('VoltViz – audio engine settings', () => {
     const before = await page.evaluate(() => (window as unknown as { __ctxCount: number }).__ctxCount);
     await select.selectOption('bass');
     await expect(page).toHaveURL(/[?&]style=bass/);
-    // the running engine switched styles in place
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __voltviz: { engine: { analysis: { style: string } | null } } }).__voltviz.engine.analysis?.style)).toBe('bass');
+    // the running engine switched styles in place (it may still be starting: poll, don't throw)
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __voltviz?: { engine?: { analysis: { style: string } | null } } }).__voltviz?.engine?.analysis?.style)).toBe('bass');
     expect(await page.evaluate(() => (window as unknown as { __ctxCount: number }).__ctxCount)).toBe(before);
     await page.goto('/?style=hard');
     await startMicrophone(page);

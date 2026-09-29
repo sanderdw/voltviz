@@ -52,7 +52,7 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
   }, [open, setShowSettings]);
 
   return (
-    <div className={`${skin.settingsPanel} ${open ? 'translate-x-0' : 'translate-x-full'} ${bottomInset ? 'pb-28' : ''}`}>
+    <div className={`${skin.settingsPanel} ${open ? 'translate-x-0' : 'translate-x-full'} ${bottomInset ? 'pb-36' : ''}`}>
       <div className="flex justify-between items-center mb-8">
         <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
         <button onClick={() => setShowSettings(false)} aria-label="Close panel" className={`p-2 -m-2 ${activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}`}>

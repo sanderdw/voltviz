@@ -1,28 +1,15 @@
 /**
- * Sendspin (Music Assistant) audio source. Extracted unchanged from the previous App.tsx:
- * activation handshake, activation timeout, reconnects, Music Assistant auto-configuration
- * and the prefixed identity storage.
+ * Sendspin (Music Assistant) audio source: activation handshake, activation timeout,
+ * reconnects, the prefixed identity storage, and the Music Assistant API connection that
+ * comes with it inside the Home Assistant add-on.
  */
 import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ControllerCommand, ControllerCommands, SendspinStorage, ServerStateMetadata } from '@sendspin/sendspin-js';
+import type { ControllerCommand, ControllerCommands, SendspinStorage } from '@sendspin/sendspin-js';
+import { configurePlayerInMA, discoverMusicAssistant, MusicAssistantClient, type MusicAssistantApi } from './musicAssistant';
+import { initialSendspinState, mapSdkState, SENDSPIN_RECONNECT_ATTEMPTS, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
+import { tapPlayerOutput } from './sendspinOutput';
 
-export type SendspinState = {
-  active: boolean;
-  playing: boolean;
-  metadata: ServerStateMetadata | null;
-  supportedCmds: string[];
-  volume: number;
-  muted: boolean;
-};
-
-export const initialSendspinState: SendspinState = {
-  active: false,
-  playing: false,
-  metadata: null,
-  supportedCmds: [],
-  volume: 100,
-  muted: false,
-};
+export { initialSendspinState, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
 
 // The Sendspin SDK persists its identity keypair (whose public key is the
 // client id, which Music Assistant uses as the player id) under bare
@@ -63,76 +50,20 @@ export interface SendspinCallbacks {
   onActivated(): void;
   /** The connection is gone for good (reconnects exhausted, activation timeout). */
   onClosed(): void;
+  /** Music Assistant's API became available (inside the Home Assistant add-on), or went away. */
+  onMusicAssistant?(ma: MusicAssistantApi | null): void;
 }
 
-const saveMAPlayerConfig = (wsUrl: string, playerId: string) => new Promise<boolean>(resolve => {
-  let ws: WebSocket;
-  try {
-    ws = new WebSocket(wsUrl);
-  } catch {
-    resolve(false);
-    return;
-  }
-  let settled = false;
-  const done = (ok: boolean) => {
-    if (settled) return;
-    settled = true;
-    window.clearTimeout(timer);
-    try { ws.close(); } catch { /* already closed */ }
-    resolve(ok);
-  };
-  const timer = window.setTimeout(() => done(false), 5000);
-  const msgId = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  let commandSent = false;
-
-  ws.onmessage = (event) => {
-    let msg: any;
-    try { msg = JSON.parse(event.data); } catch { return; }
-    if (!commandSent && msg.server_version) {
-      commandSent = true;
-      ws.send(JSON.stringify({
-        message_id: msgId,
-        command: 'config/players/save',
-        args: { player_id: playerId, values: { hide_in_ui: false, expose_player_to_ha: true } }
-      }));
-    } else if (msg.message_id === msgId) {
-      done(!('error_code' in msg));
-    }
-  };
-  ws.onerror = () => done(false);
-  ws.onclose = () => done(false);
-});
-
-// Music Assistant registers Sendspin web players hidden and not exposed to
-// Home Assistant; flip both so the player is usable as soon as it appears.
-// Only possible inside the HA add-on, where run.sh publishes MA's ingress
-// entry as ma-config.json. MA may not have finished registering the player
-// when the first server state arrives, hence the retries.
-async function configurePlayerInMA(playerId: string): Promise<void> {
-  let ingressPath: string;
-  try {
-    const configResp = await fetch(new URL('ma-config.json', window.location.href).href);
-    if (!configResp.ok) return;
-    const { ingress_entry } = await configResp.json();
-    if (!ingress_entry) return;
-    ingressPath = ingress_entry.endsWith('/') ? ingress_entry : ingress_entry + '/';
-  } catch { /* not running in HA add-on context */
-    return;
-  }
-
-  const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${wsProto}//${window.location.host}${ingressPath}ws`;
-  for (let attempt = 0; attempt < 5; attempt++) {
-    if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
-    if (await saveMAPlayerConfig(wsUrl, playerId)) return;
-  }
-}
-
-export class SendspinController {
+export class SendspinController implements SendspinSession {
   private player: SendspinPlayer | null = null;
   private audio: HTMLAudioElement | null = null;
+  /** What is visualized when the SDK does not play through the audio element (Android). */
+  private outputTap: MediaStream | null = null;
   private activated = false;
   private activationTimeout: number | null = null;
+  private ma: MusicAssistantClient | null = null;
+  /** Bumped by cleanup() so a Music Assistant lookup still under way is dropped. */
+  private maSession = 0;
   private readonly cb: SendspinCallbacks;
 
   constructor(callbacks: SendspinCallbacks) {
@@ -155,9 +86,8 @@ export class SendspinController {
         // Don't start the visualizer before the server has activated the
         // player: the element plays the SDK's (still silent) MediaStream as
         // soon as connect() resolves, even when the handshake later fails.
-        if (this.activated && audioEl.srcObject instanceof MediaStream) {
-          cb.onStream(audioEl.srcObject);
-        }
+        const stream = this.activated ? this.visualizerStream() : null;
+        if (stream) cb.onStream(stream);
       });
 
       const player = new SendspinPlayer({
@@ -176,9 +106,13 @@ export class SendspinController {
         storage: sendspinStorage,
         correctionMode: 'quality-local',
         reconnect: {
-          maxAttempts: 10,
-          onReconnecting: (attempt) => cb.onError(`Sendspin connection lost — reconnecting (attempt ${attempt}/10)…`),
-          onReconnected: () => cb.onError(null),
+          maxAttempts: SENDSPIN_RECONNECT_ATTEMPTS,
+          // The bar shows the attempts; the banner only reports it when they run out
+          onReconnecting: (attempt) => cb.onState({ reconnectAttempt: attempt }),
+          onReconnected: () => {
+            cb.onState({ reconnectAttempt: 0 });
+            cb.onError(null);
+          },
           onExhausted: () => {
             cb.onError('Sendspin connection lost — could not reconnect');
             this.cleanup();
@@ -195,32 +129,19 @@ export class SendspinController {
             this.clearActivationTimeout();
             cb.onConnecting(false);
             cb.onError(null);
-            cb.onState({ active: true });
+            cb.onState({ active: true, playerId: player.clientId });
             cb.onActivated();
             // The audio element usually started playing before activation, so
             // the 'playing' listener has already come and gone — pick up the
             // stream here.
-            if (audioEl.srcObject instanceof MediaStream) {
-              cb.onStream(audioEl.srcObject);
-            }
-            configurePlayerInMA(player.clientId);
+            const activeStream = this.visualizerStream();
+            if (activeStream) cb.onStream(activeStream);
+            void this.startMusicAssistant(player.clientId);
           }
-          const patch: Partial<SendspinState> = { playing: state.isPlaying };
-          if (state.serverState?.metadata) {
-            patch.metadata = state.serverState.metadata;
-          }
-          if (state.serverState?.controller?.supported_commands) {
-            patch.supportedCmds = state.serverState.controller.supported_commands;
-          }
-          if (state.serverState?.controller?.volume !== undefined) {
-            patch.volume = state.serverState.controller.volume;
-          }
-          if (state.serverState?.controller?.muted !== undefined) {
-            patch.muted = state.serverState.controller.muted;
-          }
-          cb.onState(patch);
-          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
-            cb.onStream(audioEl.srcObject);
+          cb.onState(mapSdkState(state));
+          const stream = state.isPlaying ? this.visualizerStream() : null;
+          if (stream) {
+            cb.onStream(stream);
             // Ensure playback on mobile where autoplay may be blocked
             if (audioEl.paused) {
               audioEl.play().catch(() => {});
@@ -255,8 +176,58 @@ export class SendspinController {
     }
   }
 
-  command<T extends ControllerCommand>(command: T, params?: ControllerCommands[T]): void {
-    this.player?.sendCommand(command, params as never);
+  command<T extends ControllerCommand>(command: T, params?: ControllerCommands[T]): boolean {
+    if (!this.player) return false;
+    try {
+      // Throws when the server does not list the command as supported
+      this.player.sendCommand(command, params as never);
+      return true;
+    } catch (err) {
+      console.warn(`VoltViz: Sendspin command '${command}' failed`, err);
+      return false;
+    }
+  }
+
+  seek(positionMs: number): boolean {
+    if (!this.player) return false;
+    try {
+      // 'seek' is in the Sendspin spec (and Music Assistant 2.10) but not yet in sendspin-js
+      // 5.0.0's ControllerCommands. The SDK checks it against the server's supported commands
+      // and forwards the parameters as they are.
+      (this.player as unknown as { sendCommand(command: string, params: object): void })
+        .sendCommand('seek', { position_ms: Math.max(0, Math.round(positionMs)) });
+      return true;
+    } catch (err) {
+      console.warn('VoltViz: Sendspin seek failed', err);
+      return false;
+    }
+  }
+
+  get trackProgress(): TrackProgress | null {
+    // Before the clock is synced the SDK's extrapolation is meaningless
+    if (!this.player || !this.activated || !this.player.timeSyncInfo.synced) return null;
+    return this.player.trackProgress;
+  }
+
+  /**
+   * The audio to visualize: the MediaStream the SDK plays through our audio element, or on
+   * Android, where it plays straight to the speakers, a tap on its output (see sendspinOutput).
+   */
+  private visualizerStream(): MediaStream | null {
+    if (this.audio?.srcObject instanceof MediaStream) return this.audio.srcObject;
+    this.outputTap ??= tapPlayerOutput(this.player);
+    return this.outputTap;
+  }
+
+  private async startMusicAssistant(playerId: string): Promise<void> {
+    const session = ++this.maSession;
+    const endpoint = await discoverMusicAssistant();
+    if (!endpoint || session !== this.maSession || !this.player) return;
+    const ma = new MusicAssistantClient(endpoint);
+    this.ma = ma;
+    ma.connect();
+    this.cb.onMusicAssistant?.(ma);
+    void configurePlayerInMA(ma, playerId);
   }
 
   private clearActivationTimeout(): void {
@@ -271,10 +242,18 @@ export class SendspinController {
     this.clearActivationTimeout();
     this.activated = false;
     this.cb.onConnecting(false);
+    this.maSession++;
+    if (this.ma) {
+      this.ma.close();
+      this.ma = null;
+      this.cb.onMusicAssistant?.(null);
+    }
     if (this.player) {
       this.player.disconnect('user_request');
       this.player = null;
     }
+    // Its AudioContext closed with the player
+    this.outputTap = null;
     if (this.audio) {
       this.audio.pause();
       this.audio.srcObject = null;
