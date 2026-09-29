@@ -31,6 +31,27 @@ test.describe('VoltViz – landing page (no stream)', () => {
     await expect(btn).toBeEnabled();
   });
 
+  test('explains that the microphone needs https:// on an http:// page', async ({ page }) => {
+    // What a phone gets on http://192.168.x.x: no navigator.mediaDevices at all
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'isSecureContext', { value: false });
+      Object.defineProperty(navigator, 'mediaDevices', { value: undefined });
+    });
+    await page.reload();
+    await page.getByRole('button', { name: 'Microphone' }).click();
+    await expect(page.getByText('Browsers only allow the microphone on secure (https://) pages')).toBeVisible();
+  });
+
+  test('explains that the browser cannot share system audio', async ({ page }) => {
+    // A phone over https: a microphone, but no screen sharing
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: () => Promise.reject(new Error('not in this test')) } });
+    });
+    await page.reload();
+    await page.getByRole('button', { name: 'System Audio' }).click();
+    await expect(page.getByText('This browser can\'t share system audio')).toBeVisible();
+  });
+
   test('Sendspin button is visible and enabled', async ({ page }) => {
     const btn = page.getByRole('button', { name: 'Sendspin' });
     await expect(btn).toBeVisible();

@@ -127,16 +127,25 @@ export async function discoverMusicAssistant(loc: PageLocation = window.location
 }
 
 type Pending = {
+  payload: string;
   resolve: (value: unknown) => void;
   reject: (err: Error) => void;
   timer: ReturnType<typeof setTimeout>;
   chunks: unknown[] | null;
   sent: boolean;
+  sentAt: number;
+  /** The client's `received` count when it was sent. */
+  receivedBefore: number;
 };
+
+/** Answered at once, without arguments or permissions: asks a silent server whether it is there. */
+const PROBE_COMMAND = 'time';
 
 export type MusicAssistantClientOptions = MaEndpoint & {
   WebSocketImpl?: typeof WebSocket;
   requestTimeoutMs?: number;
+  /** How long a request may go without anything from the server before the socket is probed, and the probe too. */
+  livenessMs?: number;
   maxBackoffMs?: number;
   /** Give up (status 'unavailable') after this many attempts that never reached the server. */
   maxInitialFailures?: number;
@@ -154,8 +163,13 @@ export class MusicAssistantClient implements MusicAssistantApi {
   private seq = 0;
   private readonly idPrefix = Math.random().toString(36).slice(2, 8);
   private readonly pending = new Map<string, Pending>();
-  /** Serialized requests made before the handshake, sent once the server has answered. */
-  private outbox: { id: string; payload: string }[] = [];
+  /** Requests made before the handshake, sent once the server has answered. */
+  private outbox: string[] = [];
+  /** Messages received from the server so far, to tell whether anything came since a send. */
+  private received = 0;
+  private livenessTimer: ReturnType<typeof setTimeout> | null = null;
+  /** `received` when the liveness probe went out, while it waits for anything to come back. */
+  private probeMark: number | null = null;
   private readonly eventListeners = new Set<(event: MaEvent) => void>();
   private readonly statusListeners = new Set<(status: MaStatus) => void>();
   private readonly opts: MusicAssistantClientOptions;
@@ -183,17 +197,13 @@ export class MusicAssistantClient implements MusicAssistantApi {
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        this.outbox = this.outbox.filter(o => o.id !== id);
+        this.outbox = this.outbox.filter(o => o !== id);
         reject(new MaError('timeout', `Music Assistant did not answer ${command}`));
-      }, options.timeoutMs ?? this.opts.requestTimeoutMs ?? 10000);
-      const entry: Pending = { resolve: resolve as (value: unknown) => void, reject, timer, chunks: null, sent: false };
+      }, options.timeoutMs ?? this.opts.requestTimeoutMs ?? 15000);
+      const entry: Pending = { payload, resolve: resolve as (value: unknown) => void, reject, timer, chunks: null, sent: false, sentAt: 0, receivedBefore: 0 };
       this.pending.set(id, entry);
-      if (this._status === 'connected' && this.ws) {
-        entry.sent = true;
-        this.ws.send(payload);
-      } else {
-        this.outbox.push({ id, payload });
-      }
+      if (this._status === 'connected' && this.ws) this.transmit(entry);
+      else this.outbox.push(id);
     });
   }
 
@@ -224,6 +234,7 @@ export class MusicAssistantClient implements MusicAssistantApi {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    this.stopLivenessCheck();
     this.rejectPending(() => true, 'disconnected');
     const ws = this.ws;
     this.ws = null;
@@ -262,6 +273,7 @@ export class MusicAssistantClient implements MusicAssistantApi {
       return;
     }
     if (!msg || typeof msg !== 'object') return;
+    this.received++;
 
     if (this._status !== 'connected') {
       // The server introduces itself first; only then does it take commands
@@ -273,11 +285,9 @@ export class MusicAssistantClient implements MusicAssistantApi {
         this.setStatus('connected');
         const outbox = this.outbox;
         this.outbox = [];
-        for (const { id, payload } of outbox) {
+        for (const id of outbox) {
           const entry = this.pending.get(id);
-          if (!entry) continue;
-          entry.sent = true;
-          this.ws?.send(payload);
+          if (entry) this.transmit(entry);
         }
       }
       return;
@@ -317,8 +327,65 @@ export class MusicAssistantClient implements MusicAssistantApi {
     }
   }
 
+  private transmit(entry: Pending): void {
+    entry.sent = true;
+    entry.sentAt = Date.now();
+    entry.receivedBefore = this.received;
+    this.ws?.send(entry.payload);
+    this.livenessTimer ??= setTimeout(this.checkLiveness, this.opts.livenessMs ?? 3000);
+  }
+
+  /**
+   * A socket can die without closing (a phone that slept, a network change), and requests then
+   * go nowhere. When the server sent nothing at all since a request went out, ask it the time;
+   * when that brings nothing either, open a new socket and send the requests again.
+   */
+  private readonly checkLiveness = (): void => {
+    this.livenessTimer = null;
+    const ws = this.ws;
+    if (this._status !== 'connected' || !ws) return;
+    if (this.probeMark !== null) {
+      const silent = this.received === this.probeMark;
+      this.probeMark = null;
+      if (silent) {
+        this.dropDeadSocket(ws);
+        return;
+      }
+    }
+    const waiting = [...this.pending.values()].filter(entry => entry.sent);
+    if (waiting.length === 0) return;
+    const limit = this.opts.livenessMs ?? 3000;
+    const now = Date.now();
+    if (waiting.some(entry => entry.receivedBefore === this.received && now - entry.sentAt >= limit)) {
+      this.probeMark = this.received;
+      ws.send(JSON.stringify({ message_id: `${this.idPrefix}-probe`, command: PROBE_COMMAND, args: {} }));
+    }
+    this.livenessTimer = setTimeout(this.checkLiveness, limit);
+  };
+
+  private dropDeadSocket(ws: WebSocket): void {
+    // Nothing came back over this socket, so these most likely never reached the server either
+    for (const [id, entry] of this.pending) {
+      if (!entry.sent) continue;
+      entry.sent = false;
+      this.outbox.push(id);
+    }
+    ws.onmessage = null;
+    ws.onclose = null;
+    ws.onerror = null;
+    try { ws.close(); } catch { /* already closed */ }
+    this.handleClose();
+  }
+
+  private stopLivenessCheck(): void {
+    if (this.livenessTimer) clearTimeout(this.livenessTimer);
+    this.livenessTimer = null;
+    this.probeMark = null;
+  }
+
   private handleClose(): void {
     this.ws = null;
+    this.stopLivenessCheck();
     if (this._status === 'closed') return;
     // Requests already on the wire are lost; ones still waiting for the handshake can go out
     // on the next connection
@@ -349,7 +416,7 @@ export class MusicAssistantClient implements MusicAssistantApi {
     for (const [id, entry] of [...this.pending]) {
       if (!match(entry)) continue;
       this.settle(id);
-      this.outbox = this.outbox.filter(o => o.id !== id);
+      this.outbox = this.outbox.filter(o => o !== id);
       entry.reject(new MaError(code, code === 'unavailable' ? 'Music Assistant is not available' : 'Music Assistant connection lost'));
     }
   }

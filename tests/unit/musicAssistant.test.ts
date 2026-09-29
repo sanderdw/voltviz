@@ -112,6 +112,48 @@ describe('MusicAssistantClient', () => {
     FakeWebSocket.last.receive({ message_id: FakeWebSocket.last.sent[0].message_id, result: [] });
   });
 
+  it('replaces a socket that went silent and sends the request again', async () => {
+    const ma = client({ livenessMs: 3000 });
+    ma.connect();
+    const dead = FakeWebSocket.last;
+    dead.hello();
+    const playlists = maApi.playlists(ma);
+    vi.advanceTimersByTime(3000);
+    // Nothing came back: the server is asked the time
+    expect(dead.sent.map(m => m.command)).toEqual(['music/playlists/library_items', 'time']);
+    vi.advanceTimersByTime(3000);
+    // Not even that: a new socket, and the request goes out again after its handshake
+    expect(dead.closed).toBe(true);
+    expect(ma.status).toBe('reconnecting');
+    vi.advanceTimersByTime(1000);
+    const fresh = FakeWebSocket.last;
+    expect(fresh).not.toBe(dead);
+    fresh.hello();
+    expect(fresh.sent.map(m => m.command)).toEqual(['music/playlists/library_items']);
+    fresh.receive({ message_id: fresh.sent[0].message_id, result: [] });
+    await expect(playlists).resolves.toEqual([]);
+  });
+
+  it('keeps a socket that answers the probe or sends anything else', async () => {
+    const ma = client({ livenessMs: 3000, requestTimeoutMs: 60000 });
+    ma.connect();
+    const ws = FakeWebSocket.last;
+    ws.hello();
+    const search = ma.request('music/search');
+    vi.advanceTimersByTime(3000);
+    const probe = ws.sent.find(m => m.command === 'time');
+    ws.receive({ message_id: probe.message_id, result: 1 });
+    vi.advanceTimersByTime(3000);
+    // A slow search on a busy server: events prove it is there
+    ws.receive({ event: 'player_updated', object_id: 'p1', data: {} });
+    vi.advanceTimersByTime(9000);
+    expect(ws.closed).toBe(false);
+    expect(FakeWebSocket.instances).toHaveLength(1);
+    expect(ws.sent.filter(m => m.command === 'time')).toHaveLength(1);
+    ws.receive({ message_id: ws.sent[0].message_id, result: { tracks: [] } });
+    await expect(search).resolves.toEqual({ tracks: [] });
+  });
+
   it('passes events to the listeners', () => {
     const ma = client();
     ma.connect();

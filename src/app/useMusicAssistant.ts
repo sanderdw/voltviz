@@ -62,6 +62,21 @@ export function useMaQueue(ma: MusicAssistantApi | null, playerId: string | null
     return () => window.clearInterval(id);
   }, [ready, poll, refresh]);
 
+  useEffect(() => {
+    if (!ready) return;
+    // Back from the background or offline: the queue may have moved on, and the request finds
+    // out whether the connection survived (see MusicAssistantClient's liveness check)
+    const onWake = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onWake);
+    window.addEventListener('online', onWake);
+    return () => {
+      document.removeEventListener('visibilitychange', onWake);
+      window.removeEventListener('online', onWake);
+    };
+  }, [ready, refresh]);
+
   return { queue: ready ? queue : null, ready };
 }
 

@@ -9,7 +9,22 @@ const RAW_AUDIO: MediaTrackConstraints = {
   noiseSuppression: false,
 };
 
+/**
+ * Why there is no capture: browsers only offer it on https:// pages (and localhost), and phones
+ * and tablets can't share their screen or system audio at all.
+ */
+export function captureUnavailable(source: 'microphone' | 'system audio'): Error {
+  if (globalThis.isSecureContext === false) {
+    return new Error(`Browsers only allow ${source === 'microphone' ? 'the microphone' : 'system audio'} on secure (https://) pages, and this one was opened over http://. Open VoltViz over https://, or use Sendspin.`);
+  }
+  return new Error(source === 'microphone'
+    ? 'This browser does not offer microphone access.'
+    : 'This browser can\'t share system audio (phones and tablets can\'t). Use Sendspin or the microphone.');
+}
+
 export async function captureMicrophone(): Promise<MediaStream> {
+  // navigator.mediaDevices itself is missing on an http:// page
+  if (!navigator.mediaDevices?.getUserMedia) throw captureUnavailable('microphone');
   return navigator.mediaDevices.getUserMedia({ audio: RAW_AUDIO });
 }
 
@@ -18,6 +33,7 @@ export async function captureMicrophone(): Promise<MediaStream> {
  * browser UI.
  */
 export async function captureSystemAudio(onEnded: () => void): Promise<MediaStream> {
+  if (!navigator.mediaDevices?.getDisplayMedia) throw captureUnavailable('system audio');
   const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: RAW_AUDIO });
   if (stream.getAudioTracks().length === 0) {
     stream.getTracks().forEach(track => track.stop());
