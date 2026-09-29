@@ -4,6 +4,7 @@
  * add-on: run.sh publishes MA's ingress entry as ma-config.json, and when VoltViz itself is
  * opened through Home Assistant ingress, the ingress session authenticates the WebSocket.
  */
+import type { RepeatMode } from './sendspinState';
 
 export type MaStatus = 'connecting' | 'connected' | 'reconnecting' | 'unavailable' | 'closed';
 
@@ -52,6 +53,8 @@ export interface MaPlayerQueue {
   items: number;
   shuffle_enabled?: boolean;
   repeat_mode?: string;
+  /** A smart mix Music Assistant keeps filling; shuffle and repeat are locked. */
+  is_dynamic?: boolean;
   current_index?: number | null;
   /** Seconds. */
   elapsed_time?: number;
@@ -383,6 +386,10 @@ export const maApi = {
     ma.request<null>('player_queues/play_media', { queue_id: queueId, media: uri, option }),
   seek: (ma: MusicAssistantApi, queueId: string, seconds: number) =>
     ma.request<null>('player_queues/seek', { queue_id: queueId, position: Math.max(0, Math.round(seconds)) }),
+  setShuffle: (ma: MusicAssistantApi, queueId: string, enabled: boolean) =>
+    ma.request<null>('player_queues/shuffle', { queue_id: queueId, shuffle_enabled: enabled }),
+  setRepeat: (ma: MusicAssistantApi, queueId: string, mode: RepeatMode) =>
+    ma.request<null>('player_queues/repeat', { queue_id: queueId, repeat_mode: mode }),
   playlists: (ma: MusicAssistantApi, favorite?: boolean) =>
     ma.request<MaMediaItem[]>('music/playlists/library_items', { favorite, limit: 100, order_by: 'sort_name' }),
   radios: (ma: MusicAssistantApi) =>

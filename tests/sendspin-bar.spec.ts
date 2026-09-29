@@ -72,9 +72,10 @@ test.describe('Sendspin bar', () => {
 
   test('goes back to "Nothing playing" when the track is cleared', async ({ page }) => {
     await inject(page, { state: { metadata: playing }, progress });
-    await expect(page.getByText('Strobe')).toBeVisible();
+    const bar = page.getByTestId('sendspin-controls');
+    await expect(bar.getByText('Strobe')).toBeVisible();
     await setState(page, { metadata: null });
-    await expect(page.getByText('Nothing playing')).toBeVisible();
+    await expect(bar.getByText('Nothing playing')).toBeVisible();
     await expect(page.getByText('Strobe')).toHaveCount(0);
   });
 
@@ -103,6 +104,47 @@ test.describe('Sendspin bar', () => {
     await page.getByTestId('sendspin-next').click();
     await page.getByTestId('sendspin-shuffle').click();
     expect((await calls(page)).sendspin.map(c => c.command)).toEqual(['pause', 'next', 'shuffle']);
+  });
+
+  test('shows a shuffle or repeat change before the server reports it', async ({ page }) => {
+    // Music Assistant 2.10 sends shuffle and repeat over Sendspin only with the next track
+    await inject(page, { state: { metadata: playing }, progress });
+    const shuffle = page.getByTestId('sendspin-shuffle');
+    const repeat = page.getByTestId('sendspin-repeat');
+    await shuffle.click();
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'true');
+    await repeat.click();
+    await expect(repeat).toHaveAttribute('aria-label', 'Repeat: all');
+    await repeat.click();
+    await expect(repeat).toHaveAttribute('aria-label', 'Repeat: one');
+    await shuffle.click();
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'false');
+    expect((await calls(page)).sendspin.map(c => c.command)).toEqual(['shuffle', 'repeat_all', 'repeat_one', 'unshuffle']);
+    // The next track brings what the server has
+    await setState(page, { metadata: { ...playing, title: 'Ghosts n Stuff' }, repeat: 'off', shuffle: true });
+    await expect(repeat).toHaveAttribute('aria-label', 'Repeat: off');
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('slides the bar down and back up', async ({ page }) => {
+    await inject(page, { state: { metadata: playing }, progress });
+    const bar = page.getByTestId('sendspin-controls');
+    const toggle = page.getByTestId('sendspin-toggle');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(bar).not.toBeInViewport({ ratio: 0.1 });
+    await expect(bar).toHaveAttribute('inert', '');
+    await expect(toggle).toBeInViewport({ ratio: 1 });
+    await expect(toggle).toContainText('Strobe');
+
+    // Remembered in this browser
+    await page.reload();
+    await inject(page, { state: { metadata: playing }, progress });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    await expect(bar).toBeInViewport({ ratio: 1 });
+    await expect(bar).not.toHaveAttribute('inert');
   });
 });
 
@@ -208,6 +250,43 @@ test.describe('Sendspin bar with Music Assistant', () => {
     await expect.poll(async () => (await calls(page)).ma).toContainEqual({ command: 'player_queues/seek', args: { queue_id: 'test-player', position: 90 } });
   });
 
+  test('changes shuffle and repeat through Music Assistant', async ({ page }) => {
+    await inject(page, { state: { metadata: playing }, progress, ma: { queue: { ...queue, shuffle_enabled: false, repeat_mode: 'off' } } });
+    const shuffle = page.getByTestId('sendspin-shuffle');
+    const repeat = page.getByTestId('sendspin-repeat');
+    await shuffle.click();
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'true');
+    await repeat.click();
+    await expect(repeat).toHaveAttribute('aria-label', 'Repeat: all');
+    const all = await calls(page);
+    expect(all.ma).toContainEqual({ command: 'player_queues/shuffle', args: { queue_id: 'test-player', shuffle_enabled: true } });
+    expect(all.ma).toContainEqual({ command: 'player_queues/repeat', args: { queue_id: 'test-player', repeat_mode: 'all' } });
+    expect(all.sendspin).toEqual([]);
+    // Changed somewhere else: the queue update wins
+    await page.evaluate(q => (window as any).__voltvizSendspin.emitMaEvent({ event: 'queue_updated', object_id: 'test-player', data: { ...q, shuffle_enabled: false, repeat_mode: 'one' } }), queue);
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'false');
+    await expect(repeat).toHaveAttribute('aria-label', 'Repeat: one');
+  });
+
+  test('undoes a refused shuffle and locks shuffle and repeat on a dynamic queue', async ({ page }) => {
+    await inject(page, { state: { metadata: playing }, progress, ma: { queue, failing: ['player_queues/shuffle'] } });
+    const shuffle = page.getByTestId('sendspin-shuffle');
+    await shuffle.click();
+    await expect.poll(async () => (await calls(page)).ma.map(c => c.command)).toContain('player_queues/shuffle');
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'false');
+    await page.evaluate(q => (window as any).__voltvizSendspin.emitMaEvent({ event: 'queue_updated', object_id: 'test-player', data: { ...q, is_dynamic: true } }), queue);
+    await expect(shuffle).toBeDisabled();
+    await expect(page.getByTestId('sendspin-repeat')).toBeDisabled();
+  });
+
+  test('closes the queue when the bar slides down', async ({ page }) => {
+    await inject(page, { state: { metadata: playing }, progress, ma: { queue } });
+    await page.getByTestId('sendspin-queue').click();
+    await expect(page.getByTestId('sendspin-queue-panel')).toBeVisible();
+    await page.getByTestId('sendspin-toggle').click();
+    await expect(page.getByTestId('sendspin-queue-panel')).toHaveCount(0);
+  });
+
   test('hides the Music Assistant controls while its connection is down', async ({ page }) => {
     await inject(page, { state: { metadata: playing }, progress, ma: { queue } });
     await page.getByTestId('sendspin-queue').click();
@@ -230,7 +309,7 @@ for (const viewport of [{ width: 320, height: 640 }, { width: 375, height: 740 }
       await inject(page, { state: { metadata: playing }, progress, ma: { queue, playlists: [playlist('1', 'A playlist with a rather long name that has to be cut off')] } });
       const bar = page.getByTestId('sendspin-controls');
       await expect(bar).toBeInViewport({ ratio: 1 });
-      for (const id of ['sendspin-play', 'sendspin-pause', 'sendspin-next', 'sendspin-queue', 'sendspin-seek', 'sendspin-duration']) {
+      for (const id of ['sendspin-toggle', 'sendspin-play', 'sendspin-pause', 'sendspin-next', 'sendspin-queue', 'sendspin-seek', 'sendspin-duration']) {
         const el = page.getByTestId(id);
         if (await el.count()) await expect(el).toBeInViewport({ ratio: 1 });
       }

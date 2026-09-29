@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import { hasTrack, mapSdkState, trackKey } from '../../src/audio/sources/sendspinState';
-import { deriveBarStatus, favoritesFirst, formatTime, playOption, seekMode, statusLabel } from '../../src/app/sendspinView';
+import { asRepeatMode, deriveBarStatus, favoritesFirst, formatTime, nextRepeatMode, playOption, seekMode, statusLabel, withPending, type PendingChange } from '../../src/app/sendspinView';
 import type { MaMediaItem, MaPlayerQueue } from '../../src/audio/sources/musicAssistant';
 
 const track: ServerStateMetadata = {
@@ -25,9 +25,21 @@ describe('mapSdkState', () => {
       seekMaxMs: 180000,
       volume: 40,
       muted: true,
+      repeat: null,
+      shuffle: null,
       groupPlayback: 'playing',
       groupName: 'Living room',
     });
+  });
+
+  it('takes repeat and shuffle from the controller, or from the metadata of an older server', () => {
+    const older = mapSdkState({ isPlaying: true, serverState: { metadata: { ...track, repeat: 'one', shuffle: true } } });
+    expect([older.repeat, older.shuffle]).toEqual(['one', true]);
+    const current = mapSdkState({
+      isPlaying: true,
+      serverState: { metadata: { ...track, repeat: 'one', shuffle: true }, controller: { repeat: 'all', shuffle: false } as never },
+    });
+    expect([current.repeat, current.shuffle]).toEqual(['all', false]);
   });
 
   it('clears the track when the server removed the metadata', () => {
@@ -111,6 +123,30 @@ describe('seekMode', () => {
     expect(seekMode({ supportedCmds: ['play'], durationMs: 185000, maQueue: true })).toBe('ma');
     expect(seekMode({ supportedCmds: ['play'], durationMs: 185000, maQueue: false })).toBeNull();
     expect(seekMode({ supportedCmds: ['seek'], durationMs: 0, maQueue: true })).toBeNull();
+  });
+});
+
+describe('shuffle and repeat', () => {
+  it('cycles repeat off → all → one → off', () => {
+    expect(nextRepeatMode('off')).toBe('all');
+    expect(nextRepeatMode('all')).toBe('one');
+    expect(nextRepeatMode('one')).toBe('off');
+    expect(asRepeatMode('ALL')).toBe('off');
+    expect(asRepeatMode(undefined)).toBe('off');
+  });
+
+  it('shows a change until the server sends new state or reports another value', () => {
+    const before = { title: 'Song' };
+    const pending: PendingChange<boolean> = { value: true, base: false, revision: before };
+    // Music Assistant has not sent anything since the click
+    expect(withPending(false, before, pending)).toBe(true);
+    // The server sent new state: that is what it has now, whatever it is
+    expect(withPending(false, { title: 'Next song' }, pending)).toBe(false);
+    expect(withPending(true, { title: 'Next song' }, pending)).toBe(true);
+    // The server reported a different value on the same state
+    const repeat: PendingChange<string> = { value: 'all', base: 'off', revision: before };
+    expect(withPending('one', before, repeat)).toBe('one');
+    expect(withPending('off', before, null)).toBe('off');
   });
 });
 

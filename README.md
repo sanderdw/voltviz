@@ -170,6 +170,7 @@ Once connected, the bar at the bottom controls the player. It works with every S
 - **Status**: *Paused*, *Stopped* or *Reconnecting (n/10)…*.
 - **Progress**: elapsed and total time, or **LIVE** for a radio stream. Drag it to seek when the server supports seeking (Music Assistant 2.10).
 - Previous, play/pause, stop and next, volume and mute, shuffle and repeat.
+- **Hide**: the tab on top of the bar slides it down out of the way, leaving the tab with the current title; click it to bring the bar back.
 
 In the [Home Assistant App](https://github.com/sanderdw/hassio-addons), opened from the Home Assistant sidebar, VoltViz also talks to Music Assistant's own API and adds:
 

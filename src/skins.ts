@@ -53,6 +53,8 @@ export interface SkinDefinition {
   sendspinDivider: string;
   sendspinVolumeSlider: string;
   sendspinBarRow: string;
+  /** The tab on top of the bar that slides it down and back up. Its height is set by the bar. */
+  sendspinHandle: string;
   sendspinTrackAlbum: string;
   sendspinStatus: string;
   sendspinProgressTime: string;
@@ -121,6 +123,7 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinDivider: 'max-sm:hidden w-px h-6 bg-white/10',
     sendspinVolumeSlider: 'w-20 accent-purple-500 disabled:opacity-30',
     sendspinBarRow: 'flex flex-wrap sm:flex-nowrap justify-center items-center gap-x-4 gap-y-2',
+    sendspinHandle: 'pointer-events-auto flex items-center px-3 -mb-px bg-black/70 backdrop-blur-xl border border-b-0 border-white/10 rounded-t-lg text-[11px] text-white/60 hover:text-white transition-colors cursor-pointer',
     sendspinTrackAlbum: 'text-xs text-white/35 truncate max-w-[70vw] sm:max-w-[200px] max-sm:hidden',
     sendspinStatus: 'text-[10px] uppercase tracking-[0.15em] text-purple-300/80 whitespace-nowrap',
     sendspinProgressTime: 'text-[10px] tabular-nums text-white/40 w-12 text-center flex-shrink-0',
@@ -187,6 +190,7 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinDivider: 'max-sm:hidden w-px h-6 bg-[#808080]',
     sendspinVolumeSlider: 'w-20 accent-[#000080] disabled:opacity-50',
     sendspinBarRow: 'flex flex-wrap sm:flex-nowrap justify-center items-center gap-x-3 gap-y-2',
+    sendspinHandle: 'pointer-events-auto flex items-center px-2 -mb-0.5 bg-[#c0c0c0] border-2 border-b-0 border-t-white border-l-white border-r-[#808080] text-[11px] text-black cursor-pointer',
     sendspinTrackAlbum: 'text-xs text-[#808080] italic truncate max-w-[70vw] sm:max-w-[200px] max-sm:hidden',
     sendspinStatus: 'text-[11px] font-bold text-[#000080] whitespace-nowrap',
     sendspinProgressTime: 'text-[11px] tabular-nums text-black w-12 text-center flex-shrink-0',
@@ -253,6 +257,7 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinDivider: 'max-sm:hidden w-px h-6 bg-[#1a1a2a]',
     sendspinVolumeSlider: 'w-20 accent-[#00ff00] disabled:opacity-30',
     sendspinBarRow: 'flex flex-wrap sm:flex-nowrap justify-center items-center gap-x-4 gap-y-2',
+    sendspinHandle: 'pointer-events-auto flex items-center px-2 -mb-0.5 bg-[#3a3a4a] border-2 border-b-0 border-t-[#6a6a7a] border-l-[#6a6a7a] border-r-[#1a1a2a] text-[10px] uppercase tracking-wider text-[#a0a0a0] hover:text-[#00ff00] cursor-pointer',
     sendspinTrackAlbum: 'text-xs text-[#00ff00]/35 truncate max-w-[70vw] sm:max-w-[200px] max-sm:hidden',
     sendspinStatus: 'text-[10px] uppercase tracking-widest text-[#ffcc00] whitespace-nowrap',
     sendspinProgressTime: 'text-[11px] tabular-nums font-mono text-[#00ff00] w-12 text-center flex-shrink-0',
@@ -319,6 +324,7 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinDivider: 'max-sm:hidden w-px h-5 bg-[#00ff00]/20',
     sendspinVolumeSlider: 'w-20 accent-[#00ff00] disabled:opacity-20',
     sendspinBarRow: 'flex flex-wrap sm:flex-nowrap justify-center items-center gap-x-4 gap-y-2',
+    sendspinHandle: 'pointer-events-auto flex items-center px-3 -mb-px bg-[#0a0a0a] border border-b-0 border-[#00ff00]/30 text-[10px] uppercase tracking-[0.2em] text-[#00ff00]/60 hover:text-[#00ff00] cursor-pointer',
     sendspinTrackAlbum: 'text-[10px] text-[#00ff00]/30 tracking-wider truncate max-w-[70vw] sm:max-w-[200px] max-sm:hidden',
     sendspinStatus: 'text-[10px] uppercase tracking-[0.3em] text-[#00ff00] animate-pulse whitespace-nowrap',
     sendspinProgressTime: 'text-[10px] tabular-nums tracking-wider text-[#00ff00]/60 w-12 text-center flex-shrink-0',

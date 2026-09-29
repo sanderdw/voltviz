@@ -3,7 +3,7 @@
  * add-on) Music Assistant's queue. Pure, so the unit tests cover it.
  */
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
-import { hasTrack, SENDSPIN_RECONNECT_ATTEMPTS } from '../audio/sources/sendspinState';
+import { hasTrack, SENDSPIN_RECONNECT_ATTEMPTS, type RepeatMode } from '../audio/sources/sendspinState';
 import type { MaMediaItem, MaPlayerQueue, MaQueueOption } from '../audio/sources/musicAssistant';
 
 export type BarStatus = 'reconnecting' | 'idle' | 'playing' | 'paused' | 'stopped';
@@ -58,6 +58,25 @@ export function seekMode({ supportedCmds, durationMs, maQueue }: {
   if (supportedCmds.includes('seek')) return 'sendspin';
   return maQueue ? 'ma' : null;
 }
+
+export const asRepeatMode = (value: unknown): RepeatMode => (value === 'one' || value === 'all' ? value : 'off');
+
+/** off → all → one → off, the order Music Assistant's own player uses. */
+export const nextRepeatMode = (mode: RepeatMode): RepeatMode => (mode === 'off' ? 'all' : mode === 'all' ? 'one' : 'off');
+
+/**
+ * A shuffle or repeat change the server has not reported back yet. `revision` is the server
+ * state it was made on: the Music Assistant queue, or the Sendspin metadata.
+ */
+export type PendingChange<T> = { value: T; base: T; revision: unknown };
+
+/**
+ * What to show for a setting with a change pending. Music Assistant 2.10 sends shuffle and
+ * repeat over Sendspin only with the next track (or on pause and resume), so the change is
+ * shown until the server sends new state or reports a different value itself.
+ */
+export const withPending = <T>(server: T, revision: unknown, pending: PendingChange<T> | null): T =>
+  pending && pending.revision === revision && pending.base === server ? pending.value : server;
 
 /** Replace an empty or finished queue; otherwise play now and keep the rest of the queue. */
 export const playOption = (queue: MaPlayerQueue | null | undefined): MaQueueOption =>

@@ -4,6 +4,8 @@
  */
 import type { ControllerCommand, ControllerCommands, GroupUpdatePayload, ServerStateController, ServerStateMetadata, ServerStatePayload } from '@sendspin/sendspin-js';
 
+export type RepeatMode = 'off' | 'one' | 'all';
+
 export type SendspinState = {
   active: boolean;
   /** The local audio stream is running (stream/start … stream/end), not the group's state. */
@@ -12,6 +14,8 @@ export type SendspinState = {
   supportedCmds: string[];
   volume: number;
   muted: boolean;
+  repeat: RepeatMode | null;
+  shuffle: boolean | null;
   /** The group's playback state. Sendspin has no "paused": a paused group reports 'stopped'. */
   groupPlayback: 'playing' | 'stopped' | null;
   groupName: string | null;
@@ -30,6 +34,8 @@ export const initialSendspinState: SendspinState = {
   supportedCmds: [],
   volume: 100,
   muted: false,
+  repeat: null,
+  shuffle: null,
   groupPlayback: null,
   groupName: null,
   reconnectAttempt: 0,
@@ -59,14 +65,23 @@ export type SdkState = {
 };
 
 export function mapSdkState(state: SdkState): Partial<SendspinState> {
-  // seek_max_ms is in the Sendspin spec (and Music Assistant 2.10) but not yet in the SDK's types
-  const controller = state.serverState?.controller as (ServerStateController & { seek_max_ms?: number | null }) | undefined;
+  // seek_max_ms, repeat and shuffle are on the controller in the current Sendspin spec (and Music
+  // Assistant 2.10) but not yet in the SDK's types. Older servers only put repeat and shuffle on
+  // the metadata.
+  const controller = state.serverState?.controller as (ServerStateController & {
+    seek_max_ms?: number | null;
+    repeat?: RepeatMode | null;
+    shuffle?: boolean | null;
+  }) | undefined;
+  // Always take what is there now: the SDK deletes the keys the server clears, so skipping a
+  // missing value would keep the previous track on screen after the queue ends.
+  const metadata = state.serverState?.metadata ?? null;
   const patch: Partial<SendspinState> = {
     playing: state.isPlaying,
-    // Always take what is there now: the SDK deletes the keys the server clears, so skipping a
-    // missing value would keep the previous track on screen after the queue ends.
-    metadata: state.serverState?.metadata ?? null,
+    metadata,
     supportedCmds: controller?.supported_commands ?? [],
+    repeat: controller?.repeat ?? metadata?.repeat ?? null,
+    shuffle: controller?.shuffle ?? metadata?.shuffle ?? null,
     seekMaxMs: typeof controller?.seek_max_ms === 'number' ? controller.seek_max_ms : null,
     groupPlayback: state.groupState?.playback_state ?? null,
     groupName: state.groupState?.group_name ?? null,

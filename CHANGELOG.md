@@ -7,6 +7,7 @@
 ### Added
 - **Sendspin progress bar**: the bar shows the elapsed and total time of the track, or LIVE for a radio stream, and the album under the artist. Drag it to seek when the server supports seeking (Music Assistant 2.10).
 - **Music Assistant controls in the Home Assistant App** (VoltViz opened from the Home Assistant sidebar): **Start** a playlist, something you played recently or a search result when the queue is empty, see the **Queue** and jump to any track in it, and add the current track to your **favorites** with the heart. They talk to Music Assistant's own API through Home Assistant and are not shown on voltviz.com, in Docker or on the App's direct port.
+- **Hide the Sendspin bar**: the tab on top of the bar slides it down, leaving only the tab with the current title, and slides it back up. The browser remembers it.
 
 ### Changed
 - The Sendspin bar says **Nothing playing** when there is no track, with a hint where to start music, and shows when playback is paused, stopped or reconnecting. Reconnect attempts show in the bar instead of the red banner.
@@ -15,6 +16,7 @@
 ### Fixed
 - When the queue ends, the last track's title and cover no longer stay in the bar and in the visualizers, and the next track no longer counts as two song changes.
 - Moving the volume while muted no longer fails on a Sendspin server without mute.
+- Shuffle and repeat show their new setting right away. Music Assistant 2.10 only reports them over Sendspin with the next track, so the buttons looked unchanged and a second click did the same thing again instead of undoing the first. In the Home Assistant App they follow Music Assistant's queue, and they are locked while the queue is a dynamic mix.
 
 ## [0.30.0] - 2026-09-28
 
