@@ -7,6 +7,7 @@ import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ControllerCommand, ControllerCommands, SendspinStorage } from '@sendspin/sendspin-js';
 import { configurePlayerInMA, discoverMusicAssistant, MusicAssistantClient, type MusicAssistantApi } from './musicAssistant';
 import { initialSendspinState, mapSdkState, SENDSPIN_RECONNECT_ATTEMPTS, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
+import { tapPlayerOutput } from './sendspinOutput';
 
 export { initialSendspinState, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
 
@@ -56,6 +57,8 @@ export interface SendspinCallbacks {
 export class SendspinController implements SendspinSession {
   private player: SendspinPlayer | null = null;
   private audio: HTMLAudioElement | null = null;
+  /** What is visualized when the SDK does not play through the audio element (Android). */
+  private outputTap: MediaStream | null = null;
   private activated = false;
   private activationTimeout: number | null = null;
   private ma: MusicAssistantClient | null = null;
@@ -83,9 +86,8 @@ export class SendspinController implements SendspinSession {
         // Don't start the visualizer before the server has activated the
         // player: the element plays the SDK's (still silent) MediaStream as
         // soon as connect() resolves, even when the handshake later fails.
-        if (this.activated && audioEl.srcObject instanceof MediaStream) {
-          cb.onStream(audioEl.srcObject);
-        }
+        const stream = this.activated ? this.visualizerStream() : null;
+        if (stream) cb.onStream(stream);
       });
 
       const player = new SendspinPlayer({
@@ -132,14 +134,14 @@ export class SendspinController implements SendspinSession {
             // The audio element usually started playing before activation, so
             // the 'playing' listener has already come and gone — pick up the
             // stream here.
-            if (audioEl.srcObject instanceof MediaStream) {
-              cb.onStream(audioEl.srcObject);
-            }
+            const activeStream = this.visualizerStream();
+            if (activeStream) cb.onStream(activeStream);
             void this.startMusicAssistant(player.clientId);
           }
           cb.onState(mapSdkState(state));
-          if (state.isPlaying && audioEl.srcObject instanceof MediaStream) {
-            cb.onStream(audioEl.srcObject);
+          const stream = state.isPlaying ? this.visualizerStream() : null;
+          if (stream) {
+            cb.onStream(stream);
             // Ensure playback on mobile where autoplay may be blocked
             if (audioEl.paused) {
               audioEl.play().catch(() => {});
@@ -207,6 +209,16 @@ export class SendspinController implements SendspinSession {
     return this.player.trackProgress;
   }
 
+  /**
+   * The audio to visualize: the MediaStream the SDK plays through our audio element, or on
+   * Android, where it plays straight to the speakers, a tap on its output (see sendspinOutput).
+   */
+  private visualizerStream(): MediaStream | null {
+    if (this.audio?.srcObject instanceof MediaStream) return this.audio.srcObject;
+    this.outputTap ??= tapPlayerOutput(this.player);
+    return this.outputTap;
+  }
+
   private async startMusicAssistant(playerId: string): Promise<void> {
     const session = ++this.maSession;
     const endpoint = await discoverMusicAssistant();
@@ -240,6 +252,8 @@ export class SendspinController implements SendspinSession {
       this.player.disconnect('user_request');
       this.player = null;
     }
+    // Its AudioContext closed with the player
+    this.outputTap = null;
     if (this.audio) {
       this.audio.pause();
       this.audio.srcObject = null;

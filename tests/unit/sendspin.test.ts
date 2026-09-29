@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import { hasTrack, mapSdkState, trackKey } from '../../src/audio/sources/sendspinState';
+import { tapPlayerOutput } from '../../src/audio/sources/sendspinOutput';
 import { asRepeatMode, deriveBarStatus, favoritesFirst, formatTime, nextRepeatMode, playOption, seekMode, statusLabel, withPending, type PendingChange } from '../../src/app/sendspinView';
 import type { MaMediaItem, MaPlayerQueue } from '../../src/audio/sources/musicAssistant';
 
@@ -61,6 +62,28 @@ describe('mapSdkState', () => {
     expect(patch.seekMaxMs).toBeNull();
     expect('volume' in patch).toBe(false);
     expect('muted' in patch).toBe(false);
+  });
+});
+
+describe('tapPlayerOutput', () => {
+  it('streams the output gain node of the player when it plays straight to the speakers (Android)', () => {
+    const stream = { id: 'tap' };
+    const destination = { stream };
+    const connected: unknown[] = [];
+    const player = {
+      scheduler: {
+        audioContext: { createMediaStreamDestination: () => destination },
+        gainNode: { connect: (node: unknown) => connected.push(node) },
+      },
+    };
+    expect(tapPlayerOutput(player)).toBe(stream);
+    expect(connected).toEqual([destination]);
+  });
+
+  it('has nothing before the player has its AudioContext, or on an SDK shaped differently', () => {
+    expect(tapPlayerOutput({ scheduler: { audioContext: null, gainNode: null } })).toBeNull();
+    expect(tapPlayerOutput({})).toBeNull();
+    expect(tapPlayerOutput(null)).toBeNull();
   });
 });
 

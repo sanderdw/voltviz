@@ -17,6 +17,8 @@
 - When the queue ends, the last track's title and cover no longer stay in the bar and in the visualizers, and the next track no longer counts as two song changes.
 - Moving the volume while muted no longer fails on a Sendspin server without mute.
 - Shuffle and repeat show their new setting right away. Music Assistant 2.10 only reports them over Sendspin with the next track, so the buttons looked unchanged and a second click did the same thing again instead of undoing the first. In the Home Assistant App they follow Music Assistant's queue, and they are locked while the queue is a dynamic mix.
+- **Sendspin on Android** now shows the visualizer. On Android the Sendspin SDK plays straight to the speakers (to keep the phone's media controls working) instead of through the stream VoltViz visualizes, so the music played but the visualizer never started. The same happened in Chrome's device toolbar with an Android phone selected.
+- Artwork Music Assistant can no longer fetch (for example a Spotify playlist cover that was removed) shows the note icon in the Start list instead of a broken image.
 - **Microphone** and **System Audio** say why they can't start instead of "Cannot read properties of undefined (reading 'getUserMedia')": browsers only allow them on https:// pages, and phones and tablets can't share system audio at all.
 
 ## [0.30.0] - 2026-09-28

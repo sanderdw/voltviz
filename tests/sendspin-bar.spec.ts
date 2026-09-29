@@ -175,6 +175,15 @@ test.describe('Sendspin bar with Music Assistant', () => {
     });
   });
 
+  test('shows the note icon for artwork Music Assistant cannot fetch', async ({ page }) => {
+    await inject(page, { ma: { queue: emptyQueue, playlists: [{ ...playlist('1', 'Gone from Spotify'), image: { path: '/no-such-cover.png' } }] } });
+    await page.getByTestId('sendspin-start').click();
+    const item = page.getByTestId('sendspin-media-item');
+    await expect(item).toContainText('Gone from Spotify');
+    await expect(item.locator('img')).toHaveCount(0);
+    await expect(item.locator('svg')).toBeVisible();
+  });
+
   test('Play on an empty queue opens the picker', async ({ page }) => {
     await inject(page, { ma: { queue: emptyQueue } });
     await page.getByTestId('sendspin-play').click();

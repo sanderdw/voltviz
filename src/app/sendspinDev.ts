@@ -5,7 +5,7 @@
  */
 import type { Dispatch, SetStateAction } from 'react';
 import { initialSendspinState, type SendspinSession, type SendspinState, type TrackProgress } from '../audio/sources/sendspinState';
-import type { MaEvent, MaMediaItem, MaPlayerQueue, MaQueueItem, MaSearchResults, MaStatus, MusicAssistantApi } from '../audio/sources/musicAssistant';
+import type { MaEvent, MaImage, MaMediaItem, MaPlayerQueue, MaQueueItem, MaSearchResults, MaStatus, MusicAssistantApi } from '../audio/sources/musicAssistant';
 
 export type FakeMaFixtures = {
   queue?: MaPlayerQueue | null;
@@ -60,8 +60,8 @@ class FakeMusicAssistant implements MusicAssistantApi {
     return () => this.statusListeners.delete(listener);
   }
 
-  imageUrl(): string | null {
-    return null;
+  imageUrl(image: MaImage | null | undefined): string | null {
+    return image?.path ?? null;
   }
 
   close(): void {
