@@ -86,7 +86,7 @@ http://localhost:8080
 | `npm run test:install` | Download the Playwright Chromium browser |
 | `npm run test:unit` | Run the audio engine unit tests (vitest) |
 | `npm run new:viz -- <id> "<Name>"` | Scaffold a new visualizer (see `.github/skills/adding-visualizer/SKILL.md`) |
-| `npm run eval:prepare` / `eval:mix` / `eval:live` | Beat-tracking evaluation on the test mix (`-- --manifest scripts/eval/genres.json`: on genre excerpts from your own music library) |
+| `npm run eval:prepare` / `eval:beats` / `eval:live` | Beat-tracking evaluation on the genre excerpts in `scripts/eval/genres.json` (local, gitignored: it lists songs from your own music library in `VOLTVIZ_MUSIC_DIR`, default `~/Music`) |
 | `npm run report` | Rebuild the evidence report for the current version, `docs/reports/audio-engine-report-<version>.html` (earlier reports stay next to it) |
 
 ---
@@ -133,7 +133,7 @@ src/
 └── images/                 # Asset images and picker previews
 
 public/models/              # AI beat-tracking model (beat_this small0, MIT) – see NOTICE.md
-scripts/eval/               # Beat-tracking evaluation on the test mix (offline, live, before/after)
+scripts/eval/               # Beat-tracking evaluation on genre excerpts (offline, live, before/after)
 scripts/templates/          # Templates for `npm run new:viz`
 docs/reports/               # Audio engine evidence report (HTML) and its data
 docs/presentation/          # Conference talk about the rewrite (HTML slides)

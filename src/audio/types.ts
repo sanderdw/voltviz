@@ -49,6 +49,14 @@ export interface BeatInfo {
    * in visualizers/lib/audio.ts).
    */
   strength: number;
+  /**
+   * 0..0.45 in the frame in which an accent lands, else 0: what beat effects fall back to while
+   * no tempo is confident (`confidence` < 0.3). A kick, or for Music styles without a steady kick
+   * (Auto, hip-hop, band, chill) also a snare, that stands out from the recent ones, at most one
+   * per 0.4 s. Weaker than a beat by design, so soft music pulses gently instead of flashing on
+   * every note. `beatHit()` / `beatStrength()` in visualizers/lib/audio.ts include it.
+   */
+  accent: number;
   /** 0..1 progress from the previous to the next predicted pulse beat (continuous, for smooth motion). */
   phase: number;
   /** Seconds since the last fired beat. */

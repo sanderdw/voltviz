@@ -11,15 +11,21 @@ the audio thread. `audio.beat.isBeat` is true in the frame in which a beat becom
 so effects land exactly on the beat instead of one detection delay late.
 
 ```ts
-import { beatHit } from '../lib/audio';
-if (beatHit(audio)) pulse = 1;          // confident beat, or a raw kick when there is no tempo
-pulse *= Math.exp(-dt / 0.15);          // frame-rate independent decay
+import { beatHit, beatStrength } from '../lib/audio';
+if (beatHit(audio)) pulse = beatStrength(audio); // heard beat, or a weaker accent without a tempo
+pulse *= Math.exp(-dt / 0.15);                   // frame-rate independent decay
 ```
 
 Why not `if (bass > threshold)`? On real dance music the loudest low-frequency events are often
 *not* the beat: rolling basslines fill the off-beats, pickups sit 75 ms before the beat, and
 the kick body peaks ~50 ms after its attack. The old per-visualizer detectors fired on those
-(beat F-measure 0.3–0.65 on the test mix); see `docs/reports/audio-engine-report.html`.
+(beat F-measure 0.3–0.65 on dance music); see `docs/reports/audio-engine-report.html`.
+
+Without a confident tempo (soft or non-4/4 music), `beatHit` falls back to `audio.beat.accent`:
+a kick (or a snare, for styles without a steady kick) that stands out from the recent onsets,
+at most one per 0.4 s and at most 0.45 strong. The onset detectors are scale-free, so firing on
+every raw onset would flash a piano ballad harder than a club track. Scale effects by
+`beatStrength(audio)`, which returns the accent's strength, and calm music stays calm.
 
 For motion that should follow the tempo continuously, use `audio.beat.phase` (0 → 1 between
 beats) and `audio.beat.barBeat` (0–3).
@@ -93,8 +99,8 @@ level += (audio.bands.bass - level) * Math.min(1, dt * 10);   // ~100 ms respons
 2. Never multiply audio-modulated values by elapsed time — use phase accumulators.
 3. Use `dt` for smoothing and decays.
 4. Keep offsets bounded (bands are 0–1 at sensitivity 1).
-5. Prove it: `npm run eval:live -- --ids <id>` must PASS (beat response / level coupling on the
-   test mix, no errors).
+5. Prove it: `npm run eval:live -- --ids <id>` must PASS (beat response / level coupling on a
+   genre excerpt, no errors).
 
 ## Known offenders (kept unchanged in the rewrite to preserve their look)
 

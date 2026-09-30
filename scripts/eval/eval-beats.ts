@@ -1,14 +1,13 @@
 /**
  * Offline evaluation of the audio engine against the independent reference beats, on every
- * excerpt of a manifest: scripts/eval/excerpts.json (the DJ mix, default) or
- * scripts/eval/genres.json (the genre excerpts from the user's local music library).
+ * excerpt of a manifest: scripts/eval/genres.json (default: the genre excerpts from the user's
+ * local music library) or scripts/eval/library2025.json.
  *
- *   node scripts/eval/eval-mix.ts [--manifest path] [--styles auto,matching] [--only <id,id...>]
+ *   node scripts/eval/eval-beats.ts [--manifest path] [--styles auto,matching] [--only <id,id...>]
  *     [--roles tuning] [--out path] [--rates 44100,48000] [--modes dsp,hybrid]
  *
  * The excerpt is streamed from ffmpeg in 128-sample blocks (exactly the AudioWorklet render
  * quantum) through the causal Analyzer, so the numbers are what the live engine produces.
- * On the mix, the pre-rewrite detectors are replayed on the same audio as the baseline.
  *
  * `--styles` runs every excerpt with each Music style (`matching` = the excerpt's own style from
  * the manifest); the first one is the primary result that the gates are reported for.
@@ -20,7 +19,6 @@ import { dirname } from 'node:path';
 import * as ort from 'onnxruntime-web';
 import { Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer.ts';
 import { createBeatModel, type BeatModel } from '../../src/audio/neural/beatModel.ts';
-import { BaselineRunner, type BaselineResult } from './lib/baselines.ts';
 import { amlt, classifyTempo, cmlt, fMeasure, lockTime, median, offsetsMs, within } from './lib/metrics.ts';
 import { bpmOf, buildPulseRefs, pulseFromRule, type PulseRef } from './lib/pulse.ts';
 import { streamMono } from './lib/stream.ts';
@@ -31,14 +29,8 @@ import { DEFAULT_MANIFEST, excerptPath, loadManifest, type Excerpt } from './pre
 export const BEAT_CONFIDENCE_MIN = 0.3;
 const WARMUP_S = 5;
 
+/** Pulse F at the expected pulse, tracking continuity, stability. */
 const GATES = {
-  fMeasure: 0.8,
-  amlt: 0.9,
-  tempoAccuracy: 0.9,
-  medianOffsetMs: 20,
-};
-/** Genre excerpts: pulse F at the expected pulse, tracking continuity, stability. */
-const GENRE_GATES = {
   pulseF: 0.8,
   pulseFChill: 0.7,
   amlt: 0.9,
@@ -67,14 +59,13 @@ function arg(name: string, def: string): string {
 
 const manifestPath = arg('manifest', DEFAULT_MANIFEST);
 const manifest = loadManifest(manifestPath);
-const isGenre = manifest.excerpts.some(e => e.file);
-const outPath = arg('out', isGenre ? 'docs/reports/data/eval-genres.json' : 'docs/reports/data/eval-mix.json');
+const outPath = arg('out', 'docs/reports/data/eval-genres.json');
 const rates = arg('rates', '44100,48000').split(',').map(Number);
 const only = arg('only', '').split(',').filter(Boolean);
 const roles = arg('roles', '').split(',').filter(Boolean);
 const modes = arg('modes', 'dsp,hybrid').split(',') as ('dsp' | 'hybrid')[];
 /** Music styles to run ('' = the Analyzer's default). */
-const styles = arg('styles', isGenre ? 'auto,matching' : 'auto').split(',');
+const styles = arg('styles', 'auto,matching').split(',');
 const modelPath = arg('model', 'public/models/beat_this_small0.onnx');
 /** Experiments only: tracker tuning overrides (JSON), applied on top of every style. */
 const tuning = JSON.parse(arg('tuning', '{}'));
@@ -197,8 +188,6 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
   const neural = mode === 'hybrid';
   if (neural && !model) model = await createBeatModel(ort as never, new Uint8Array(readFileSync(modelPath)));
   const analyzer = new Analyzer(sampleRate, { neural, tuning, songChange: !noSongChange, ...(style ? { style: style as never } : {}) });
-  const baseline = !isGenre && sampleRate === 44100 && (mode === 'dsp' || !modes.includes('dsp')) && style === styles[0]
-    ? new BaselineRunner(sampleRate) : null;
   const pendingNeural: { applyAt: number; t0: number; validFrom: number; act: Float32Array; down: Float32Array }[] = [];
   const decisions: { t: number; kind: string; reason?: string; bpm?: number; clockBpm: number }[] = [];
   let neuralMs = 0;
@@ -230,7 +219,6 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
       }
     }
     for (const ev of analyzer.drainEvents()) events.push(ev);
-    baseline?.process(block);
     const st = analyzer.state as typeof analyzer.state & { tempoCandidateBpm?: number; pulseDivisor?: number; pulsePeriod?: number };
     if (st.time >= nextSample) {
       nextSample += 0.1;
@@ -276,7 +264,7 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
     duration,
     realtimeFactor: duration / (cpuMs / 1000),
     beats: { all: scoreBeats(allBeats), confident: scoreBeats(confident) },
-    pulse: isGenre ? scorePulse(confident) : null,
+    pulse: scorePulse(confident),
     trackingAmlt,
     pulseShare: trackedConfident.length ? confident.length / trackedConfident.length : 1,
     downbeats: scoreDownbeats(confidentBeats, timeline),
@@ -296,57 +284,31 @@ async function evaluate(sampleRate: number, mode: 'dsp' | 'hybrid', style: strin
       snare: events.filter(e => e.type === 'snare').map(e => +e.time.toFixed(4)),
       hat: events.filter(e => e.type === 'hat').map(e => +e.time.toFixed(4)),
     },
-    baselines: baseline?.results().map((b: BaselineResult) => ({
-      name: b.name,
-      description: b.description,
-      ...scoreBeats(b.events),
-      events: b.events.map(t => +t.toFixed(4)),
-      bpmFinal: b.bpm?.length ? b.bpm[b.bpm.length - 1].bpm : null,
-      bpmTimeline: b.bpm?.filter((_, i) => i % 6 === 0).map(p => ({ t: +p.time.toFixed(2), bpm: +p.bpm.toFixed(2) })),
-    })),
   };
   return result;
 }
 
 type Result = Awaited<ReturnType<typeof evaluate>>;
 
-function gatesFor(results: Result[], baselineBest: number) {
-  const primary = results[0];
-  const c = primary.beats.confident;
-  return {
-    fMeasure: { value: c.fMeasure, min: GATES.fMeasure, pass: c.fMeasure >= GATES.fMeasure },
-    amlt: { value: c.amlt, min: GATES.amlt, pass: c.amlt >= GATES.amlt },
-    tempoAccuracy: { value: primary.tempoAccuracy, min: GATES.tempoAccuracy, pass: primary.tempoAccuracy >= GATES.tempoAccuracy },
-    medianOffsetMs: { value: c.medianOffsetMs, max: GATES.medianOffsetMs, pass: Math.abs(c.medianOffsetMs) <= GATES.medianOffsetMs },
-    beatsBaseline: { value: c.fMeasure, baselineBest, pass: !(c.fMeasure <= baselineBest + 0.2) },
-    allRates: {
-      values: results.map(r => ({ sampleRate: r.sampleRate, fMeasure: r.beats.confident.fMeasure })),
-      pass: results.every(r => r.beats.confident.fMeasure >= GATES.fMeasure),
-    },
-    // the DJ mix is four-on-the-floor: every tracked beat must also fire (no half-time pulse)
-    everyBeatFires: { value: Math.min(...results.map(r => r.pulseShare)), min: 0.99, pass: results.every(r => r.pulseShare >= 0.99) },
-  };
-}
-
-function genreGatesFor(results: Result[]) {
+function gatesFor(results: Result[]) {
   const primary = results[0];
   const p = primary.pulse;
   if (excerpt.changeAt !== undefined) {
     // song-change clips: how fast the engine finds the new song's beat
     const rec = primary.recovery;
     return {
-      recoveryS: { value: rec.fromBeatStart, max: GENRE_GATES.recoveryS, pass: rec.fromBeatStart !== null && rec.fromBeatStart <= GENRE_GATES.recoveryS },
+      recoveryS: { value: rec.fromBeatStart, max: GATES.recoveryS, pass: rec.fromBeatStart !== null && rec.fromBeatStart <= GATES.recoveryS },
     };
   }
-  const pulseMin = excerpt.style === 'chill' ? GENRE_GATES.pulseFChill : GENRE_GATES.pulseF;
+  const pulseMin = excerpt.style === 'chill' ? GATES.pulseFChill : GATES.pulseF;
   const pulseF = p?.fMeasure ?? 0;
   return {
     pulseF: { value: pulseF, min: pulseMin, reference: p?.reference ?? null, pass: pulseF >= pulseMin },
-    amlt: { value: primary.trackingAmlt, min: GENRE_GATES.amlt, pass: primary.trackingAmlt >= GENRE_GATES.amlt },
-    medianOffsetMs: { value: p?.medianOffsetMs ?? NaN, max: GENRE_GATES.medianOffsetMs, pass: Math.abs(p?.medianOffsetMs ?? Infinity) <= GENRE_GATES.medianOffsetMs },
+    amlt: { value: primary.trackingAmlt, min: GATES.amlt, pass: primary.trackingAmlt >= GATES.amlt },
+    medianOffsetMs: { value: p?.medianOffsetMs ?? NaN, max: GATES.medianOffsetMs, pass: Math.abs(p?.medianOffsetMs ?? Infinity) <= GATES.medianOffsetMs },
     levelChanges: {
-      value: Math.max(primary.levelChanges.tempo, primary.levelChanges.pulse), max: GENRE_GATES.levelChanges,
-      pass: primary.levelChanges.tempo <= GENRE_GATES.levelChanges && primary.levelChanges.pulse <= GENRE_GATES.levelChanges,
+      value: Math.max(primary.levelChanges.tempo, primary.levelChanges.pulse), max: GATES.levelChanges,
+      pass: primary.levelChanges.tempo <= GATES.levelChanges && primary.levelChanges.pulse <= GATES.levelChanges,
     },
     allRates: {
       values: results.map(r => ({ sampleRate: r.sampleRate, pulseF: r.pulse?.fMeasure ?? 0 })),
@@ -363,13 +325,13 @@ for (const ex of manifest.excerpts) {
   excerpt = ex;
   audioPath = excerptPath(ex.id);
   ref = JSON.parse(readFileSync(`tests/fixtures/${ex.id}.reference.json`, 'utf8'));
-  // genre excerpts gate on windows where the two references agree at *some* metrical level
-  const agreed: [number, number][] = ref.windows.filter(w => (isGenre ? (w.agreeAnyLevel ?? w.agree) : w.agree)).map(w => [w.start, w.end]);
+  // gate on windows where the two references agree at *some* metrical level
+  const agreed: [number, number][] = ref.windows.filter(w => w.agreeAnyLevel ?? w.agree).map(w => [w.start, w.end]);
   gated = agreed.map(([a, b]) => [Math.max(a, WARMUP_S), b] as [number, number]).filter(([a, b]) => b > a);
   refGated = within(ref.beats, gated);
   expectedPulse = ex.expectedPulseBpm ?? pulseFromRule(ex.pulseRule,
     bpmOf(ex.changeAt !== undefined ? ref.beats.filter(t => t >= ex.changeAt!) : ref.beats));
-  pulseRefs = isGenre ? buildPulseRefs(ref, expectedPulse) : [];
+  pulseRefs = buildPulseRefs(ref, expectedPulse);
   barsDisagree = !!(ref.downbeats?.length && ref.crossCheckDownbeats?.length) && fMeasure(ref.downbeats!, ref.crossCheckDownbeats!) < 0.5;
   beatStartsAt = null;
   if (ex.changeAt !== undefined) {
@@ -383,22 +345,20 @@ for (const ex of manifest.excerpts) {
     }
   }
   const results: Result[] = [];
-  const gatesByStyle: Record<string, Record<string, ReturnType<typeof gatesFor> | ReturnType<typeof genreGatesFor>>> = {};
+  const gatesByStyle: Record<string, Record<string, ReturnType<typeof gatesFor>>> = {};
   for (const s of styles) {
     const style = s === 'matching' ? (ex.style ?? '') : s;
     for (const mode of modes) {
       for (const sr of rates) results.push(await evaluate(sr, mode, style));
     }
   }
-  const withBaseline = results.find(r => r.baselines?.length);
-  const baselineBest = withBaseline ? Math.max(...withBaseline.baselines!.map(b => b.fMeasure)) : NaN;
   for (const s of styles) {
     const style = (s === 'matching' ? (ex.style ?? '') : s) || 'default';
     const key = s === 'matching' ? 'matching' : style;
     gatesByStyle[key] = {};
     for (const mode of modes) {
       const rs = results.filter(r => r.mode === mode && r.style === style);
-      gatesByStyle[key][mode] = isGenre ? genreGatesFor(rs) : gatesFor(rs, baselineBest);
+      gatesByStyle[key][mode] = gatesFor(rs);
     }
   }
   const primaryKey = Object.keys(gatesByStyle)[0];
@@ -408,7 +368,7 @@ for (const ex of manifest.excerpts) {
   const { file: _file, ...exPublic } = ex as Excerpt & { file?: string };
   excerpts.push({ ...exPublic, refGridBpm: ref.grid.bpm, gatedRanges: gated, pulseRefs: pulseRefs.map(p => ({ name: p.name, bpm: p.bpm })), gates, gatesByMode, gatesByStyle, results });
 
-  console.log(`\n=== ${ex.id} (${ex.role}) reference ~${ref.grid.bpm.toFixed(1)} BPM${isGenre ? `, expected pulse ${expectedPulse ? expectedPulse.toFixed(0) : 'either'}` : ''}${ex.changeAt !== undefined ? `, song change at ${ex.changeAt} s` : ''}`);
+  console.log(`\n=== ${ex.id} (${ex.role}) reference ~${ref.grid.bpm.toFixed(1)} BPM, expected pulse ${expectedPulse ? expectedPulse.toFixed(0) : 'either'}${ex.changeAt !== undefined ? `, song change at ${ex.changeAt} s` : ''}`);
   for (const r of results) {
     const a = r.beats.all, k = r.beats.confident;
     console.log(`[${r.style} ${r.mode} ${r.sampleRate} Hz]  ${fmt(r.realtimeFactor, 0)}x realtime${r.neural ? `  neural ${r.neural.runs} runs, ${fmt(r.neural.avgMs, 0)} ms avg, decisions ${r.neural.decisions.map(d => d.kind[0]).join('')}` : ''}`);
@@ -425,9 +385,6 @@ for (const ex of manifest.excerpts) {
     console.log(`  windows: ${r.windows.map(w => `${w.start}:${w.bpm.toFixed(1)}/${(w.refBpm ?? 0).toFixed(1)}/${w.fMeasure.toFixed(2)}${w.agree ? '' : '*'}`).join(' ')}`);
     const reasons = (r.neural?.decisions ?? []).filter(d => d.reason).map(d => `${d.t}:${d.reason}`);
     if (reasons.length) console.log(`  abstentions: ${reasons.join(' | ')}`);
-    for (const b of r.baselines ?? []) {
-      console.log(`  baseline ${b.name.padEnd(28)} F=${fmt(b.fMeasure)} AMLt=${fmt(b.amlt)} n=${b.count}${b.bpmFinal ? ` bpm=${b.bpmFinal.toFixed(1)}` : ''}`);
-    }
   }
   for (const [key, byMode] of Object.entries(gatesByStyle)) {
     for (const [mode, g] of Object.entries(byMode)) {
@@ -438,7 +395,7 @@ for (const ex of manifest.excerpts) {
 }
 
 const report = { generated: new Date().toISOString(), manifest: manifestPath, styles, warmupS: WARMUP_S, confidenceMin: BEAT_CONFIDENCE_MIN,
-  gateThresholds: isGenre ? GENRE_GATES : GATES, neuralLatencyS: NEURAL_LATENCY_S, excerpts };
+  gateThresholds: GATES, neuralLatencyS: NEURAL_LATENCY_S, excerpts };
 mkdirSync(dirname(outPath), { recursive: true });
 mkdirSync('.cache/eval', { recursive: true });
 // full per-beat data stays local; the committed file is compact

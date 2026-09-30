@@ -73,7 +73,7 @@ const Razor1911: VisualizerFactory = ({ container }) => {
 
       // Slow bass envelope (kept from the original envelope-difference kick detector)
       bassSlow = bassSlow * 0.95 + bass * 0.05;
-      // Beat-driven kick: a confident beat, or a raw kick when there is no confident beat.
+      // Beat-driven kick: a heard beat, or a (weaker) accent when there is no confident tempo.
       // The impulse matches what the old detector added for a typical kick.
       const hit = beatStrength(audio);
       if (hit > 0) {

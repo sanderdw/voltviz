@@ -2,22 +2,20 @@
  * Cuts the evaluation excerpts of a manifest to 44.1 kHz stereo WAV files in .cache/test-audio/
  * (gitignored).
  *
- *   node scripts/eval/prepare-audio.ts [--manifest scripts/eval/genres.json]
+ *   node scripts/eval/prepare-audio.ts [--manifest scripts/eval/library2025.json]
  *
- * The default manifest (scripts/eval/excerpts.json) cuts the test mix, downloading it first if
- * missing. The other manifests cut local files from the user's music library: `file` is relative
- * to the manifest's `musicDir` (overridable with the environment variable named in
- * `musicDirEnv`), or to VOLTVIZ_MUSIC_DIR (default ~/Music); missing files are skipped.
+ * The manifests (default scripts/eval/genres.json) cut local files from the user's music
+ * library: `file` is relative to the manifest's `musicDir` (overridable with the environment
+ * variable named in `musicDirEnv`), or to VOLTVIZ_MUSIC_DIR (default ~/Music); missing files are
+ * skipped.
  *
  * A song-change excerpt has `parts` instead of `file`/`start`: the end of one song followed by
  * the start of the next, joined by a hard cut, a gap of silence or a crossfade (`transition`).
  */
 import { execFileSync } from 'node:child_process';
-import { createWriteStream, existsSync, mkdirSync, readFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 
 export interface Excerpt {
   id: string;
@@ -25,12 +23,12 @@ export interface Excerpt {
   seconds: number;
   role: string;
   note: string;
-  /** Genre manifests only: source file relative to the music directory. */
+  /** Source file relative to the music directory (absent for song-change excerpts, see `parts`). */
   file?: string;
   genre?: string;
-  /** Genre manifests only: the Music style this excerpt belongs to. */
+  /** The Music style this excerpt belongs to. */
   style?: string;
-  /** Genre manifests only: the pulse beat effects should follow (null: either metrical level). */
+  /** The pulse beat effects should follow (null: either metrical level). */
   expectedPulseBpm?: number | null;
   /**
    * Library manifest: the expected pulse as a rule, resolved against the reference tempo:
@@ -45,7 +43,6 @@ export interface Excerpt {
 }
 
 export interface Manifest {
-  source?: { name?: string; url: string; file: string };
   /** Base directory of `file` paths (default: VOLTVIZ_MUSIC_DIR or ~/Music). */
   musicDir?: string;
   /** Environment variable that overrides `musicDir`. */
@@ -53,19 +50,15 @@ export interface Manifest {
   excerpts: Excerpt[];
 }
 
-export const DEFAULT_MANIFEST = 'scripts/eval/excerpts.json';
-export const loadManifest = (path: string | URL): Manifest => JSON.parse(readFileSync(path, 'utf8'));
-export const manifest: Manifest = loadManifest(new URL('./excerpts.json', import.meta.url));
+/** The manifests name songs from the user's own library, so they are local only (gitignored). */
+export const DEFAULT_MANIFEST = 'scripts/eval/genres.json';
+export function loadManifest(path: string | URL): Manifest {
+  if (!existsSync(path)) throw new Error(`${path} not found: the evaluation manifests are local only (gitignored); create one that lists songs from your music library`);
+  return JSON.parse(readFileSync(path, 'utf8'));
+}
 export const excerptPath = (id: string) => `.cache/test-audio/${id}.wav`;
 export const musicDir = () => process.env.VOLTVIZ_MUSIC_DIR ?? join(homedir(), 'Music');
 const baseDir = (m: Manifest) => (m.musicDir ? (m.musicDirEnv && process.env[m.musicDirEnv]) || m.musicDir : musicDir());
-
-/** The full-length file an excerpt is cut from. */
-export function sourceFile(m: Manifest, e: Excerpt): string {
-  if (e.file) return join(baseDir(m), e.file);
-  if (!m.source) throw new Error(`excerpt ${e.id} has no file and the manifest no source`);
-  return m.source.file;
-}
 
 const ffmpeg = (args: string[]) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...args]);
 
@@ -85,19 +78,12 @@ function composeChange(m: Manifest, e: Excerpt, out: string): void {
 
 async function main() {
   const i = process.argv.indexOf('--manifest');
-  const m = i >= 0 ? loadManifest(process.argv[i + 1]) : manifest;
+  const m = loadManifest(i >= 0 ? process.argv[i + 1] : DEFAULT_MANIFEST);
   mkdirSync('.cache/test-audio', { recursive: true });
-  if (m.source && !existsSync(m.source.file)) {
-    console.log(`downloading ${m.source.url}`);
-    const res = await fetch(m.source.url);
-    if (!res.ok || !res.body) throw new Error(`download failed: ${res.status}`);
-    await pipeline(Readable.fromWeb(res.body as never), createWriteStream(`${m.source.file}.part`));
-    renameSync(`${m.source.file}.part`, m.source.file);
-  }
   for (const e of m.excerpts) {
     const out = excerptPath(e.id);
     if (existsSync(out)) continue;
-    const files = e.parts ? e.parts.map(p => join(baseDir(m), p.file)) : [sourceFile(m, e)];
+    const files = (e.parts ?? [e as { file: string }]).map(p => join(baseDir(m), p.file));
     const missing = files.find(f => !existsSync(f));
     if (missing) {
       console.warn(`skip ${e.id}: ${missing} not found`);

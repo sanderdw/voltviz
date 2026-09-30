@@ -59,8 +59,8 @@ Open `?viz=rawaudio` (the **Raw Audio** visualizer) to see every field below liv
 
 | You want… | Use | Notes |
 |---|---|---|
-| a flash / burst / cut **on the beat** | `beatHit(audio)` (lib/audio) | a kick or snare that was **heard** on the beat (~15-25 ms after it, never predicted: when the drums stop, it stops); falls back to a raw kick when there is no confident tempo |
-| how **hard** that beat should hit | `beatStrength(audio)` (0..1, 0 without a hit), `audio.beat.strength` | multiply the effect by it: low in a build-up without a drum hit (a pumping pad, a riser), 1 on a full kick. One-off events that cannot be weaker (switch a look, spawn something): only when `beatStrength(audio) >= STRONG_BEAT` |
+| a flash / burst / cut **on the beat** | `beatHit(audio)` (lib/audio) | a kick or snare that was **heard** on the beat (~15-25 ms after it, never predicted: when the drums stop, it stops); without a confident tempo it falls back to an accent (`audio.beat.accent`): a standout kick (or snare, for styles without a steady kick), at most one per 0.4 s |
+| how **hard** that beat should hit | `beatStrength(audio)` (0..1, 0 without a hit), `audio.beat.strength` | multiply the effect by it: low in a build-up without a drum hit (a pumping pad, a riser), 1 on a full kick, at most 0.45 on an accent (so soft music without a confident tempo pulses gently). One-off events that cannot be weaker (switch a look, spawn something): only when `beatStrength(audio) >= STRONG_BEAT` |
 | something that **grows and decays** with each beat | `audio.beat.sinceBeat` → `Math.exp(-sinceBeat / 0.15)` | or keep your own `pulse` set to 1 on `beatHit` and decayed by `dt` |
 | motion **locked to the tempo** (swing, bounce, strobe per bar) | `audio.beat.phase` (0→1 from the last heard beat over one beat period), `audio.beat.barBeat` (0–3), `audio.beat.bpm` | restarts at every heard beat; stays at 1 when the beats stop |
 | kick / snare / hi-hat hits | `audio.onsets.kick/snare/hat` → `.hit`, `.envelope` (decays, τ 150 ms), `.strength` | detected onsets, ~15-25 ms after they happen; also between the beats (snare rolls, hats in a build-up) |
@@ -106,9 +106,9 @@ audio. You don't need to do anything for it — just don't add your own gain nor
 ```bash
 npm run lint                      # type-check the whole project
 npm run test:unit                 # engine unit tests
-npm run eval:prepare              # once: downloads the test mix, cuts excerpts (.cache/, gitignored)
+npm run eval:prepare              # once: cuts the genre excerpts from your music library (.cache/, gitignored)
 DISABLE_HMR=true npx vite --port 3101 --strictPort &   # dev server for the harness
-npm run eval:live -- --ids <id>   # plays the test mix through the real app and measures it
+npm run eval:live -- --ids <id>   # plays genre-hardcore-a through the real app and measures it
 ```
 
 `eval:live` must print **PASS** for your id:

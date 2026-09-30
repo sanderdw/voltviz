@@ -273,7 +273,7 @@ const AurumLeaf: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       const bassRaw = bassHi > bassLo ? bassSum / ((bassHi - bassLo) * 255) : 0;
       bassSmoothed += (bassRaw - bassSmoothed) * 0.15;
 
-      // --- Kick: predicted beats (raw kick onsets as fallback) ---
+      // --- Kick: heard beats (accents as fallback) ---
       const kick = beatStrength(audio);
       if (kick > 0) {
         bloomImpulse = Math.max(bloomImpulse, kick * (KICK_BLOOM_PEAK - BASE_BLOOM_STRENGTH));

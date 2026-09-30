@@ -230,7 +230,7 @@ const AnunakiSphere: VisualizerFactory = ({ container, width: w, height: h, dpr 
       smoothedMids += (mids - smoothedMids) * 0.15;
       smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
 
-      // Beat-driven kick flash (predicted beats, raw kicks as fallback)
+      // Beat-driven kick flash (heard beats, accents as fallback)
       if (beatHit(audio)) {
         lastKickTime = now;
         kickAmp = beatStrength(audio);

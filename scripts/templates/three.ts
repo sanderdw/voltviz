@@ -3,7 +3,7 @@
  * .github/skills/adding-visualizer/SKILL.md for the contract and the quality steps.
  */
 import * as THREE from 'three';
-import { beatHit } from '../../src/visualizers/lib/audio'; // BEAT
+import { beatHit, beatStrength } from '../../src/visualizers/lib/audio'; // BEAT
 import { createRenderer, disposeObject, disposeRenderer } from '../../src/visualizers/lib/three';
 import type { VisualizerFactory } from '../../src/visualizers/runtime/types';
 
@@ -37,7 +37,7 @@ const TemplateThree: VisualizerFactory = ({ container, width, height, dpr }) => 
       level += (bass - level) * Math.min(1, dt * 8);
       phase += dt * settings.speed * (0.2 + 0.8 * mids);
       // BEAT:BEGIN
-      if (beatHit(audio)) pulse = 1;
+      if (beatHit(audio)) pulse = beatStrength(audio); // weaker on a build-up or an accent
       pulse *= Math.exp(-dt / 0.2);
       // BEAT:END
 

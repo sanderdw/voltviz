@@ -133,7 +133,7 @@ export class TempoEstimator {
     // lag at which nothing repeats harmonic support from 2L and 4L, and a prior centred above
     // the hit rate can then prefer it: take the lag at which the hits actually repeat. Only
     // when practically nothing repeats at L: a weak repetition (a pickup before every other
-    // beat, 0.15-0.2 on the DJ mix) is still the beat.
+    // beat, 0.15-0.2 on four-on-the-floor dance music) is still the beat.
     const atBest = this.peakNear(best, 1).value;
     if (2 * best <= maxLag && atBest < 0.08 && atBest < 0.3 * this.peakNear(2 * best, 2).value) best *= 2;
     const salience = Math.max(0, this.peakNear(best, 1).value);

@@ -11,7 +11,7 @@
  * `--reanalyze` without a browser.
  *
  *   node scripts/eval/live.ts [--base http://127.0.0.1:3101] [--ids a,b] [--deep] [--out path] [--reanalyze]
- *     [--excerpt <id from excerpts.json, genres.json or library2025.json>] [--style <Music style>] [--start s]
+ *     [--excerpt <id from genres.json or library2025.json>] [--style <Music style>] [--start s]
  *
  * Requires the dev server (DISABLE_HMR=true npx vite --port 3101 --strictPort) and system
  * Chrome. Runs one page at a time (memory).
@@ -30,7 +30,7 @@ function arg(name: string, def: string): string {
 const has = (name: string) => process.argv.includes(`--${name}`);
 
 const BASE = arg('base', 'http://127.0.0.1:3101');
-const EXCERPT = arg('excerpt', 'uto-0-120');
+const EXCERPT = arg('excerpt', 'genre-hardcore-a');
 /** Music style to run the app with (`?style=`); default: the app default (auto). */
 const STYLE = arg('style', '');
 const OUT = arg('out', has('deep') ? 'docs/reports/data/live-deep.json' : 'docs/reports/data/live-all.json');
@@ -49,21 +49,19 @@ const UPLOADS: Record<string, string> = {
 
 export const DEEP = ['audiodebug', 'cybercity', 'aurumleaf', 'fractalorb', 'fireworksshow',
   'defqonmainstage', 'razor1911', 'milkdrop', 'bars'];
+/** Segments of the default excerpt (genre-hardcore-a: quieter intro, build, loud part from ~60 s). */
 export const SEGMENTS = [
-  { name: 'steady groove', start: 20 },
-  { name: 'pickup section', start: 45 },
-  { name: 'break → drop', start: 85 },
+  { name: 'intro', start: 5 },
+  { name: 'build', start: 25 },
+  { name: 'build → loud part', start: 50 },
 ];
 
-const manifestExcerpts: { id: string; seconds: number; expectedPulseBpm?: number | null }[] = [
-  ...JSON.parse(readFileSync('scripts/eval/excerpts.json', 'utf8')).excerpts,
-  ...(existsSync('scripts/eval/genres.json') ? JSON.parse(readFileSync('scripts/eval/genres.json', 'utf8')).excerpts : []),
-  // the music-library manifest is local only
-  ...(existsSync('scripts/eval/library2025.json') ? JSON.parse(readFileSync('scripts/eval/library2025.json', 'utf8')).excerpts : []),
-];
+// the manifests name songs from the user's music library and are local only
+const manifestExcerpts: { id: string; seconds: number; expectedPulseBpm?: number | null }[] = ['genres', 'library2025']
+  .map(m => `scripts/eval/${m}.json`).filter(p => existsSync(p)).flatMap(p => JSON.parse(readFileSync(p, 'utf8')).excerpts);
 const excerptInfo = manifestExcerpts.find(e => e.id === EXCERPT);
 const reference = JSON.parse(readFileSync(`tests/fixtures/${EXCERPT}.reference.json`, 'utf8'));
-// genre excerpts: fired beats are scored against the pulse effects should follow (e.g. 70 BPM dubstep)
+// fired beats are scored against the pulse effects should follow (e.g. 70 BPM dubstep)
 const ref: { beats: number[] } = excerptInfo?.expectedPulseBpm
   ? { beats: buildPulseRefs(reference, excerptInfo.expectedPulseBpm)[0]?.beats ?? reference.beats }
   : reference;
@@ -146,7 +144,7 @@ function analyze(raw: Raw, withShots: boolean) {
 
 const plan = has('deep')
   ? ids.filter(id => DEEP.includes(id)).flatMap(id => SEGMENTS.map(seg => ({ id, start: seg.start, segment: seg.name })))
-  : ids.map(id => ({ id, start: parseFloat(arg('start', '85')), segment: 'break → drop' }));
+  : ids.map(id => ({ id, start: parseFloat(arg('start', '50')), segment: arg('start', '') ? `from ${arg('start', '')} s` : 'build → loud part' }));
 mkdirSync(RAW, { recursive: true });
 const rawPath = (id: string, start: number) => `${RAW}/${EXCERPT}${STYLE ? `-${STYLE}` : ''}-${id}-${start}.json`;
 

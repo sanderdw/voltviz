@@ -30,6 +30,14 @@ export type AnalyzerEvent =
     type: 'hit'; time: number; index: number; confidence: number; strength: number;
     /** Position in the bar (0 = the "1"), from the AI downbeats; -1 when unknown. */
     bar: number;
+  }
+  | {
+    /**
+     * What beat effects fall back to while no tempo is confident: a kick (or, for styles with
+     * the `accent` fallback, a snare) that stands out from the recent ones. Rate-limited and
+     * weaker than a beat (strength 0..ACCENT_MAX), so soft music does not flash on every note.
+     */
+    type: 'accent'; time: number; strength: number;
   };
 
 /** Snapshot of the analysis, updated every hop (~5.8 ms). Times are seconds of processed audio. */
@@ -150,6 +158,19 @@ export const HIT_CONFIDENCE_MIN = 0.3;
 export const HIT_STRENGTH_REL = 0.15;
 const HIT_STRENGTH_HISTORY = 16;
 
+/**
+ * Accents (the fallback while no tempo is confident): at least this many seconds apart ...
+ * The onset pickers are scale-free, so soft music (a ballad, a piano) produces as many kick
+ * and snare onsets as a club track, up to ~9 per second: firing all of them flashed calm music
+ * harder than dubstep.
+ */
+export const ACCENT_GAP_S = 0.4;
+/** ... only for an onset at least this multiple of the recent candidates' median strength ... */
+export const ACCENT_REL = 1.3;
+/** ... and at most this strong: below STRONG_BEAT, so they never trigger one-off beat events. */
+export const ACCENT_MAX = 0.45;
+const ACCENT_HISTORY = 24;
+
 
 /**
  * The analysis engine: feed it mono PCM in blocks of any size; it produces a continuously
@@ -198,6 +219,8 @@ export class Analyzer {
   private readonly strength: BeatStrength;
   private lastHitTime = -Infinity;
   private readonly hitStrengths: number[] = [];
+  private lastAccentTime = -Infinity;
+  private readonly accentStrengths: number[] = [];
   private readonly change: SongChangeDetector | null;
   /** First frame of the new song after a song change, while the tempo window still reaches back into the old one. */
   private songStartFrame = -1;
@@ -441,6 +464,23 @@ export class Analyzer {
     });
   }
 
+  /**
+   * A fallback candidate (a kick, or a snare for accent styles) was heard at `time`: an accent
+   * when no tempo is confident and it stands out from the recent candidates. The history is kept
+   * while the tempo is confident too, so it is warm when the tempo drops out.
+   */
+  private accent(time: number, onsetStrength: number): void {
+    const recent = this.accentStrengths;
+    const sorted = [...recent].sort((a, b) => a - b);
+    const median = sorted.length ? sorted[sorted.length >> 1] : 0;
+    recent.push(onsetStrength);
+    if (recent.length > ACCENT_HISTORY) recent.shift();
+    if (this.tracker.confidence >= HIT_CONFIDENCE_MIN) return;
+    if (onsetStrength < ACCENT_REL * median || time - this.lastAccentTime < ACCENT_GAP_S) return;
+    this.lastAccentTime = time;
+    this.events.push({ type: 'accent', time, strength: ACCENT_MAX * Math.min(1, onsetStrength / (2 * Math.max(median, 0.1))) });
+  }
+
   private frameTime(frameEnd: number): number {
     return (frameEnd * this.hop) / this.sampleRate;
   }
@@ -515,6 +555,7 @@ export class Analyzer {
         const time = this.frameTime(peakFrame + 1) - this.lags[kind];
         this.events.push({ type: kind, time, strength });
         if (kind !== 'hat') this.hit(time, strength);
+        if (kind === 'kick' || (kind === 'snare' && STYLE_PROFILES[st.style].fallback === 'accent')) this.accent(time, strength);
       }
     }
 

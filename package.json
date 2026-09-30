@@ -1,7 +1,7 @@
 {
   "name": "voltviz",
   "private": true,
-  "version": "0.31.0",
+  "version": "0.31.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -16,7 +16,7 @@
     "make:og-image": "node scripts/make-og-image.ts",
     "new:viz": "node scripts/new-viz.ts",
     "eval:prepare": "node scripts/eval/prepare-audio.ts",
-    "eval:mix": "node scripts/eval/eval-mix.ts",
+    "eval:beats": "node scripts/eval/eval-beats.ts",
     "eval:live": "node scripts/eval/live.ts",
     "eval:before-after": "node scripts/eval/before-after.ts",
     "report": "node scripts/report/build-report.ts"
@@ -24,7 +24,7 @@
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",
     "d3-geo": "^3.1.1",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.49.0",
     "onnxruntime-web": "^1.30.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -42,7 +42,7 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.3"
   },
   "allowScripts": {
     "protobufjs@7.6.6": true
