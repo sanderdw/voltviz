@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer';
+import { ACCENT_GAP_S, ACCENT_MAX, Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer';
 import { FFT } from '../../src/audio/core/fft';
 import { LevelTracker } from '../../src/audio/core/levels';
 import { evaluateWindow, NeuralArbiter } from '../../src/audio/core/neuralArbiter';
@@ -302,5 +302,62 @@ describe('neural front end', () => {
     for (const w of fb.weights) expect(Math.max(...w)).toBeGreaterThan(0.2);
     expect(fb.start[0]).toBeGreaterThanOrEqual(1);
     expect(fb.start[127] + fb.weights[127].length).toBeLessThanOrEqual(513);
+  });
+});
+
+describe('accents (the fallback without a confident tempo)', () => {
+  /** Hits at random times, 80-400 ms apart (no tempo): kicks (a 55 Hz thump) and/or clicks (a 2.5 kHz tick, nothing in the kick band). */
+  function scattered(seconds: number, kinds: { kick: boolean; click: boolean }, sampleRate = 44100, seed = 7) {
+    let r = seed;
+    const rand = () => ((r = (r * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const out = new Float32Array(Math.round(seconds * sampleRate));
+    for (let t = 0.3; t < seconds - 0.5; t += 0.08 + 0.32 * rand()) {
+      const at = Math.round(t * sampleRate);
+      const gain = 0.2 + 0.3 * rand();
+      for (let i = 0; i < 0.25 * sampleRate && at + i < out.length; i++) {
+        const x = i / sampleRate;
+        if (kinds.kick) out[at + i] += gain * Math.sin(2 * Math.PI * 55 * x) * Math.exp(-x / 0.08);
+        if (kinds.click) out[at + i] += gain * Math.sin(2 * Math.PI * 2500 * x) * Math.exp(-x / 0.02);
+      }
+    }
+    return out;
+  }
+
+  function accents(samples: Float32Array, style?: 'chill' | 'electronic', sampleRate = 44100) {
+    const a = new Analyzer(sampleRate, style ? { style } : {});
+    const events: AnalyzerEvent[] = [];
+    for (let i = 0; i < samples.length; i += 128) {
+      a.process(samples.subarray(i, i + 128));
+      events.push(...a.drainEvents());
+    }
+    const at = (type: string) => new Set(events.filter(e => e.type === type).map(e => e.time));
+    return {
+      accents: events.filter((e): e is Extract<AnalyzerEvent, { type: 'accent' }> => e.type === 'accent'),
+      kicks: at('kick'),
+      snares: at('snare'),
+    };
+  }
+
+  it('fires only standout onsets, rate-limited and weaker than a beat', () => {
+    const { accents: acc, kicks } = accents(scattered(30, { kick: true, click: true }));
+    expect(acc.length).toBeGreaterThan(5);
+    expect(acc.length).toBeLessThan(kicks.size / 2);
+    for (const e of acc) expect(e.strength).toBeLessThanOrEqual(ACCENT_MAX);
+    for (let i = 1; i < acc.length; i++) expect(acc[i].time - acc[i - 1].time).toBeGreaterThanOrEqual(ACCENT_GAP_S - 1e-9);
+  });
+
+  it('does not fire once a four-on-the-floor tempo is confident', () => {
+    const { events } = run([{ seconds: 24, bpm: 128, kick: true, hats: 'offbeat', clap: true }]);
+    expect(events.filter(e => e.type === 'accent' && e.time > 8)).toHaveLength(0);
+  });
+
+  it('falls back to snares for accent styles only', () => {
+    // each accent carries the time of the onset it came from
+    const clicks = scattered(30, { kick: false, click: true });
+    const chill = accents(clicks, 'chill');
+    expect(chill.accents.filter(e => chill.snares.has(e.time) && !chill.kicks.has(e.time)).length).toBeGreaterThan(3);
+    const electronic = accents(clicks, 'electronic');
+    expect(electronic.accents.length).toBeGreaterThan(0);
+    for (const e of electronic.accents) expect(electronic.kicks.has(e.time)).toBe(true);
   });
 });

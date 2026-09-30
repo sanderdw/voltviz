@@ -39,8 +39,9 @@ export interface StyleProfile {
 /**
  * Confidence gates for music whose beat is audible but whose periodicity is diluted by vocals,
  * melody or dense percussion (rap, hardcore melodies, ballads). Measured on the genre
- * excerpts; on the DJ mix they also raise DSP F (0.818 -> 0.840), and in its quiet sections
- * they fire only where the reference trackers hear beats. `electronic` keeps the 0.23 gates.
+ * excerpts; on four-on-the-floor dance music they also raised DSP F (0.818 -> 0.840), and in
+ * its quiet sections they fire only where the reference trackers hear beats. `electronic` keeps
+ * the 0.23 gates.
  */
 const DENSE_MUSIC_GATES = { recentFloor: 1.05, recentFull: 1.4, salienceFloor: 0.03, salienceFull: 0.15 };
 

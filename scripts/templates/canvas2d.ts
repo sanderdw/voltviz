@@ -3,7 +3,7 @@
  * .github/skills/adding-visualizer/SKILL.md for the contract and the quality steps.
  */
 import { mountCanvas2D } from '../../src/visualizers/lib/canvas2d';
-import { beatHit } from '../../src/visualizers/lib/audio'; // BEAT
+import { beatHit, beatStrength } from '../../src/visualizers/lib/audio'; // BEAT
 import type { VisualizerFactory } from '../../src/visualizers/runtime/types';
 
 const TemplateCanvas2D: VisualizerFactory = ({ container }) => {
@@ -32,7 +32,7 @@ const TemplateCanvas2D: VisualizerFactory = ({ container }) => {
       level += (bass - level) * Math.min(1, dt * 10); // frame-rate independent smoothing
       phase += dt * settings.speed * (0.3 + level); // rotation speed follows the music
       // BEAT:BEGIN
-      if (beatHit(audio)) flash = 1; // predicted, on-time beat (or kick when no tempo)
+      if (beatHit(audio)) flash = beatStrength(audio); // heard beat (or a weaker accent when no tempo)
       flash *= Math.exp(-dt / 0.15);
       // BEAT:END
 

@@ -24,15 +24,15 @@ half or double the other's tempo, e.g. 77 vs 154 BPM on a rock ballad); the genr
 gates on those windows because the expected pulse is set per excerpt.
 
 Informational extras (not used for gating):
-  * grid fit: linear regression of the beat times (a tempo-synced DJ mix is a straight line)
+  * grid fit: linear regression of the beat times (a steady tempo is a straight line)
   * folded 2-8 kHz transient and 40-120 Hz kick-body envelopes around the reference beats.
-    These physical checks turned out to be unreliable on this material (a pickup hit 75 ms
-    before every other beat and loud off-beat hats), which is exactly why the engine takes
-    its beat phase from the 150 Hz - 6 kHz band; see the report.
-(librosa was evaluated as a cross-check but lost the beat after ~30 s on this material.)
+    These physical checks are unreliable on dance music (pickup hits just before the beat and
+    loud off-beat hats), which is why the engine takes its beat phase from the
+    150 Hz - 6 kHz band; see the report.
+(librosa was evaluated as a cross-check but lost the beat after ~30 s on dance music.)
 
-Only an excerpt is analysed (default: the first 120 s). Full-length mixes need several GB of RAM
-in madmom's multi-resolution STFT; 2-minute excerpts peak below 1 GB.
+Only an excerpt is analysed (default: the first 120 s). Long files need several GB of RAM in
+madmom's multi-resolution STFT; 2-minute excerpts peak below 1 GB.
 
 Usage:  uv run scripts/eval/reference.py <audio file> <out.json> [--start S] [--seconds N] [--source LABEL]
 (ffmpeg must be on PATH; madmom needs cython/numpy present at build time, see header.)
@@ -152,7 +152,7 @@ def main() -> None:
     ap.add_argument("out")
     ap.add_argument("--start", type=float, default=0.0)
     ap.add_argument("--seconds", type=float, default=120.0)
-    ap.add_argument("--source", default=None, help="label of the audio source (default: the UTO mix)")
+    ap.add_argument("--source", default=None, help="label of the audio source")
     args = ap.parse_args()
     src, out = args.src, args.out
     audio = load_mono(src, args.start, args.seconds)
@@ -214,9 +214,7 @@ def main() -> None:
     print(f"windows agreed: {agree}/{len(windows)} (any metrical level: {agree_any})", flush=True)
 
     json.dump({
-        **({"source": args.source} if args.source else {
-            "source": "DJ de Wildt - UTO Mix 1 (uto-oosterhout.nl)",
-            "url": "https://uto-mix.sanwil.net/DJ%20de%20Wildt%20-%20UTO%20Mix%201%20uto-oosterhout.nl.mp3"}),
+        **({"source": args.source} if args.source else {}),
         "excerpt": {"start": args.start, "seconds": args.seconds},
         "duration": round(duration, 3),
         "sampleRate": SR,

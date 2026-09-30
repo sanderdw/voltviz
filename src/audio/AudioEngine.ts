@@ -221,6 +221,7 @@ export class AudioEngine {
     const keep: AnalyzerEvent[] = [];
     let isBeat = false;
     let hitBar = -1;
+    let accent = 0;
     for (const o of Object.values(this.onsetState)) o.fresh = false;
     for (const e of this.queue) {
       const at = e.time + this.ctxOffset;
@@ -233,6 +234,8 @@ export class AudioEngine {
         hitBar = e.bar;
         this.lastBeatAt = at;
         this.beatConfidence = e.confidence;
+      } else if (e.type === 'accent') {
+        accent = Math.max(accent, e.strength);
       } else if (e.type !== 'beat') {
         const o = this.onsetState[e.type];
         o.at = at;
@@ -267,6 +270,7 @@ export class AudioEngine {
       divisor,
       confidence: isBeat ? this.beatConfidence : st && !st.silent ? st.confidence : 0,
       strength: st && !st.silent ? st.beatStrength : 0,
+      accent: isBeat ? 0 : accent,
       phase,
       sinceBeat,
       period,

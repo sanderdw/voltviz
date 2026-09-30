@@ -419,9 +419,10 @@ const RawAudio: VisualizerFactory = ({ container }) => {
 
       // Display decays (the raw values are shown next to them)
       if (beatHit(audio)) {
-        beatFlash = 1;
-        beatSource = audio.beat.isBeat ? 'heard beat' : 'onset (no tempo)';
         hitStrength = beatStrength(audio);
+        // an accent (no confident tempo) is a weaker hit by design: flash it at its strength
+        beatFlash = audio.beat.isBeat ? 1 : hitStrength;
+        beatSource = audio.beat.isBeat ? 'heard beat' : `accent ${fmt(hitStrength)} (no tempo)`;
         strengthFlash = hitStrength;
       } else {
         beatFlash *= Math.exp(-dt / 0.12);

@@ -332,7 +332,7 @@ const FractalOrb: VisualizerFactory = ({ container, width: w, height: h, dpr }) 
       smoothedMids += (mids - smoothedMids) * 0.15;
       smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
 
-      // Kick: predicted beats (raw kick onsets as fallback when there is no confident beat)
+      // Kick: heard beats (accents as fallback when there is no confident tempo)
       kickEnergy = Math.max(kickEnergy, beatStrength(audio));
       // Decay kick energy for visual response
       kickEnergy *= 0.88;

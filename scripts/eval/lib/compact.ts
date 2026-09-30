@@ -44,11 +44,6 @@ export function compactResult(r: Json): Json {
     lockTimeAfterBreak: r.lockTimeAfterBreak,
     windows: r.windows,
     timeline: (r.timeline ?? []).filter((_: Json, i: number) => i % 10 === 0),
-    baselines: r.baselines?.map((b: Json) => ({
-      name: b.name, description: b.description, count: b.count, fMeasure: b.fMeasure, cmlt: b.cmlt, amlt: b.amlt,
-      medianOffsetMs: b.medianOffsetMs, bpmFinal: b.bpmFinal,
-      bpmTimeline: (b.bpmTimeline ?? []).filter((_: Json, i: number) => i % 4 === 0),
-    })),
   };
 }
 

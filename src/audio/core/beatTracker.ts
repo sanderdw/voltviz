@@ -141,7 +141,7 @@ const BAR_SNARE_RATIO = 1.5;
 const BAR_KICK_3_VS_1_MAX = 0.6;
 /**
  * ... and the snare on 3 is the loudest crack of the bar, clearly above the "1". Four-on-the-
- * floor music with an accented 1 and 3 (the DJ mix's pickup sections) has them about equal.
+ * floor music with an accented 1 and 3 (sections with a pickup before every other beat) has them about equal.
  */
 const BAR_SNARE_OVER_ONE = 1.2;
 /** Beats with a known bar position the signature needs (three bars). */
@@ -690,7 +690,7 @@ export class BeatTracker {
     while (this.nextBeat - this.period > now + 0.1 * this.period) this.nextBeat -= this.period;
   }
 
-  /** Peak of a normalized onset function within +-30 ms of true-time position x (the mix's pickup 75 ms early is outside). */
+  /** Peak of a normalized onset function within +-30 ms of true-time position x (a pickup 75 ms before the beat is outside). */
   private peakAt(odf: FrameHistory | null, x: number, lag: number): number {
     if (!odf) return 0;
     const tol = Math.round(0.03 * this.frameRate);

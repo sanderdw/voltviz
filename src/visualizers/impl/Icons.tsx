@@ -180,7 +180,7 @@ const Icons: VisualizerFactory = ({ container }) => {
       const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
       const treble = dataArray.slice(50, 150).reduce((a, b) => a + b, 0) / 100;
 
-      // Beat-driven: a confident beat with a drum hit (or a raw kick when there is no confident beat)
+      // Beat-driven: a strong heard beat (accents, without a confident tempo, never reach STRONG_BEAT)
       const isBeat = beatStrength(audio) >= STRONG_BEAT;
 
       // Switch icon on strong beat (min 4s interval)

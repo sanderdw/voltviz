@@ -20,8 +20,8 @@ function arg(name: string, def: string): string {
 }
 const OLD = arg('old', 'http://127.0.0.1:3102');
 const NEW = arg('new', 'http://127.0.0.1:3101');
-const EXCERPT = 'uto-0-120';
-const ALL_SLICES = [{ name: 'steady groove', start: 20 }, { name: 'full energy', start: 90 }];
+const EXCERPT = 'genre-hardcore-a';
+const ALL_SLICES = [{ name: 'build', start: 20 }, { name: 'full energy', start: 60 }];
 const SLICES = ALL_SLICES.filter(s => !arg('slices', '') || arg('slices', '').split(',').includes(String(s.start)));
 const OUT = arg('out', 'docs/reports/data/before-after.json');
 const SECONDS = 30;

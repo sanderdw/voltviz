@@ -3,7 +3,7 @@ import { Analyzer, type AnalyzerEvent } from '../../src/audio/core/Analyzer';
 import { foldPeriod, PulseSelector, type PulseMode } from '../../src/audio/core/beatTracker';
 import type { StyleId } from '../../src/audio/core/styles';
 import type { AudioFrame } from '../../src/audio/types';
-import { beatHit } from '../../src/visualizers/lib/audio';
+import { beatHit, beatStrength, STRONG_BEAT } from '../../src/visualizers/lib/audio';
 import { amlt, fMeasure, median, offsetsMs } from '../../scripts/eval/lib/metrics';
 import { synth, type Section } from './synth';
 
@@ -183,16 +183,17 @@ describe('style tempo ranges', () => {
 });
 
 describe('beatHit fallback', () => {
-  const frame = (style: StyleId, kick: boolean, snare: boolean) => ({
-    style,
-    beat: { isBeat: false, confidence: 0 },
-    onsets: { kick: { hit: kick }, snare: { hit: snare }, hat: { hit: false } },
+  const frame = (isBeat: boolean, accent: number, strength = 0.9) => ({
+    beat: { isBeat, accent, strength, confidence: isBeat ? 0.8 : 0 },
   }) as unknown as AudioFrame;
 
-  it('falls back to kick onsets for every style and to snare onsets for accent styles only', () => {
-    expect(beatHit(frame('electronic', true, false))).toBe(true);
-    expect(beatHit(frame('electronic', false, true))).toBe(false);
-    expect(beatHit(frame('auto', false, true))).toBe(true);
-    expect(beatHit(frame('chill', false, true))).toBe(true);
+  it('fires on a heard beat at its strength, and on an accent at the accent strength', () => {
+    expect(beatHit(frame(true, 0))).toBe(true);
+    expect(beatStrength(frame(true, 0))).toBe(0.9);
+    expect(beatHit(frame(false, 0.3))).toBe(true);
+    expect(beatStrength(frame(false, 0.3))).toBe(0.3);
+    expect(beatStrength(frame(false, 0.3))).toBeLessThan(STRONG_BEAT);
+    expect(beatHit(frame(false, 0))).toBe(false);
+    expect(beatStrength(frame(false, 0))).toBe(0);
   });
 });

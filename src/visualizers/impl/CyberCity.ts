@@ -274,7 +274,7 @@ const CyberCity: VisualizerFactory = ({ container, width: w, height: h, dpr }) =
       smoothedMids += (mids - smoothedMids) * 0.15;
       smoothedHighs += ((highMids + highs) * 0.5 - smoothedHighs) * 0.15;
 
-      // Kick: predicted beats (raw kick onsets as fallback when there is no confident beat)
+      // Kick: heard beats (accents as fallback when there is no confident tempo)
       const isKick = beatHit(audio);
       if (isKick) {
         lastKickTime = now;
