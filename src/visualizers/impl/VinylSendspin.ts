@@ -1,5 +1,6 @@
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import dummyCover from '../../../images/dummycover.png';
+import { imageUploadOverlay } from '../lib/imageUpload';
 import type { VisualizerFactory } from '../runtime/types';
 
 const FFT_SIZE = 1024;
@@ -20,10 +21,13 @@ const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata
   let currentImage: HTMLImageElement | null = null;
   let disposed = false;
   let requestedUrl: string | null = null;
+  let uploaded: string | null = null;
+  let lastMetadata = initialMetadata;
 
-  // Load artwork from sendspin metadata or fall back to dummy cover
+  // An uploaded image, else the artwork of the Sendspin track, else the dummy cover
   const applyMetadata = (m: ServerStateMetadata | null) => {
-    const url = m?.artwork_url ?? dummyCover;
+    lastMetadata = m;
+    const url = uploaded ?? m?.artwork_url ?? dummyCover;
     if (url === requestedUrl) return;
     requestedUrl = url;
     const img = new Image();
@@ -34,6 +38,10 @@ const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata
     img.src = url;
   };
   applyMetadata(initialMetadata);
+  const setImage = (url: string) => {
+    uploaded = url;
+    applyMetadata(lastMetadata);
+  };
 
   return {
     resize(w, h) {
@@ -267,7 +275,10 @@ const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata
       offCanvas.height = 0;
       wrapper.remove();
     },
+    api: { setImage },
   };
 };
 
 export default VinylSendspin;
+
+export const Overlay = imageUploadOverlay('Cover');

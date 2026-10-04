@@ -4,18 +4,20 @@
  *
  * Everything is one full-screen fragment shader: every beam is an analytic half-line measured in
  * device pixels (a white-hot gaussian core, a coloured halo and a wide haze term lit by drifting
- * fog), every fan an angular wedge filled with the same fog. The light is accumulated additively
+ * fog), every wide beam an angular wedge filled with the same fog. The light is accumulated additively
  * and tone-mapped, so crossings bloom towards white without clipping or a bloom pass.
  *
  * The CPU side choreographs the beam angles: four looks (the "hero" layout, a sweeping fan, a
  * tunnel aimed at a rotating ring and a horizontal scan) that change every 16 strong beats and
  * glide into each other. The right emitter mirrors the left one. Beats flash the beams and
- * scissor them apart, kicks fire the fans, hi-hats twinkle random beams and the bass widens the
- * halos; without a beat the hero layout sways slowly.
+ * scissor them apart, hi-hats twinkle random beams and the bass widens the halos; without a beat
+ * the hero layout sways slowly. Two beams per emitter are opened into smoky wide beams (sheet
+ * fans). Every 4 strong beats the width jumps to another beam: the new one widens, then the old
+ * one narrows back, so there are never more than three per emitter (six on screen).
  *
  * The mids and highs give the show its character. Mids (vocals, leads, chords) send a ripple
- * through the beams, open the sweeps and widen and light the sheet fans. Highs (hats, cymbals,
- * air) run a chase of light round the emitters and whiten and sharpen the cores. Which of the two
+ * through the beams, open the sweeps and slightly widen the sheet fans. Highs (hats, cymbals,
+ * air) step a chase of light round the emitters on the beat and whiten and sharpen the cores. Which of the two
  * dominates also picks the next look: the hero layout or the sweeping fan for mid-heavy music,
  * the tunnel or the scan for bright music, switching after 8 strong beats when the music changes
  * character.
@@ -28,7 +30,11 @@ import type { VisualizerFactory } from '../runtime/types';
 /** Thin beams per emitter (the right emitter mirrors the left one). */
 const PER = 24;
 const BEAMS = PER * 2;
-const FANS = 4;
+/** Wide beams per emitter: two held, a third only while the width jumps to another beam. */
+const WIDE = 3;
+const FANS = WIDE * 2;
+/** Half width of a fully opened wide beam (degrees). */
+const WIDE_HW = 4.5;
 
 const PINK = 0, VIOLET = 1, BLUE = 2;
 // sRGB display colours: the shader composes and tone-maps in display space
@@ -68,8 +74,8 @@ const HERO: { a: number; c: number; i: number }[] = [
   { a: 351.5, c: VIOLET, i: 0.8 },
   { a: 355.0, c: PINK, i: 0.6 },
 ];
-/** Left emitter fans: the near-vertical one and the one crossing over the centre. */
-const HERO_FANS = [{ a: 88.0, w: 5.0 }, { a: 40.6, w: 3.6 }];
+/** Beams opened at the start: the near-vertical blue-pink and the flat one into the centre. */
+const START_WIDE = [1, 4];
 
 const vertexShader = 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }';
 
@@ -160,7 +166,7 @@ const fragmentShader = /* glsl */ `
     for (int i = 0; i < FANS; i++) {
       vec4 f = uFan[i];
       if (f.w <= 0.001) continue;
-      vec2 e = i < 2 ? uEmit.xy : uEmit.zw;
+      vec2 e = i < FANS / 2 ? uEmit.xy : uEmit.zw;
       vec2 v = p - e;
       float t = dot(v, f.xy);
       float s = v.x * f.y - v.y * f.x;
@@ -251,9 +257,7 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
 
   // beam state (left emitter; the right one mirrors it)
   const angle = HERO.map(b => b.a);
-  const fanAngle = HERO_FANS.map(f => f.a);
   const target = new Float64Array(PER);
-  const fanTarget = new Float64Array(2);
 
   let pattern = 0;
   let strongBeats = 0;
@@ -275,6 +279,29 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
   let tilt = 0;       // slow high-vs-mid balance: > 0 bright (EDM), < 0 mid-heavy (rap, ballads)
   let ripple = 0;     // mid ripple phase
   let chase = 0;      // high chase position (turns round the emitter)
+  let chaseTo = 0;    // where the chase is stepping to: it steps on the beat
+
+  // wide beams: slot j opens beam `k` by `w` (0..1); `on` is where `w` is heading
+  const wide = Array.from({ length: WIDE }, (_, j) => ({ k: START_WIDE[j] ?? -1, w: j < START_WIDE.length ? 1 : 0, on: j < START_WIDE.length, since: j }));
+  let handover: { from: number; to: number } | null = null;
+  let wideSerial = WIDE;
+  let wideBeats = 0;
+  let wideClock = 0;  // seconds since the last jump
+  /** Opens another beam, well apart from the wide ones; the oldest wide beam closes once it is open. */
+  const jump = () => {
+    if (handover) return;
+    const to = wide.findIndex(s => !s.on && s.w === 0);
+    const held = wide.filter(s => s.on);
+    if (to < 0 || !held.length) return;
+    const from = wide.indexOf(held.reduce((a, b) => (b.since < a.since ? b : a)));
+    const taken = wide.filter(s => s.k >= 0).map(s => s.k);
+    const free = Array.from({ length: PER }, (_, k) => k).filter(k => !taken.includes(k));
+    const apart = free.filter(k => taken.every(t => Math.abs(wrapDeg(angle[k] - angle[t])) >= 25));
+    const pool = apart.length ? apart : free;
+    Object.assign(wide[to], { k: pool[Math.floor(Math.random() * pool.length)], on: true, since: wideSerial++ });
+    handover = { from, to };
+    wideClock = 0;
+  };
   const twinkle = new Float64Array(PER);
 
   // mid-heavy music gets the hero layout and the sweeping fan, bright music the tunnel and the scan
@@ -332,6 +359,8 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
         pulse = Math.max(pulse, s);
         scissor = s;
         scissorSign = -scissorSign;
+        chaseTo += 0.08 + 0.1 * highAmt;
+        if (s >= STRONG_BEAT && ++wideBeats % 4 === 0) jump();
         if (s >= STRONG_BEAT && ++strongBeats % 8 === 0 && (strongBeats % 16 === 0 || !fits(pattern))) {
           pattern = nextPattern();
           strongBeats = 0;
@@ -349,6 +378,16 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
       for (let k = 0; k < PER; k++) twinkle[k] *= twinkleDecay;
       pulse *= Math.exp(-dt / 0.15);
       scissor *= Math.exp(-dt / 0.2);
+      // without (strong) beats the width still moves on now and then
+      wideClock += dt;
+      if (!audio.silent && wideClock > (live ? 8 : 4)) jump();
+      const open = dt / 0.35;
+      for (const s of wide) s.w = s.on ? Math.min(1, s.w + open) : Math.max(0, s.w - open);
+      if (handover) {
+        const from = wide[handover.from];
+        if (from.on && wide[handover.to].w >= 1) from.on = false;
+        if (!from.on && from.w === 0) { from.k = -1; handover = null; }
+      }
       snare = Math.max(snare * Math.exp(-dt / 0.15), audio.onsets.snare.envelope);
 
       const rate = settings.speed * (0.3 + level);
@@ -357,7 +396,8 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
       ring += dt * rate * 0.7;
       drift += dt * settings.speed * (0.06 + 0.1 * rms);
       ripple += dt * settings.speed * (1.2 + 2.5 * midAmt);
-      chase += dt * settings.speed * (0.25 + 1.1 * highAmt);
+      chaseTo += dt * settings.speed * 0.05;
+      chase += (chaseTo - chase) * Math.min(1, dt / 0.06);
 
       // targets of the current look
       const { lx, rx, y } = layout(w, h, settings.scale);
@@ -380,28 +420,19 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
           a = HERO[k].a + 2.5 * Math.sin(sway + k * 0.9) * (k % 2 ? 1 : -1);
         }
         // the mids send a wave through the beams
-        a += midAmt * 5 * Math.sin(ripple - k * 0.55);
+        a += midAmt * 3.5 * Math.sin(ripple - k * 0.55);
         target[k] = a + scissor * 3.5 * scissorSign * (k % 2 ? 1 : -1);
       }
-      if (pattern === 0) {
-        fanTarget[0] = HERO_FANS[0].a + 3 * Math.sin(sway * 0.7);
-        fanTarget[1] = HERO_FANS[1].a + 3 * Math.sin(sway * 0.7 + 2);
-      } else {
-        fanTarget[0] = 92 + 22 * Math.sin(sweep * 0.6);
-        fanTarget[1] = 38 + 16 * Math.sin(sweep * 0.6 + 1.7);
-      }
-
       // glide towards them (pattern changes ease in over ~0.4 s)
       const ease = 1 - Math.exp(-dt / 0.13);
       for (let k = 0; k < PER; k++) angle[k] += wrapDeg(target[k] - angle[k]) * ease;
-      for (let k = 0; k < 2; k++) fanAngle[k] += wrapDeg(fanTarget[k] - fanAngle[k]) * ease;
 
       // uniforms
       applyHue(settings.hueShift);
       // kicks also flash on their own, so the beams still hit when the tempo is not (yet) locked
       const kick = Math.min(1, audio.onsets.kick.envelope * sens);
       const hit = Math.min(1, Math.max(pulse * sens, kick * 0.7));
-      const bright = 0.75 + 0.6 * hit;
+      const bright = 0.6 + 1.0 * hit;
       // the highs run a spot of light round the emitter, dimming the beams it is not on
       const chasePos = chase % 1;
       for (let k = 0; k < PER; k++) {
@@ -409,7 +440,7 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
         const off = ((angle[k] / 360 - chasePos) % 1 + 1.5) % 1 - 0.5;
         const spot = Math.exp(-(off * off) / 0.006);
         const chaseGain = 1 - 0.45 * highAmt + 1.3 * highAmt * spot;
-        const i = hb.i * bright * chaseGain * (1 + 0.8 * twinkle[k]);
+        const i = hb.i * bright * chaseGain * (1 + 0.5 * twinkle[k]);
         const a = angle[k] * DEG;
         const c = Math.cos(a), s = Math.sin(a);
         uniforms.uBeam.value[k].set(c, s, i, 0);
@@ -417,14 +448,23 @@ const LaserShow: VisualizerFactory = ({ container, width, height, dpr }) => {
         uniforms.uBeamCol.value[k].copy(shifted[hb.c]);
         uniforms.uBeamCol.value[k + PER].copy(shifted[hb.c]);
       }
-      // the mids open and light the sheet fans
-      const fanI = 0.85 + 0.55 * kick + 0.25 * Math.min(1, pulse * sens) + 0.4 * midAmt;
-      for (let k = 0; k < 2; k++) {
-        const a = fanAngle[k] * DEG;
-        const hw = (HERO_FANS[k].w * (1 + 0.7 * midAmt) + 1.2 * Math.min(1, snare * sens)) * DEG;
-        uniforms.uFan.value[k].set(Math.cos(a), Math.sin(a), hw, fanI);
-        uniforms.uFan.value[k + 2].set(-Math.cos(a), Math.sin(a), hw, fanI);
-      }
+      // wide beams follow their beam and pulse with the beat; mids and snares only breathe them a little
+      const fanI = 0.6 + 0.1 * rms + 0.45 * kick + 0.3 * hit + 0.15 * midAmt;
+      const fanHw = WIDE_HW * (0.9 + 0.2 * midAmt) + 0.5 * Math.min(1, snare * sens);
+      wide.forEach((sl, j) => {
+        const e = sl.w * sl.w * (3 - 2 * sl.w);
+        if (sl.k < 0 || e <= 0) {
+          uniforms.uFan.value[j].w = 0;
+          uniforms.uFan.value[j + WIDE].w = 0;
+          return;
+        }
+        // opens from the width of a thin beam
+        const hw = (0.4 + (fanHw - 0.4) * e) * DEG;
+        const i = fanI * Math.sqrt(e);
+        const a = angle[sl.k] * DEG;
+        uniforms.uFan.value[j].set(Math.cos(a), Math.sin(a), hw, i);
+        uniforms.uFan.value[j + WIDE].set(-Math.cos(a), Math.sin(a), hw, i);
+      });
 
       uniforms.uResolution.value.set(w * d, h * d);
       uniforms.uEmit.value.set(lx * d, y * d, rx * d, y * d);

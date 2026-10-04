@@ -2,9 +2,15 @@
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-10-04
+
 ### Added
-- **Laser Show**: two mirrored laser emitters fan crisp beams and smoky sheet fans through a hazy room. The beams flash and scissor on the beat, kicks fire the fans and hi-hats twinkle random beams. Mids (vocals, leads, chords) send a ripple through the beams and open and light the fans; highs (hats, cymbals) run a chase of light round the emitters and whiten the beams. Every 16 strong beats the show glides into a new look, picked by the music's character: the hero layout or a sweeping fan for mid-heavy music (rap, ballads), a tunnel aimed at a rotating ring or a horizontal scan for bright music (EDM, hardcore). When the character changes it switches after 8.
-- **Kaleidoscope**: a cluster of neon-edged 3D blocks (pillars, chevrons, hooks, brackets) tumbles in the dark and is mirrored into a 4-, 8- or 12-fold snowflake with a wide blue glow. Beats punch it outwards and flash the light, kicks open the glow, snares kick it round and hi-hats shimmer the edges. Every 16 strong beats a new look cuts in behind a flash: new blocks, another symmetry, and the colours fade to another cyberpunk palette (neon blue and pink, magenta and cyan, synthwave, acid, amber, cyan and pink).
+- **Laser Show**: mirrored laser emitters fan beams and wide smoky beams through a hazy room, with looks that follow the beat, the mids and the highs.
+- **Kaleidoscope**: neon-edged 3D blocks tumble in a mirrored 4-, 8- or 12-fold snowflake that punches out on the beat and changes look every 16 strong beats.
+
+### Changed
+- **Vinyl**, **Glitch Background** and **Background Image** show the cover of the Sendspin track and accept an uploaded image; the separate Sendspin versions are merged into them.
+- Updated dependencies.
 
 ## [0.31.1] - 2026-09-30
 

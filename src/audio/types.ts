@@ -111,7 +111,7 @@ export interface AudioFrame {
   /** Current Auto Gain factor applied to the display path (1 when Auto Gain is off). */
   gain: number;
   autoGain: boolean;
-  /** Raw analysis state, for diagnostics (Audio Debug). */
+  /** Raw analysis state, for diagnostics (Raw Audio). */
   analysis: AnalyzerState;
   /** Engine-level diagnostics. */
   engine: EngineDiagnostics;

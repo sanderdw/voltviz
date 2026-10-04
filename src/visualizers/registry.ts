@@ -11,7 +11,7 @@ interface VisualizerEntry {
 export const visualizers = [
   { id: 'dutchgrid', name: 'Dutch Grid', module: 'DutchGrid' },
   { id: 'dutchgridwebgl', name: 'Dutch Grid (WebGL)', module: 'DutchGridWebGL' },
-  { id: 'glitchbackground', name: 'Glitch Background', module: 'GlitchBackground' },
+  { id: 'glitchbackgroundsendspin', name: 'Glitch Background', module: 'GlitchBackgroundSendspin' },
   { id: 'glitchdatabend', name: 'Glitch Databend', module: 'GlitchDatabend' },
   { id: 'yourlogo', name: 'Your Logo', module: 'YourLogo' },
   { id: 'icons', name: 'Icons', module: 'Icons' },
@@ -34,8 +34,8 @@ export const visualizers = [
   { id: 'disneydroneshow', name: 'Disney Drone Show', module: 'DisneyDroneShow' },
   { id: 'fireworksshow', name: 'Fireworks Show', module: 'FireworksShow' },
   { id: 'datadashboard', name: 'Data Dashboard', module: 'DataDashboard' },
-  { id: 'vinyl', name: 'Vinyl', module: 'Vinyl' },
-  { id: 'backgroundimage', name: 'Background Image', module: 'BackgroundImage' },
+  { id: 'vinylsendspin', name: 'Vinyl', module: 'VinylSendspin' },
+  { id: 'backgroundimagesendspin', name: 'Background Image', module: 'BackgroundImageSendspin' },
   { id: 'blurimage', name: 'Blur Image', module: 'BlurImage' },
   { id: 'flame', name: 'Flame', module: 'Flame' },
   { id: 'vumeter', name: 'VU Meter', module: 'VUMeter' },
@@ -48,7 +48,6 @@ export const visualizers = [
   { id: 'mossball', name: 'Moss Ball', module: 'MossBall' },
   { id: 'razor1911', name: 'Razor 1911', module: 'Razor1911' },
   { id: 'cybercity', name: 'Cyber City', module: 'CyberCity' },
-  { id: 'audiodebug', name: 'Audio Debug', module: 'AudioDebug' },
   { id: 'rawaudio', name: 'Raw Audio', module: 'RawAudio' },
   { id: 'aurumleaf', name: 'Aurum Leaf', module: 'AurumLeaf' },
   { id: 'anunakisphere', name: 'Anunaki Sphere', module: 'AnunakiSphere' },
@@ -57,9 +56,6 @@ export const visualizers = [
   { id: 'holoblinds', name: 'Holo Blinds', module: 'HoloBlinds' },
   { id: 'insidequantum', name: 'Inside Quantum', module: 'InsideQuantum' },
   { id: 'sungalizer', name: 'Sungalizer', module: 'Sungalizer' },
-  { id: 'vinylsendspin', name: 'Vinyl (Sendspin)', module: 'VinylSendspin' },
-  { id: 'glitchbackgroundsendspin', name: 'Glitch Background (Sendspin)', module: 'GlitchBackgroundSendspin' },
-  { id: 'backgroundimagesendspin', name: 'Background Image (Sendspin)', module: 'BackgroundImageSendspin' },
   { id: 'halftonepulse', name: 'Halftone Pulse', module: 'HalftonePulse' },
   { id: 'lasershow', name: 'Laser Show', module: 'LaserShow' },
   { id: 'kaleidoscope', name: 'Kaleidoscope', module: 'Kaleidoscope' },
@@ -75,4 +71,17 @@ export const visualizerNames = Object.fromEntries(
 
 export function isVisualizerType(value: string | null | undefined): value is VisualizerType {
   return !!value && (visualizerIds as readonly string[]).includes(value);
+}
+
+/** Ids of removed visualizers that live on in another one (old links keep working). */
+const aliases: Record<string, VisualizerType> = {
+  vinyl: 'vinylsendspin',
+  glitchbackground: 'glitchbackgroundsendspin',
+  backgroundimage: 'backgroundimagesendspin',
+};
+
+/** The visualizer an id (from a URL) stands for, following aliases; null when unknown. */
+export function resolveVisualizer(value: string | null | undefined): VisualizerType | null {
+  if (isVisualizerType(value)) return value;
+  return (value && aliases[value]) || null;
 }

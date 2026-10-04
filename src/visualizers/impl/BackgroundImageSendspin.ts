@@ -1,6 +1,7 @@
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import dummyCover from '../../../images/dummycover.png';
 import { mountCanvas2D } from '../lib/canvas2d';
+import { imageUploadOverlay } from '../lib/imageUpload';
 import type { VisualizerFactory } from '../runtime/types';
 
 const BackgroundImageSendspin: VisualizerFactory = ({ container, metadata: initialMetadata }) => {
@@ -23,13 +24,21 @@ const BackgroundImageSendspin: VisualizerFactory = ({ container, metadata: initi
   const ctx = c.ctx;
 
   let currentBg: string | null = null;
+  let uploaded: string | null = null;
+  let lastMetadata = initialMetadata;
+  // An uploaded image, else the artwork of the Sendspin track, else the dummy cover
   const applyMetadata = (m: ServerStateMetadata | null) => {
-    const bgImage = m?.artwork_url ?? dummyCover;
+    lastMetadata = m;
+    const bgImage = uploaded ?? m?.artwork_url ?? dummyCover;
     if (bgImage === currentBg) return;
     currentBg = bgImage;
     bgDiv.style.backgroundImage = `url(${bgImage})`;
   };
   applyMetadata(initialMetadata);
+  const setImage = (url: string) => {
+    uploaded = url;
+    applyMetadata(lastMetadata);
+  };
 
   return {
     resize: (w, h, dpr) => c.resize(w, h, dpr),
@@ -100,7 +109,10 @@ const BackgroundImageSendspin: VisualizerFactory = ({ container, metadata: initi
     dispose() {
       wrapper.remove();
     },
+    api: { setImage },
   };
 };
 
 export default BackgroundImageSendspin;
+
+export const Overlay = imageUploadOverlay('Background');
