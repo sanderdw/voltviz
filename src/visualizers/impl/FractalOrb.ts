@@ -304,7 +304,7 @@ const FractalOrb: VisualizerFactory = ({ container, width: w, height: h, dpr }) 
       camera.updateProjectionMatrix();
     },
     frame({ audio, settings: s, dt }) {
-      // Frequency band analysis (matching AudioDebug Hz-based boundaries)
+      // Frequency band analysis (Hz-based boundaries)
       const dataArray = audio.spectrum({ fftSize: 2048, smoothing: 0.7 });
       const bufferLength = dataArray.length;
       const sampleRate = audio.sampleRate;

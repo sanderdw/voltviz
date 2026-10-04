@@ -41,13 +41,13 @@ const ids = arg('ids', '') ? arg('ids', '').split(',') : visualizers.map(v => v.
 
 /** Visualizers whose effects are meant to hit on the beat (engine beat triggers). */
 export const BEAT_DRIVEN = new Set(['anunakisphere', 'cybercity', 'aurumleaf', 'fractalorb', 'razor1911', 'icons', 'yourlogo',
-  'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'audiodebug', 'halftonepulse']);
+  'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'halftonepulse', 'lasershow', 'kaleidoscope']);
 /** Visualizers that show nothing until the user uploads something (the harness uploads). */
 const UPLOADS: Record<string, string> = {
   yourlogo: 'src/images/GitHub_Invertocat_White.svg',
 };
 
-export const DEEP = ['audiodebug', 'cybercity', 'aurumleaf', 'fractalorb', 'fireworksshow',
+export const DEEP = ['rawaudio', 'cybercity', 'aurumleaf', 'fractalorb', 'fireworksshow',
   'defqonmainstage', 'razor1911', 'milkdrop', 'bars'];
 /** Segments of the default excerpt (genre-hardcore-a: quieter intro, build, loud part from ~60 s). */
 export const SEGMENTS = [

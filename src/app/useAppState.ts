@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_STYLE, isStyleId, type StyleId } from '../audio/core/styles';
 import { skins, type SkinType } from '../skins';
-import { isVisualizerType, type VisualizerType } from '../visualizers/registry';
+import { resolveVisualizer, type VisualizerType } from '../visualizers/registry';
 import type { VisualizerSettings } from '../types';
 import { TRANSITION_MODES, type TransitionMode } from './VisualizerStage';
 
@@ -26,8 +26,7 @@ const params = () => new URLSearchParams(window.location.search);
 
 export function useAppState() {
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(() => {
-    const viz = params().get('viz');
-    return isVisualizerType(viz) ? viz : 'halftonepulse';
+    return resolveVisualizer(params().get('viz')) ?? 'halftonepulse';
   });
   const [shuffleEnabled, setShuffleEnabled] = useState(() => params().get('shuffle') === '1');
   const [shuffleInterval, setShuffleInterval] = useState<number>(() => {
@@ -35,7 +34,7 @@ export function useAppState() {
     return SHUFFLE_PRESETS.some(p => p.value === v) ? v : SHUFFLE_DEFAULT;
   });
   const [shufflePool, setShufflePool] = useState<VisualizerType[]>(() => [...new Set(
-    (params().get('shufflePool') ?? '').split(',').filter(isVisualizerType)
+    (params().get('shufflePool') ?? '').split(',').map(resolveVisualizer).filter(v => v !== null)
   )]);
   const [transitionMode, setTransitionMode] = useState<TransitionMode>(() => {
     const t = params().get('transition');

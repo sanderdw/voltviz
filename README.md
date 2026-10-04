@@ -17,13 +17,13 @@ VoltViz comes with **50+ stunning visualization styles** to choose from:
 
 - **Particle Effects**: Cosmic Particles, Fireworks Show, Trails Stream
 - **Abstract Patterns**: Cyber Matrix, Cyber Grid Canvas, Cyber City, Neon Wave, Aurora Waves, Shambhala
-- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb, Anunaki Sphere, Aurum Leaf
+- **3D Visualizations**: Poly Sphere, Glow Sphere, 3D Equalizer, Hex Globe, Fractal Orb, Anunaki Sphere, Aurum Leaf, Kaleidoscope
 - **Retro Styles**: CRT Terminal, Halftone Pulse, Vinyl, VU Meter, Sheet Music, Glitch Background, Glitch Databend, MS Defrag
-- **Festival Vibes**: Defqon Mainstage, Disney Drone Show
+- **Festival Vibes**: Defqon Mainstage, Disney Drone Show, Laser Show
 - **Organic Effects**: Fluid Smoke, Psychedelic Skull, Flame
-- **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard, Audio Debug, Raw Audio
+- **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard, Raw Audio
 - **MilkDrop-inspired**: MilkDrop, MilkDrop Warp
-- **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons, and Sendspin variants...
+- **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons...
 
 **UI Skins:** Switch the entire interface between **Modern**, **Win95**, **Winamp**, and **CRT** themes via the `?skin=` URL parameter.
 
@@ -123,7 +123,7 @@ src/
 │   ├── AudioEngine.ts      # One AudioContext per session -> one AudioFrame per animation frame
 │   └── types.ts            # AudioFrame: beats, onsets, bands, spectrum, waveform, stereo
 ├── visualizers/
-│   ├── impl/               # 52 visualizers as framework-free renderer modules
+│   ├── impl/               # 50 visualizers as framework-free renderer modules
 │   ├── runtime/            # VisualizerHost (single rAF loop, resize, errors), contract, QA probe
 │   ├── lib/                # Canvas 2D / three.js / audio helpers
 │   └── registry.ts         # Single source of truth: ids, names, picker order

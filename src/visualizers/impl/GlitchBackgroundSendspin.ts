@@ -1,6 +1,7 @@
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import dummyCover from '../../../images/dummycover.png';
 import { mountCanvas2D } from '../lib/canvas2d';
+import { imageUploadOverlay } from '../lib/imageUpload';
 import type { VisualizerFactory } from '../runtime/types';
 
 interface GlitchSlice {
@@ -23,10 +24,13 @@ const GlitchBackgroundSendspin: VisualizerFactory = ({ container, metadata: init
   let image: HTMLImageElement | null = null;
   let disposed = false;
   let requestedUrl: string | null = null;
+  let uploaded: string | null = null;
+  let lastMetadata = initialMetadata;
 
-  // Load artwork from sendspin metadata or fall back to dummy cover
+  // An uploaded image, else the artwork of the Sendspin track, else the dummy cover
   const applyMetadata = (m: ServerStateMetadata | null) => {
-    const url = m?.artwork_url ?? dummyCover;
+    lastMetadata = m;
+    const url = uploaded ?? m?.artwork_url ?? dummyCover;
     if (url === requestedUrl) return;
     requestedUrl = url;
     const img = new Image();
@@ -37,6 +41,10 @@ const GlitchBackgroundSendspin: VisualizerFactory = ({ container, metadata: init
     img.src = url;
   };
   applyMetadata(initialMetadata);
+  const setImage = (url: string) => {
+    uploaded = url;
+    applyMetadata(lastMetadata);
+  };
 
   let glitchParams = {
     active: false,
@@ -250,7 +258,10 @@ const GlitchBackgroundSendspin: VisualizerFactory = ({ container, metadata: init
       image = null;
       wrapper.remove();
     },
+    api: { setImage },
   };
 };
 
 export default GlitchBackgroundSendspin;
+
+export const Overlay = imageUploadOverlay('Background');
