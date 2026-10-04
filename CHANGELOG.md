@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- **Laser Show**: two mirrored laser emitters fan crisp beams and smoky sheet fans through a hazy room. The beams flash and scissor on the beat, kicks fire the fans and hi-hats shimmer the beams. Every 16 strong beats the show glides into a new look: the hero layout, a sweeping fan, a tunnel aimed at a rotating ring or a horizontal scan.
+- **Kaleidoscope**: a cluster of neon-edged 3D blocks (pillars, chevrons, hooks, brackets) tumbles in the dark and is mirrored into a 4-, 8- or 12-fold snowflake with a wide blue glow. Beats punch it outwards and flash the light, kicks open the glow, snares kick it round and hi-hats shimmer the edges. Every 16 strong beats a new look cuts in behind a flash: new blocks, another symmetry, and the colours fade to another cyberpunk palette (neon blue and pink, magenta and cyan, synthwave, acid, amber, cyan and pink).
+
 ## [0.31.1] - 2026-09-30
 
 ### Changed
