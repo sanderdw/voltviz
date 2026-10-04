@@ -17,6 +17,7 @@ import VisualizerStage from './VisualizerStage';
 import { removeUrlParam, useAppState } from './useAppState';
 import { useAudioEngine } from './useAudioEngine';
 import { useMaStatus } from './useMusicAssistant';
+import { useCast } from '../cast/useCast';
 
 export default function App() {
   const appVersion = __APP_VERSION__;
@@ -55,6 +56,7 @@ export default function App() {
   }, [sendspin.metadata, ma, maStatus]);
 
   const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
+  const cast = useCast(audio?.host ?? null, running);
 
   // Sendspin (Music Assistant) says exactly when the track changes: let the beat tracking
   // start over on the new song instead of detecting the change from the audio. A cleared
@@ -233,6 +235,7 @@ export default function App() {
             startMicrophone={startMicrophone}
             startSystemAudio={startSystemAudio}
             stopStream={() => stopStream()}
+            cast={cast}
           />
         )}
 

@@ -8,6 +8,7 @@
  * preserveDrawingBuffer) can be read.
  */
 import type { AudioFrame } from '../../audio/types';
+import { drawLayerCanvases } from './drawLayer';
 
 export interface ProbeSample {
   t: number; // performance.now() ms
@@ -80,15 +81,7 @@ export class Probe {
     const ctx = this.ctx;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
-    const box = top.container.getBoundingClientRect();
-    for (const c of top.container.querySelectorAll('canvas')) {
-      const r = c.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
-      try {
-        ctx.drawImage(c, ((r.left - box.left) / box.width) * W, ((r.top - box.top) / box.height) * H,
-          (r.width / box.width) * W, (r.height / box.height) * H);
-      } catch { /* tainted or zero-sized canvas */ }
-    }
+    drawLayerCanvases(ctx, top.container, 0, 0, W, H);
     const px = ctx.getImageData(0, 0, W, H).data;
     let lum = 0, motion = 0;
     for (let i = 0; i < W * H; i++) {
@@ -142,15 +135,7 @@ export class Probe {
     const ctx = this.shotCanvas.getContext('2d')!;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, w, h);
-    const box = container.getBoundingClientRect();
-    for (const c of container.querySelectorAll('canvas')) {
-      const r = c.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
-      try {
-        ctx.drawImage(c, ((r.left - box.left) / box.width) * w, ((r.top - box.top) / box.height) * h,
-          (r.width / box.width) * w, (r.height / box.height) * h);
-      } catch { /* ignore */ }
-    }
+    drawLayerCanvases(ctx, container, 0, 0, w, h);
     return this.shotCanvas.toDataURL('image/jpeg', 0.72);
   }
 

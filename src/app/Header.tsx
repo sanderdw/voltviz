@@ -1,5 +1,6 @@
-import { Mic, MonitorUp, Square, Settings2, Maximize, ChevronDown, LayoutGrid, Radio } from 'lucide-react';
+import { Mic, MonitorUp, Square, Settings2, Maximize, ChevronDown, LayoutGrid, Radio, Cast } from 'lucide-react';
 import githubIcon from '../images/GitHub_Invertocat_White.svg';
+import type { CastControl } from '../cast/useCast';
 import type { SkinDefinition, SkinType } from '../skins';
 import { visualizerNames, type VisualizerType } from '../visualizers/registry';
 
@@ -17,6 +18,7 @@ interface HeaderProps {
   startMicrophone: () => void;
   startSystemAudio: () => void;
   stopStream: () => void;
+  cast: CastControl;
 }
 
 // Below lg the header buttons collapse to icons (aria-label keeps their accessible name).
@@ -25,7 +27,11 @@ const ICON_ONLY = 'justify-center max-lg:px-2.5 pointer-coarse:min-h-10 pointer-
 const GITHUB_LINK = 'shrink-0 inline-flex items-center justify-center pointer-coarse:min-h-10 pointer-coarse:min-w-10';
 
 export default function Header({ skin, activeSkin, stream, activeVisualizer, showSettings, setShowPicker, setShowSettings,
-  setShowControls, setShowSendspinDialog, startMicrophone, startSystemAudio, stopStream }: HeaderProps) {
+  setShowControls, setShowSendspinDialog, startMicrophone, startSystemAudio, stopStream, cast }: HeaderProps) {
+  const casting = cast.status !== 'idle';
+  const castLabel = cast.status === 'connected' ? 'Casting' : cast.status === 'connecting' ? 'Connecting…'
+    : cast.status === 'failed' ? 'Cast failed' : 'Cast';
+  const castTitle = casting ? `${castLabel}${cast.deviceName ? ` to ${cast.deviceName}` : ''} (click to stop)` : 'Cast to TV';
   return (
     <header className={skin.header}>
       <div className="flex flex-col min-w-0 max-sm:basis-0 max-sm:grow sm:shrink-0">
@@ -89,6 +95,19 @@ export default function Header({ skin, activeSkin, stream, activeVisualizer, sho
           </>
         ) : (
           <>
+            {cast.available && (
+              <button
+                onClick={cast.toggle}
+                className={`${casting ? skin.buttonPrimary : skin.buttonGhost} ${ICON_ONLY}`}
+                aria-label={castTitle}
+                aria-pressed={casting}
+                title={castTitle}
+                data-testid="cast-button"
+              >
+                <Cast size={16} />
+                <span className={LABEL}>{castLabel}</span>
+              </button>
+            )}
             <button
               onClick={() => setShowControls(false)}
               className={`${skin.buttonGhost} ${ICON_ONLY}`}

@@ -128,6 +128,7 @@ src/
 │   ├── lib/                # Canvas 2D / three.js / audio helpers
 │   └── registry.ts         # Single source of truth: ids, names, picker order
 ├── app/                    # React shell: header, settings, Sendspin bar/dialog, stage, URL state
+├── cast/                   # Google Cast: stage compositor, WebRTC sender, receiver app
 ├── components/             # Visualizer picker
 ├── data/                   # Static data (geographic, etc.)
 └── images/                 # Asset images and picker previews
@@ -138,6 +139,7 @@ scripts/templates/          # Templates for `npm run new:viz`
 docs/reports/               # Audio engine evidence report (HTML) and its data
 docs/presentation/          # Conference talk about the rewrite (HTML slides)
 docs/explainer/             # Animated explainer of the audio engine (HTML)
+cast-receiver.html          # Google Cast receiver page (runs on the Chromecast)
 nginx/
 └── default.conf            # Nginx configuration for production
 ```
@@ -227,6 +229,32 @@ VoltViz uses `@sendspin/sendspin-js` 5.x, which speaks the encrypted Sendspin pr
 (`uvx sendspin serve`, 7.5 at the time of writing) still uses `aiosendspin` 6.x and cannot connect.
 
 The easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
+
+---
+
+## 📺 Cast to TV (Google Cast)
+
+While a source is running, the **Cast** button in the header sends the visualizer *picture* to a
+Chromecast or Google TV. The audio is not sent: it keeps playing wherever it plays now (your
+speakers, a Sendspin player). Your browser still renders the visualizer and streams it to the TV
+as 1280×720 video over WebRTC on your local network.
+
+- **Requirements:** Chrome or Edge on desktop or Android, VoltViz over https (voltviz.com, or your own https host), and the Cast device on the same network. The button only appears when a Cast device is found.
+- **Keep the VoltViz tab in the foreground.** Browsers pause background tabs, which freezes the picture on the TV.
+- **Lag:** the TV runs a little behind your screen, about 150–300 ms.
+- **Canvas only:** what visualizers draw on a canvas is cast. DOM/CSS parts are not, such as the cover backgrounds of Background Image or Glitch Background, and upload buttons.
+
+### Own deployment (forks)
+
+Every build casts to the VoltViz receiver app (`43CE6A0C`), which is the
+`cast-receiver.html` page hosted on voltviz.com, so self-hosted copies can cast as-is. If you
+change the receiver, register your own:
+
+1. In the [Google Cast SDK Developer Console](https://cast.google.com/publish) (one-time US$5), add a **Custom Receiver** with the URL `https://<your-host>/cast-receiver.html`.
+2. Until the app is published, register your Cast device's serial number under **Devices**, then reboot the device.
+3. Build with your application ID: `VITE_CAST_APP_ID=<app id> npm run build`.
+
+To debug the receiver, open `chrome://inspect` in Chrome and add `<cast device IP>:9222` as a target.
 
 ---
 

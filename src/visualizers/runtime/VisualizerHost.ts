@@ -35,12 +35,16 @@ interface Layer {
   fps: number;
 }
 
+/** Called after every rendered frame, in the same task (WebGL buffers are still readable). */
+export type AfterFrame = (layers: readonly { id: string; container: HTMLDivElement }[]) => void;
+
 const dprCap = () => Math.min(window.devicePixelRatio || 1, 2);
 
 export class VisualizerHost {
   private engine: AudioEngine;
   private readonly layers = new Set<Layer>();
   private raf = 0;
+  private afterFrame: AfterFrame | null = null;
   readonly probe: Probe | null;
 
   constructor(engine: AudioEngine) {
@@ -50,6 +54,11 @@ export class VisualizerHost {
 
   setEngine(engine: AudioEngine): void {
     this.engine = engine;
+  }
+
+  /** Observe every rendered frame (e.g. to copy it for casting); null removes the observer. */
+  setAfterFrame(cb: AfterFrame | null): void {
+    this.afterFrame = cb;
   }
 
   mount(id: string, container: HTMLDivElement, factory: VisualizerFactory, settings: VisualizerSettings,
@@ -150,6 +159,10 @@ export class VisualizerHost {
     }
     // Same task as the render: WebGL drawing buffers are still readable here.
     this.probe?.sample(now, audio, [...this.layers].map(l => ({ id: l.id, container: l.container, fps: l.fps })));
+    if (this.afterFrame) {
+      // Mount order (Set insertion order): an outgoing layer comes before the one fading in.
+      try { this.afterFrame([...this.layers]); } catch (err) { console.error('VoltViz: after-frame observer failed', err); }
+    }
   };
 
   /** Frame-rate per mounted layer (for diagnostics / tests). */

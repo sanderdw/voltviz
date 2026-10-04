@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **Cast to TV**: a Cast button sends the visualizer picture (not the audio) to a Chromecast or Google TV. Your browser keeps rendering and streams it as video over WebRTC on your local network.
+
 ## [0.32.0] - 2026-10-04
 
 ### Added

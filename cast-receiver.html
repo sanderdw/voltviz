@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>VoltViz Cast Receiver</title>
+    <!-- Google Cast Web Receiver (CAF): this page only runs on a Cast device, as the VoltViz receiver app -->
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <style>
+      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+      body { font-family: system-ui, sans-serif; color: rgba(255, 255, 255, 0.7); }
+      video { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: contain; background: #000; }
+      #idle {
+        position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 1.5rem; background: radial-gradient(ellipse at center, #1b1030 0%, #000 70%); transition: opacity 0.6s;
+      }
+      #idle h1 { margin: 0; font-size: 4rem; font-weight: 300; color: #fff; letter-spacing: 0.02em; }
+      #idle h1 span { font-weight: 700; color: #4ade80; }
+      #idle p { margin: 0; font-size: 1.5rem; }
+      body.playing #idle { opacity: 0; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <video id="video" muted autoplay playsinline></video>
+    <div id="idle">
+      <h1>Volt<span>Viz</span></h1>
+      <p id="status">Waiting for VoltViz…</p>
+    </div>
+    <script type="module" src="/src/cast/receiver.ts"></script>
+  </body>
+</html>

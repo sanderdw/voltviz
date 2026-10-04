@@ -117,6 +117,13 @@ export default defineConfig(({mode}) => {
     },
     build: {
       chunkSizeWarningLimit: 600,
+      rolldownOptions: {
+        // The Google Cast receiver app (runs on the Chromecast, see src/cast/receiver.ts)
+        input: {
+          main: join(import.meta.dirname, 'index.html'),
+          castReceiver: join(import.meta.dirname, 'cast-receiver.html'),
+        },
+      },
     },
     resolve: {
       alias: {
