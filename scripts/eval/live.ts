@@ -12,9 +12,13 @@
  *
  *   node scripts/eval/live.ts [--base http://127.0.0.1:3101] [--ids a,b] [--deep] [--out path] [--reanalyze]
  *     [--excerpt <id from genres.json or library2025.json>] [--style <Music style>] [--start s]
+ *     [--cdp http://localhost:9222]
  *
  * Requires the dev server (DISABLE_HMR=true npx vite --port 3101 --strictPort) and system
- * Chrome. Runs one page at a time (memory).
+ * Chrome. Runs one page at a time (memory). `--cdp` connects to an already running Chrome
+ * (started with --remote-debugging-port and --autoplay-policy=no-user-gesture-required)
+ * instead of launching one, e.g. a Windows Chrome with a real GPU from WSL, where headless
+ * WebGPU only gets the SwiftShader software adapter; the test audio is muted there.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium, type Browser } from 'playwright';
@@ -41,7 +45,8 @@ const ids = arg('ids', '') ? arg('ids', '').split(',') : visualizers.map(v => v.
 
 /** Visualizers whose effects are meant to hit on the beat (engine beat triggers). */
 export const BEAT_DRIVEN = new Set(['anunakisphere', 'cybercity', 'aurumleaf', 'fractalorb', 'razor1911', 'icons', 'yourlogo',
-  'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'halftonepulse', 'lasershow', 'kaleidoscope']);
+  'fireworksshow', 'defqonmainstage', 'mossball', 'msdefrag', 'disneydroneshow', 'halftonepulse', 'lasershow', 'kaleidoscope',
+  'blobtracker', 'daybreak']);
 /** Visualizers that show nothing until the user uploads something (the harness uploads). */
 const UPLOADS: Record<string, string> = {
   yourlogo: 'src/images/GitHub_Invertocat_White.svg',
@@ -76,6 +81,12 @@ async function capture(browser: Browser, id: string, start: number, shots: boole
   const excerptSeconds = excerptInfo?.seconds ?? 120;
   if (end > excerptSeconds - 0.5) throw new Error(`segment ${start}+${WARMUP}+${SECONDS}s runs past the ${excerptSeconds}s excerpt`);
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  // A connected (non-headless) Chrome would play the excerpt out loud; captureStream() still
+  // carries the audio of a muted element.
+  if (arg('cdp', '')) await page.addInitScript(() => {
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) { this.muted = true; return play.call(this); };
+  });
   const errors: string[] = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
@@ -149,11 +160,13 @@ mkdirSync(RAW, { recursive: true });
 const rawPath = (id: string, start: number) => `${RAW}/${EXCERPT}${STYLE ? `-${STYLE}` : ''}-${id}-${start}.json`;
 
 let browser: Browser | null = null;
-if (!has('reanalyze')) {
+if (!has('reanalyze') && arg('cdp', '')) {
+  browser = await chromium.connectOverCDP(arg('cdp', ''));
+} else if (!has('reanalyze')) {
   browser = await chromium.launch({
     channel: 'chrome',
     headless: !has('headed'),
-    args: ['--autoplay-policy=no-user-gesture-required', '--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=default'],
+    args: ['--autoplay-policy=no-user-gesture-required', '--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=default', '--enable-unsafe-webgpu'],
   });
 }
 const results = [];

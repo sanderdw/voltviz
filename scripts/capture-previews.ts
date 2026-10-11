@@ -25,6 +25,8 @@ const WARMUP_MS = 3500;
 // minimal sensitivity keeps the capture recognizable.
 const CAPTURE_PARAMS: Record<string, string> = {
   cybermatrix: '&sensitivity=0.01',
+  blobtracker: '&scene=drift',
+  daybreak: '&scene=burst&palette=dawn',
 };
 
 function writeFakeAudioWav(path: string): void {
@@ -111,6 +113,7 @@ const browser = await chromium.launch({
     '--use-fake-device-for-media-stream',
     `--use-file-for-fake-audio-capture=${wavPath}`,
     '--autoplay-policy=no-user-gesture-required',
+    '--enable-unsafe-webgpu',
   ],
 });
 

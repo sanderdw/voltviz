@@ -59,6 +59,8 @@ export const visualizers = [
   { id: 'halftonepulse', name: 'Halftone Pulse', module: 'HalftonePulse' },
   { id: 'lasershow', name: 'Laser Show', module: 'LaserShow' },
   { id: 'kaleidoscope', name: 'Kaleidoscope', module: 'Kaleidoscope' },
+  { id: 'blobtracker', name: 'Blob Tracker (WebGPU)', module: 'BlobTracker' },
+  { id: 'daybreak', name: 'Daybreak (WebGPU)', module: 'Daybreak' },
 ] as const satisfies readonly VisualizerEntry[];
 
 export type VisualizerType = (typeof visualizers)[number]['id'];
