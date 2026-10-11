@@ -3,7 +3,8 @@ import { visualizers } from '../src/visualizers';
 
 test.use({
   launchOptions: {
-    args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    // --enable-unsafe-webgpu: headless Chromium only exposes a WebGPU adapter with it (Blob Tracker)
+    args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--enable-unsafe-webgpu'],
   },
 });
 
