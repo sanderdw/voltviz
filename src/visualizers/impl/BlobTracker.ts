@@ -551,7 +551,7 @@ const TICKER_FALLBACK = ['communication', 'transmission', 'synchronize', 'interf
 function wordsFrom(meta: { title?: string | null; artist?: string | null } | null): string[] {
   const src = [meta?.title, meta?.artist].filter(Boolean).join(' ');
   const words = src.split(/[\s\-–—_/|,.:;()[\]]+/).map(w => w.replace(/[^\p{L}\p{N}'&]/gu, '')).filter(w => w.length >= 2 && w.length <= 14);
-  return words.length >= 2 ? words.map(w => w.toLowerCase()) : FALLBACK_WORDS;
+  return words.length ? words.map(w => w.toLowerCase()) : FALLBACK_WORDS;
 }
 
 /** Rotate an RGB colour around the grey axis (YIQ), for the hue-shift setting. */
@@ -820,7 +820,7 @@ const BlobTracker: VisualizerFactory = async ({ container, metadata: initialMeta
     H = Math.max(2, Math.round(cssH * s));
     canvas.width = W;
     canvas.height = H;
-    hudScale = Math.min(dpr, 1.5);
+    hudScale = Math.min(s, 1.5);
     hudCanvas.width = Math.max(1, Math.round(cssW * hudScale));
     hudCanvas.height = Math.max(1, Math.round(cssH * hudScale));
 
