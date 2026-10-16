@@ -23,7 +23,7 @@ VoltViz comes with **50+ stunning visualization styles** to choose from:
 - **Organic Effects**: Fluid Smoke, Psychedelic Skull, Flame
 - **Data Driven**: Dutch Grid, Dutch Grid (WebGL), Data Dashboard, Raw Audio
 - **MilkDrop-inspired**: MilkDrop, MilkDrop Warp
-- **WebGPU**: Blob Tracker, Daybreak, Oscilloscope
+- **WebGPU**: Blob Tracker, Daybreak, Oscilloscope, Pulsar
 - **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons...
 
 **UI Skins:** Switch the entire interface between **Modern**, **Win95**, **Winamp**, and **CRT** themes via the `?skin=` URL parameter.
@@ -124,7 +124,7 @@ src/
 │   ├── AudioEngine.ts      # One AudioContext per session -> one AudioFrame per animation frame
 │   └── types.ts            # AudioFrame: beats, onsets, bands, spectrum, waveform, stereo
 ├── visualizers/
-│   ├── impl/               # 53 visualizers as framework-free renderer modules
+│   ├── impl/               # 54 visualizers as framework-free renderer modules
 │   ├── runtime/            # VisualizerHost (single rAF loop, resize, errors), contract, QA probe
 │   ├── lib/                # Canvas 2D / three.js / audio helpers
 │   └── registry.ts         # Single source of truth: ids, names, picker order
