@@ -28,6 +28,7 @@ const CAPTURE_PARAMS: Record<string, string> = {
   blobtracker: '&scene=drift',
   daybreak: '&scene=burst&palette=dawn',
   oscilloscope: '&mode=vector&shape=cube',
+  pulsar: '&shot=pulsar&palette=mono',
 };
 
 function writeFakeAudioWav(path: string): void {

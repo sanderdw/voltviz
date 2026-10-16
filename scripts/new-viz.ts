@@ -4,7 +4,7 @@
  *   npm run new:viz -- <id> "<Display Name>" [--template canvas2d|three|shader] [--beat]
  *
  * Creates src/visualizers/impl/<Module>.ts from scripts/templates/<template>.ts (keeping the
- * beat-reactive parts only with --beat) and appends the entry to src/visualizers/registry.ts.
+ * beat-reactive parts only with --beat) and adds the entry to the top of src/visualizers/registry.ts.
  * The result compiles and runs as generated; see .github/skills/adding-visualizer/SKILL.md.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -53,10 +53,11 @@ src = src
 if (!beat) src = src.replace(/let (\w+) = settings\.scale/g, 'const $1 = settings.scale');
 writeFileSync(target, src);
 
-const marker = '] as const satisfies readonly VisualizerEntry[];';
-if (!registry.includes(marker)) fail(`could not find the end of the visualizer list in ${registryPath}`);
+// newest first: the entry goes to the top of the list
+const marker = 'export const visualizers = [\n';
+if (!registry.includes(marker)) fail(`could not find the start of the visualizer list in ${registryPath}`);
 const entry = `  { id: '${id}', name: '${name.replace(/'/g, "\\'")}', module: '${moduleName}' },\n`;
-writeFileSync(registryPath, registry.replace(marker, `${entry}${marker}`));
+writeFileSync(registryPath, registry.replace(marker, `${marker}${entry}`));
 
 console.log(`Created ${target} (${template}${beat ? ', beat-reactive' : ''}) and registered "${id}".
 
