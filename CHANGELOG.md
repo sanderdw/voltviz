@@ -3,7 +3,7 @@
 ## [0.35.0] - 2026-10-16
 
 ### Added
-- **Pulsar (WebGPU)**: a black-and-white space montage cut to the beat: a pulsar and its magnetosphere, eclipses, a sunrise over a planet, a beam through curtains of gas and a cellular star in front of the Milky Way, with bloom, lens streaks and film grain. Calm music holds a shot; a drop flashes white and the edit cuts faster.
+- **Pulsar (WebGPU)**: a black-and-white space montage cut to the beat: a pulsar and its magnetosphere, eclipses, a sunrise over a planet, a beam through curtains of gas and a cellular star in front of the Milky Way.
 
 ### Changed
 - Updated dependencies.
