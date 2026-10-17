@@ -18,7 +18,7 @@
  */
 import type { AudioFrame } from '../../audio/types';
 import { avg, beatHit, beatStrength, STRONG_BEAT } from '../lib/audio';
-import { BUF, compileShader, MAP_READ, TEX, webgpuFallback as fallback } from '../lib/webgpu';
+import { BUF, compileShader, MAP_READ, noWebGPUReason, TEX, webgpuFallback as fallback } from '../lib/webgpu';
 import type { VisualizerFactory, VisualizerInstance } from '../runtime/types';
 
 // ---------------------------------------------------------------------------------------------
@@ -660,7 +660,7 @@ const ATLAS_W = 2048, ATLAS_H = 1024, ROW_H = 256, ATLAS_MIPS = 7;
 
 const BlobTracker: VisualizerFactory = async ({ container, metadata: initialMeta }) => {
   const gpu = navigator.gpu;
-  if (!gpu) return fallback(container, 'This browser has no WebGPU (try Chrome, Edge or Safari 26+).');
+  if (!gpu) return fallback(container, noWebGPUReason());
   const adapter = await gpu.requestAdapter().catch(() => null);
   if (!adapter) return fallback(container, 'No WebGPU adapter: enable hardware acceleration.');
   const device = await adapter.requestDevice();

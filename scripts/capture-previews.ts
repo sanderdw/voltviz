@@ -13,6 +13,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { visualizers } from '../src/visualizers/registry.ts';
+import { hideAppUi } from './lib/hideAppUi.ts';
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'images', 'previews');
 // Own port with --strictPort so another local service on a common port is never captured.
@@ -125,16 +126,7 @@ try {
   const captureOnce = async (id: string): Promise<boolean> => {
     await page.goto(`${BASE_URL}/?viz=${id}${CAPTURE_PARAMS[id] ?? ''}`);
     await page.getByRole('button', { name: 'Microphone' }).click();
-    await page.getByRole('button', { name: 'Hide UI' }).click();
-    // Keep the floating "Show UI" toggle and version label out of the shot
-    await page.addStyleTag({ content: 'button[title="Show UI"]{display:none !important}' });
-    await page.evaluate(() => {
-      document.querySelectorAll('div').forEach(el => {
-        if (/^v\d+\./.test(el.textContent?.trim() ?? '') && el.childElementCount === 0) {
-          (el as HTMLElement).style.display = 'none';
-        }
-      });
-    });
+    await hideAppUi(page);
     await page.waitForTimeout(WARMUP_MS);
     // Guard against audio-capture flakes that bounce the app back to the landing page
     const heroVisible = await page.getByRole('heading', { name: 'Visualize Your Sound' })

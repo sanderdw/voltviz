@@ -13,7 +13,7 @@ export type ImageUploadApi = { setImage(url: string): void };
 export function imageUploadOverlay(noun: string): ComponentType<OverlayProps> {
   return function ImageUploadOverlay({ api }: OverlayProps) {
     const [image, setImage] = useState<string | null>(null);
-    const [showUI, setShowUI] = useState(true);
+    const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
     useEffect(() => {
       if (image) (api as ImageUploadApi | null)?.setImage(image);

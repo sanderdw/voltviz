@@ -10,7 +10,7 @@
 
 ![VoltViz](https://img.shields.io/badge/React-19.3-blue?style=flat-square) ![VoltViz](https://img.shields.io/badge/Three.js-0.186-green?style=flat-square) ![VoltViz](https://img.shields.io/badge/Vite-8.3-purple?style=flat-square) ![VoltViz](https://img.shields.io/badge/License-MIT-orange?style=flat-square)
 
-[![Voltviz](images/voltviz.png)](https://voltviz.com)
+[![VoltViz](images/voltviz-poster.png)](https://voltviz.com)
 ---
 
 VoltViz comes with **50+ stunning visualization styles** to choose from:
@@ -25,6 +25,8 @@ VoltViz comes with **50+ stunning visualization styles** to choose from:
 - **MilkDrop-inspired**: MilkDrop, MilkDrop Warp
 - **WebGPU**: Blob Tracker, Daybreak, Oscilloscope, Pulsar
 - **And many more**: Bars, Circular, Tunnel, Background Image, Blur Image, Your Logo, Icons...
+
+> **_NOTE:_** The WebGPU visualizers need a recent browser (Chrome, Edge or Safari 26+) and a secure page: VoltViz opened over **https://** or on **localhost**. Browsers turn WebGPU off on plain-http pages, so a self-hosted VoltViz or Home Assistant opened at an `http://` address (e.g. `http://homeassistant.local:8123`) shows *WebGPU not available*; the other visualizers still work.
 
 **UI Skins:** Switch the entire interface between **Modern**, **Win95**, **Winamp**, and **CRT** themes via the `?skin=` URL parameter.
 
@@ -89,6 +91,8 @@ http://localhost:8080
 | `npm run new:viz -- <id> "<Name>"` | Scaffold a new visualizer (see `.github/skills/adding-visualizer/SKILL.md`) |
 | `npm run eval:prepare` / `eval:beats` / `eval:live` | Beat-tracking evaluation on the genre excerpts in `scripts/eval/genres.json` (local, gitignored: it lists songs from your own music library in `VOLTVIZ_MUSIC_DIR`, default `~/Music`) |
 | `npm run report` | Rebuild the evidence report for the current version, `docs/reports/audio-engine-report-<version>.html` (earlier reports stay next to it) |
+| `npm run capture:previews [ids...]` / `make:og-image` | Regenerate the picker preview thumbnails / the Open Graph image and maskable icon |
+| `npm run promo -- [track\|record\|edit\|stills]` | Rebuild the promo material: generated soundtrack, clips recorded in a GPU Chrome over CDP (`--remote-debugging-port=9222 --force-device-scale-factor=1 --auto-accept-this-tab-capture`), the montage video, an animated WebP showcase and a silent loop (all in `.cache/promo/out/`), the README poster and banner (see `scripts/promo/`) |
 
 ---
 

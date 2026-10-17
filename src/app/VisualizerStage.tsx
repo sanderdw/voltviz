@@ -25,13 +25,15 @@ interface LayerProps {
   host: VisualizerHost;
   settings: VisualizerSettings;
   metadata: ServerStateMetadata | null;
+  /** False while the app UI is hidden: the overlay's controls are hidden with it. */
+  showControls: boolean;
   onReady: () => void;
   /** The module failed to load or start: nothing to show. */
   onFailed: () => void;
 }
 
 /** One visualizer layer: loads the module, mounts it through the host, renders its overlay. */
-function VisualizerLayer({ id, host, settings, metadata, onReady, onFailed }: LayerProps) {
+function VisualizerLayer({ id, host, settings, metadata, showControls, onReady, onFailed }: LayerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const handleRef = useRef<LayerHandle | null>(null);
   const settingsRef = useRef(settings);
@@ -80,7 +82,8 @@ function VisualizerLayer({ id, host, settings, metadata, onReady, onFailed }: La
   return (
     <>
       <div ref={ref} className="absolute inset-0 overflow-hidden" data-testid="viz-canvas-root" />
-      {Overlay && <Overlay api={api} />}
+      {/* Kept mounted while hidden, so an uploaded image or chosen style survives */}
+      {Overlay && <div className={showControls ? 'contents' : 'hidden'}><Overlay api={api} /></div>}
     </>
   );
 }
@@ -97,9 +100,10 @@ interface VisualizerStageProps {
   settings: VisualizerSettings;
   sendspinMetadata?: ServerStateMetadata | null;
   transition: TransitionMode;
+  showControls: boolean;
 }
 
-export default function VisualizerStage({ host, visualizer, settings, sendspinMetadata, transition }: VisualizerStageProps) {
+export default function VisualizerStage({ host, visualizer, settings, sendspinMetadata, transition, showControls }: VisualizerStageProps) {
   const keyCounter = useRef(0);
   const timeoutsRef = useRef<number[]>([]);
   const transitionRef = useRef(transition);
@@ -160,6 +164,7 @@ export default function VisualizerStage({ host, visualizer, settings, sendspinMe
             host={host}
             settings={settings}
             metadata={metadata}
+            showControls={showControls}
             onReady={() => { if (!l.visible) beginFade(l.key); }}
             onFailed={() => dropFailed(l.key)}
           />

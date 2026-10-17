@@ -388,7 +388,7 @@ export function Overlay({ api }: OverlayProps) {
   const logoApi = api as YourLogoApi | null;
   const [hasSvg, setHasSvg] = useState(false);
   const [useOriginalColors, setUseOriginalColors] = useState(false);
-  const [showUI, setShowUI] = useState(true);
+  const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
   useEffect(() => {
     logoApi?.setUseOriginalColors(useOriginalColors);

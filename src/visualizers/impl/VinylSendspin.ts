@@ -1,9 +1,15 @@
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
-import dummyCover from '../../../images/dummycover.png';
+import dummyCover from '../../../images/dummycover.jpg';
 import { imageUploadOverlay } from '../lib/imageUpload';
 import type { VisualizerFactory } from '../runtime/types';
 
 const FFT_SIZE = 1024;
+
+/** Draws the centre square of `image` into the square at (x, y): a non-square image is cropped, not squashed. */
+function drawSquare(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, size: number): void {
+  const side = Math.min(image.width, image.height);
+  ctx.drawImage(image, (image.width - side) / 2, (image.height - side) / 2, side, side, x, y, size, size);
+}
 
 const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata }) => {
   const wrapper = document.createElement('div');
@@ -151,7 +157,7 @@ const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata
         targetCtx.arc(0, 0, vinylRadius * 0.33, 0, Math.PI * 2);
         targetCtx.clip();
         if (image) {
-          targetCtx.drawImage(image, -vinylRadius * 0.33, -vinylRadius * 0.33, vinylRadius * 0.66, vinylRadius * 0.66);
+          drawSquare(targetCtx, image, -vinylRadius * 0.33, -vinylRadius * 0.33, vinylRadius * 0.66);
         } else {
           targetCtx.fillStyle = '#1e293b';
           targetCtx.fill();
@@ -178,7 +184,7 @@ const VinylSendspin: VisualizerFactory = ({ container, metadata: initialMetadata
         }
 
         if (image) {
-          targetCtx.drawImage(image, -coverSize / 2, -coverSize / 2, coverSize, coverSize);
+          drawSquare(targetCtx, image, -coverSize / 2, -coverSize / 2, coverSize);
         } else {
           targetCtx.fillStyle = '#1e293b';
           targetCtx.fillRect(-coverSize / 2, -coverSize / 2, coverSize, coverSize);

@@ -1,7 +1,7 @@
 {
   "name": "voltviz",
   "private": true,
-  "version": "0.35.0",
+  "version": "0.35.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -14,6 +14,7 @@
     "test:install": "playwright install chromium",
     "capture:previews": "node scripts/capture-previews.ts",
     "make:og-image": "node scripts/make-og-image.ts",
+    "promo": "node scripts/promo/index.ts",
     "new:viz": "node scripts/new-viz.ts",
     "eval:prepare": "node scripts/eval/prepare-audio.ts",
     "eval:beats": "node scripts/eval/eval-beats.ts",
@@ -24,7 +25,7 @@
   "dependencies": {
     "@sendspin/sendspin-js": "^5.0.0",
     "d3-geo": "^3.1.1",
-    "lucide-react": "^1.58.0",
+    "lucide-react": "^1.59.0",
     "onnxruntime-web": "^1.30.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
