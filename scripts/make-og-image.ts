@@ -6,37 +6,36 @@
 //   public/og-image.png          1200x630 Open Graph / Twitter card image
 //   public/icon-512-maskable.png 512x512 icon with the maskable safe zone
 //
-// Needs a Playwright Chromium (`npx playwright install chromium`); no dev
+// Thumbnails are the full-resolution promo stills when `npm run promo` has made them, else
+// the picker previews. Needs a Playwright Chromium (`npx playwright install chromium`); no dev
 // server or audio hardware. Outputs are committed: the Docker build has no
 // browser, and the image must be a stable absolute URL for link previews.
 import { chromium } from 'playwright';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ACCENT, BG, FONT_STACK, dataUri } from './lib/brand.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = join(ROOT, 'public');
 const PREVIEW_DIR = join(ROOT, 'src', 'images', 'previews');
+// Full-resolution stills from the promo pipeline (`npm run promo`), when present
+const PROMO_STILLS_DIR = join(ROOT, '.cache', 'promo', 'stills');
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-const BG = '#0f0f1a';
-const ACCENT = '#4ade80';
 
 // Preview thumbnails shown in the 2x3 grid, left-to-right, top-to-bottom.
-const THUMBNAILS = ['polysphere', 'hexglobe', 'holoblinds', 'psychedelicskull', 'trailsstream', 'defqonmainstage'];
+const THUMBNAILS = ['pulsar', 'lasershow', 'kaleidoscope', 'milkdrop', 'polysphere', 'glitchdatabend'];
 
-const FONT_STACK =
-  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif';
-
-function dataUri(path: string, mime: string): string {
-  if (!existsSync(path)) throw new Error(`Missing image: ${path}`);
-  return `data:${mime};base64,${readFileSync(path).toString('base64')}`;
+function thumbnail(id: string): string {
+  const promo = join(PROMO_STILLS_DIR, `${id}.png`);
+  return existsSync(promo) ? dataUri(promo, 'image/png') : dataUri(join(PREVIEW_DIR, `${id}.jpg`), 'image/jpeg');
 }
 
 function ogHtml(): string {
   const tiles = THUMBNAILS.map(id => {
-    const src = dataUri(join(PREVIEW_DIR, `${id}.jpg`), 'image/jpeg');
+    const src = thumbnail(id);
     return `<div class="tile"><img src="${src}" alt="" /></div>`;
   }).join('');
   return `<!doctype html>

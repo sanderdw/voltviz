@@ -19,7 +19,7 @@
  */
 import type { AudioFrame } from '../../audio/types';
 import { beatHit, beatStrength, STRONG_BEAT } from '../lib/audio';
-import { BUF, compileShader, TEX, webgpuFallback as fallback } from '../lib/webgpu';
+import { BUF, compileShader, noWebGPUReason, TEX, webgpuFallback as fallback } from '../lib/webgpu';
 import type { VisualizerFactory, VisualizerInstance } from '../runtime/types';
 
 // ---------------------------------------------------------------------------------------------
@@ -399,7 +399,7 @@ function fibSphere(n: number): Float32Array {
 
 const Oscilloscope: VisualizerFactory = async ({ container }) => {
   const gpu = navigator.gpu;
-  if (!gpu) return fallback(container, 'This browser has no WebGPU (try Chrome, Edge or Safari 26+).');
+  if (!gpu) return fallback(container, noWebGPUReason());
   const adapter = await gpu.requestAdapter().catch(() => null);
   if (!adapter) return fallback(container, 'No WebGPU adapter: enable hardware acceleration.');
   const device = await adapter.requestDevice();

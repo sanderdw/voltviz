@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.35.1] - 2026-10-17
+
+### Changed
+- New default artwork for the visualizers that show a picture before a track's cover arrives (Vinyl, Background Image, Blur Image, Glitch Background, Particles Stream).
+- **Vinyl** crops a non-square image to its centre instead of squashing it.
+- The upload and style buttons of a visualizer start hidden behind its eye button, so a fresh app shows only the visualizer.
+- Updated dependencies.
+
+### Fixed
+- Hide UI also hides the upload and style buttons of visualizers.
+- The WebGPU visualizers explain that they need HTTPS or localhost when opened over plain http, instead of suggesting another browser ([#35](https://github.com/sanderdw/voltviz/issues/35)).
+
 ## [0.35.0] - 2026-10-16
 
 ### Added

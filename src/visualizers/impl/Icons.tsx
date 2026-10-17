@@ -409,7 +409,7 @@ export default Icons;
 export function Overlay({ api }: OverlayProps) {
   const iconsApi = api as IconsApi | null;
   const [currentIconName, setCurrentIconName] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
+  const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
   useEffect(() => {
     if (!iconsApi) return;

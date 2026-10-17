@@ -256,6 +256,7 @@ export default function App() {
                   settings={settings}
                   sendspinMetadata={sendspinMetadata}
                   transition={transitionMode}
+                  showControls={showControls}
                 />
               )}
             </div>

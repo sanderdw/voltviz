@@ -933,7 +933,7 @@ export function Overlay({ api }: OverlayProps) {
   const [shape, setShape] = useState<Shape | 'auto'>('auto');
   const [neon, setNeon] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
-  const [showUI, setShowUI] = useState(true);
+  const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
   useEffect(() => { if (image) vizApi?.setImage(image); }, [vizApi, image]);
   useEffect(() => { vizApi?.setMode(mode); }, [vizApi, mode]);

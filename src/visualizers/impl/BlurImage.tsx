@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
-import dummyCover from '../../../images/dummycover.png';
+import dummyCover from '../../../images/dummycover.jpg';
 import { mountCanvas2D } from '../lib/canvas2d';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -161,7 +161,7 @@ export default BlurImage;
 
 export function Overlay({ api }: OverlayProps) {
   const [bgImage, setBgImage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
+  const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
   useEffect(() => {
     if (bgImage) (api as BlurImageApi | null)?.setImage(bgImage);

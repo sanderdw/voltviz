@@ -5,7 +5,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import { ImagePlus, Eye, EyeOff } from 'lucide-react';
-import dummyCover from '../../../images/dummycover.png';
+import dummyCover from '../../../images/dummycover.jpg';
 import { createRenderer, disposeRenderer } from '../lib/three';
 import type { OverlayProps, VisualizerFactory } from '../runtime/types';
 
@@ -481,7 +481,7 @@ export default ParticlesStream;
 
 export function Overlay({ api }: OverlayProps) {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(true);
+  const [showUI, setShowUI] = useState(false); // collapsed to the eye toggle until opened
 
   useEffect(() => {
     if (uploadedImage) (api as ParticlesStreamApi | null)?.setImage(uploadedImage);

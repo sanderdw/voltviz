@@ -1,5 +1,5 @@
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
-import dummyCover from '../../../images/dummycover.png';
+import dummyCover from '../../../images/dummycover.jpg';
 import { mountCanvas2D } from '../lib/canvas2d';
 import { imageUploadOverlay } from '../lib/imageUpload';
 import type { VisualizerFactory } from '../runtime/types';
