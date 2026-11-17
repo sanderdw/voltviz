@@ -75,16 +75,3 @@ export function hannWindow(n: number): Float64Array {
   for (let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / n);
   return w;
 }
-
-/** Blackman window exactly as specified for the Web Audio AnalyserNode (alpha = 0.16). */
-export function blackmanWindow(n: number): Float64Array {
-  const a = 0.16;
-  const a0 = (1 - a) / 2;
-  const a1 = 0.5;
-  const a2 = a / 2;
-  const w = new Float64Array(n);
-  for (let i = 0; i < n; i++) {
-    w[i] = a0 - a1 * Math.cos((2 * Math.PI * i) / n) + a2 * Math.cos((4 * Math.PI * i) / n);
-  }
-  return w;
-}

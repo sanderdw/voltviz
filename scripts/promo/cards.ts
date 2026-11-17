@@ -4,7 +4,7 @@
 import { chromium, type Page } from 'playwright';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ACCENT, BG, FONT_STACK, PURPLE } from '../lib/brand.ts';
+import { ACCENT, FONT_STACK, PURPLE } from '../lib/brand.ts';
 import { PATHS } from './paths.ts';
 import { SHOTS, labelOf } from './shots.ts';
 

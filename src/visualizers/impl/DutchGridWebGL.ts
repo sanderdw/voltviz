@@ -392,7 +392,7 @@ const DutchGridWebGL: VisualizerFactory = async ({ container, width: w, height: 
       if (mid * currentSettings.sensitivity > 120 && Math.random() > 0.4) {
         const validEdges = edges.map((e, i) => ({e, i})).filter(x => !nodes[x.e.from].isMajor && !nodes[x.e.to].isMajor);
         if (validEdges.length > 0) {
-          const {e, i} = validEdges[Math.floor(Math.random() * validEdges.length)];
+          const {i} = validEdges[Math.floor(Math.random() * validEdges.length)];
           const direction = Math.random() > 0.5 ? 1 : -1;
           particles.push({
             edgeIndex: i,

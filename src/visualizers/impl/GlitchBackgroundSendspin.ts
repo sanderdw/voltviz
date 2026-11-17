@@ -1,4 +1,4 @@
-import type { ServerStateMetadata } from '@sendspin/sendspin-js';
+import type { TrackMetadata } from '../../types';
 import dummyCover from '../../../images/dummycover.jpg';
 import { mountCanvas2D } from '../lib/canvas2d';
 import { imageUploadOverlay } from '../lib/imageUpload';
@@ -28,7 +28,7 @@ const GlitchBackgroundSendspin: VisualizerFactory = ({ container, metadata: init
   let lastMetadata = initialMetadata;
 
   // An uploaded image, else the artwork of the Sendspin track, else the dummy cover
-  const applyMetadata = (m: ServerStateMetadata | null) => {
+  const applyMetadata = (m: TrackMetadata | null) => {
     lastMetadata = m;
     const url = uploaded ?? m?.artwork_url ?? dummyCover;
     if (url === requestedUrl) return;

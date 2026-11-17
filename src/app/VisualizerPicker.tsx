@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { X, ImageOff, Shuffle, Check } from 'lucide-react';
-import { visualizers } from '../visualizers';
-import type { VisualizerType } from '../visualizers';
+import { visualizers } from '../visualizers/registry';
+import type { VisualizerType } from '../visualizers/registry';
 import type { SkinDefinition } from '../skins';
 
 // Only the hashed asset URLs are inlined here; the images themselves load

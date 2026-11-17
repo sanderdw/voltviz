@@ -1,7 +1,7 @@
 // The promo shot list: which visualizer plays over which bars of the generated track. Calm
 // visualizers sit in the breakdown, high-energy ones on the drops; every cut lands on a downbeat.
 import { visualizers } from '../../src/visualizers/registry.ts';
-import { BAR, trackInfo, type SectionName } from './track.ts';
+import { BAR, trackInfo } from './track.ts';
 
 export interface Shot {
   id: string;
@@ -42,10 +42,6 @@ export const STILL_AT_BAR = 1;
 
 export const startOf = (shot: Shot) => shot.bar * BAR;
 export const endOf = (shot: Shot) => (shot.bar + shot.bars) * BAR;
-
-export function sectionOf(shot: Shot): SectionName {
-  return trackInfo().sections.filter(sec => sec.bar <= shot.bar).at(-1)!.name;
-}
 
 /** Display name and tag for the label: "Pulsar (WebGPU)" → { name: "Pulsar", tag: "WebGPU" }. */
 export function labelOf(id: string): { name: string; tag?: string } {

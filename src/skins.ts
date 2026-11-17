@@ -67,6 +67,21 @@ export interface SkinDefinition {
   sendspinListItem: string;
   sendspinListItemActive: string;
   sendspinListMeta: string;
+  /** The "Music Visualizer" part of the header title. */
+  titleAccent: string;
+  link: string;
+  githubLink: string;
+  githubIcon: string;
+  heroIconColor: string;
+  heroStrong: string;
+  panelTitle: string;
+  panelClose: string;
+  dialogHeader: string;
+  dialogTitle: string;
+  dialogClose: string;
+  /** Size class of the close icon, or null for a plain "X". */
+  dialogCloseIcon: string | null;
+  dialogText: string;
 }
 
 export const skins: Record<SkinType, SkinDefinition> = {
@@ -135,6 +150,19 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinListItem: 'w-full flex items-center gap-3 px-2 py-1.5 rounded-lg text-left text-sm text-white/80 hover:bg-white/10 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-wait',
     sendspinListItemActive: 'bg-purple-500/15 text-white',
     sendspinListMeta: 'text-xs text-white/40 truncate',
+    titleAccent: 'font-bold text-green-400',
+    link: 'text-white/80 hover:text-white transition-colors',
+    githubLink: 'p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-white/70 hover:text-white',
+    githubIcon: '',
+    heroIconColor: 'text-purple-400 opacity-80',
+    heroStrong: 'text-white/80',
+    panelTitle: 'text-xl font-light',
+    panelClose: 'text-white/50 hover:text-white transition-colors cursor-pointer',
+    dialogHeader: 'flex justify-between items-center',
+    dialogTitle: 'text-lg font-light',
+    dialogClose: 'text-white/50 hover:text-white transition-colors cursor-pointer',
+    dialogCloseIcon: 'size-5',
+    dialogText: 'text-white/50 text-sm',
   },
   win95: {
     name: 'win95',
@@ -201,6 +229,19 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinListItem: 'w-full flex items-center gap-2 px-1.5 py-1 text-left text-sm text-black hover:bg-[#d4d4d4] cursor-pointer disabled:text-[#808080] disabled:cursor-wait',
     sendspinListItemActive: 'bg-[#d4d4d4] font-bold outline outline-1 outline-dotted outline-black',
     sendspinListMeta: 'text-xs text-[#808080] font-normal truncate',
+    titleAccent: 'font-bold text-[#008000]',
+    link: 'text-[#000080] underline',
+    githubLink: 'p-1.5 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080]',
+    githubIcon: 'invert',
+    heroIconColor: 'text-[#000080]',
+    heroStrong: 'font-bold',
+    panelTitle: 'text-lg font-bold text-[#000080]',
+    panelClose: 'cursor-pointer text-black',
+    dialogHeader: 'bg-[#000080] px-2 py-1 flex justify-between items-center -mx-1 -mt-1 mb-2',
+    dialogTitle: 'text-white text-sm font-bold',
+    dialogClose: 'bg-[#c0c0c0] border border-t-white border-l-white border-b-[#808080] border-r-[#808080] px-1.5 text-black text-xs font-bold cursor-pointer',
+    dialogCloseIcon: null,
+    dialogText: 'text-black text-sm',
   },
   winamp: {
     name: 'winamp',
@@ -267,6 +308,19 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinListItem: 'w-full flex items-center gap-2 px-2 py-1 text-left text-sm font-mono text-[#00ff00]/80 hover:bg-[#0a0a14] cursor-pointer disabled:opacity-50 disabled:cursor-wait',
     sendspinListItemActive: 'bg-[#0a0a14] text-[#00ff00]',
     sendspinListMeta: 'text-xs text-[#00ff00]/40 truncate',
+    titleAccent: 'font-bold text-[#00ff00]',
+    link: 'text-[#00ff00]/80 hover:text-[#00ff00]',
+    githubLink: 'p-1 bg-[#3a3a4a] border-2 border-t-[#6a6a7a] border-l-[#6a6a7a] border-b-[#1a1a2a] border-r-[#1a1a2a]',
+    githubIcon: '',
+    heroIconColor: 'text-[#00ff00]',
+    heroStrong: 'text-[#00ff00]',
+    panelTitle: 'text-lg font-bold text-[#00ff00] uppercase tracking-wider',
+    panelClose: 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]',
+    dialogHeader: 'flex justify-between items-center bg-[#2a2a3a] border-b border-[#1a1a2a] -mx-5 -mt-5 mb-3 px-4 py-2',
+    dialogTitle: 'text-sm font-bold text-[#d0d0d0] uppercase tracking-wider',
+    dialogClose: 'text-[#a0a0a0] hover:text-[#d0d0d0] cursor-pointer',
+    dialogCloseIcon: 'size-[18px]',
+    dialogText: 'text-[#00ff00]/60 text-sm',
   },
   crt: {
     name: 'crt',
@@ -333,5 +387,18 @@ export const skins: Record<SkinType, SkinDefinition> = {
     sendspinListItem: 'w-full flex items-center gap-2 px-2 py-1 text-left text-sm text-[#00ff00]/70 hover:text-[#00ff00] hover:bg-[#00ff00]/5 cursor-pointer disabled:opacity-40 disabled:cursor-wait',
     sendspinListItemActive: 'text-[#00ff00] bg-[#00ff00]/10',
     sendspinListMeta: 'text-[10px] tracking-wider text-[#00ff00]/40 truncate',
+    titleAccent: 'font-bold text-[#00ff00]',
+    link: 'text-[#00ff00]/70 hover:text-[#00ff00]',
+    githubLink: 'p-1.5 border border-[#00ff00]/30 hover:border-[#00ff00]/60 hover:shadow-[0_0_8px_rgba(0,255,0,0.2)]',
+    githubIcon: '',
+    heroIconColor: 'text-[#00ff00]',
+    heroStrong: 'text-[#00ff00]',
+    panelTitle: 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]',
+    panelClose: 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]',
+    dialogHeader: 'flex justify-between items-center',
+    dialogTitle: 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]',
+    dialogClose: 'text-[#00ff00]/50 hover:text-[#00ff00] cursor-pointer',
+    dialogCloseIcon: 'size-[18px]',
+    dialogText: 'text-[#00ff00]/50 text-xs tracking-wide',
   },
 };

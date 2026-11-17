@@ -3,8 +3,8 @@ import { ACCENT_GAP_S, ACCENT_MAX, Analyzer, type AnalyzerEvent } from '../../sr
 import { FFT } from '../../src/audio/core/fft';
 import { LevelTracker } from '../../src/audio/core/levels';
 import { evaluateWindow, NeuralArbiter } from '../../src/audio/core/neuralArbiter';
-import { Resampler } from '../../src/audio/neural/resampler';
-import { melFilterbank } from '../../src/audio/neural/melFrontend';
+import { Resampler } from '../../src/audio/core/resampler';
+import { melFilterbank } from '../../src/audio/core/melFrontend';
 import { amlt, fMeasure, median, offsetsMs } from '../../scripts/eval/lib/metrics';
 import { synth, type Section } from './synth';
 

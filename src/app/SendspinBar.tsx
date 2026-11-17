@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Square, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Volume2, VolumeX, Heart, ListMusic, ListPlus, Music, ChevronDown } from 'lucide-react';
-import type { ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import type { SkinDefinition } from '../skins';
-import { hasTrack, trackKey, type SendspinState, type TrackProgress } from '../audio/sources/sendspinState';
+import { hasTrack, trackKey, type SendspinState, type TrackProgress, type ControllerCommand, type ControllerCommands } from '../audio/sources/sendspinState';
 import { maApi, type MusicAssistantApi } from '../audio/sources/musicAssistant';
 import { deriveBarStatus, seekMode, statusLabel } from './sendspinView';
 import { useFavorite, useMaQueue } from './useMusicAssistant';

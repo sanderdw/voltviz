@@ -3,7 +3,7 @@ import { BeatStrength } from './beatStrength.ts';
 import { BeatTracker, foldPeriod, type BeatEvent, type TrackerTuning } from './beatTracker.ts';
 import { LevelTracker } from './levels.ts';
 import { NeuralArbiter, type ArbiterDecision } from './neuralArbiter.ts';
-import { MelFrontend, MODEL_FPS, N_MELS } from '../neural/melFrontend.ts';
+import { MelFrontend, MODEL_FPS, N_MELS } from './melFrontend.ts';
 import { OnsetFeatures, type OnsetFrame } from './onset.ts';
 import { PeakPicker } from './peakPicker.ts';
 import { FrameHistory } from './ring.ts';

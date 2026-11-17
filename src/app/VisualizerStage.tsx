@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
-import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import { visualizers, type VisualizerType } from '../visualizers/registry';
 import { loadVisualizer } from '../visualizers/modules';
-import type { VisualizerSettings } from '../types';
+import type { TrackMetadata, VisualizerSettings } from '../types';
 import type { VisualizerHost, LayerHandle } from '../visualizers/runtime/VisualizerHost';
 import type { OverlayProps, VisualizerModule } from '../visualizers/runtime/types';
 
@@ -24,7 +23,7 @@ interface LayerProps {
   id: VisualizerType;
   host: VisualizerHost;
   settings: VisualizerSettings;
-  metadata: ServerStateMetadata | null;
+  metadata: TrackMetadata | null;
   /** False while the app UI is hidden: the overlay's controls are hidden with it. */
   showControls: boolean;
   onReady: () => void;
@@ -98,12 +97,13 @@ interface VisualizerStageProps {
   host: VisualizerHost;
   visualizer: VisualizerType;
   settings: VisualizerSettings;
-  sendspinMetadata?: ServerStateMetadata | null;
+  /** The track that is playing, when the audio source knows it. */
+  metadata: TrackMetadata | null;
   transition: TransitionMode;
   showControls: boolean;
 }
 
-export default function VisualizerStage({ host, visualizer, settings, sendspinMetadata, transition, showControls }: VisualizerStageProps) {
+export default function VisualizerStage({ host, visualizer, settings, metadata, transition, showControls }: VisualizerStageProps) {
   const keyCounter = useRef(0);
   const timeoutsRef = useRef<number[]>([]);
   const transitionRef = useRef(transition);
@@ -149,7 +149,6 @@ export default function VisualizerStage({ host, visualizer, settings, sendspinMe
     });
   };
 
-  const metadata = sendspinMetadata ?? null;
   return (
     <>
       {layers.map(l => (

@@ -3,7 +3,7 @@ import { X, Shuffle, Gauge, BrainCircuit } from 'lucide-react';
 import type { AudioEngine } from '../audio/AudioEngine';
 import type { AnalyzerState } from '../audio/core/Analyzer';
 import { DEFAULT_STYLE, STYLE_IDS, STYLE_PROFILES, type StyleId } from '../audio/core/styles';
-import type { SkinDefinition, SkinType } from '../skins';
+import type { SkinDefinition } from '../skins';
 import type { VisualizerSettings } from '../types';
 import { visualizers, type VisualizerType } from '../visualizers/registry';
 import { DEFAULT_SETTINGS, SHUFFLE_PRESETS } from './useAppState';
@@ -11,7 +11,6 @@ import type { TransitionMode } from './VisualizerStage';
 
 interface SettingsPanelProps {
   skin: SkinDefinition;
-  activeSkin: SkinType;
   showSettings: boolean;
   showControls: boolean;
   setShowSettings: (v: boolean) => void;
@@ -36,7 +35,7 @@ interface SettingsPanelProps {
   bottomInset: boolean;
 }
 
-export default function SettingsPanel({ skin, activeSkin, showSettings, showControls, setShowSettings, settings, setSettings,
+export default function SettingsPanel({ skin, showSettings, showControls, setShowSettings, settings, setSettings,
   shuffleEnabled, setShuffleEnabled, shuffleInterval, setShuffleInterval, shufflePool, transitionMode, setTransitionMode,
   autoGain, setAutoGain, aiBeat, setAiBeat, musicStyle, setMusicStyle, engine, bottomInset }: SettingsPanelProps) {
   const open = showSettings && showControls;
@@ -54,8 +53,8 @@ export default function SettingsPanel({ skin, activeSkin, showSettings, showCont
   return (
     <div className={`${skin.settingsPanel} ${open ? 'translate-x-0' : 'translate-x-full'} ${bottomInset ? 'pb-36' : ''}`}>
       <div className="flex justify-between items-center mb-8">
-        <h3 className={activeSkin === 'modern' ? 'text-xl font-light' : activeSkin === 'winamp' ? 'text-lg font-bold text-[#00ff00] uppercase tracking-wider' : activeSkin === 'crt' ? 'text-sm font-bold text-[#00ff00] uppercase tracking-[0.3em]' : 'text-lg font-bold text-[#000080]'}>Settings</h3>
-        <button onClick={() => setShowSettings(false)} aria-label="Close panel" className={`p-2 -m-2 ${activeSkin === 'modern' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : activeSkin === 'winamp' ? 'cursor-pointer text-[#a0a0a0] hover:text-[#d0d0d0]' : activeSkin === 'crt' ? 'cursor-pointer text-[#00ff00]/50 hover:text-[#00ff00]' : 'cursor-pointer text-black'}`}>
+        <h3 className={skin.panelTitle}>Settings</h3>
+        <button onClick={() => setShowSettings(false)} aria-label="Close panel" className={`p-2 -m-2 ${skin.panelClose}`}>
           <X size={20} />
         </button>
       </div>

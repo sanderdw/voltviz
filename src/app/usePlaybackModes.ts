@@ -4,9 +4,8 @@
  * they go over Sendspin. Either way a change shows right away (see withPending).
  */
 import { useState } from 'react';
-import type { ControllerCommand } from '@sendspin/sendspin-js';
 import { maApi, type MaPlayerQueue, type MusicAssistantApi } from '../audio/sources/musicAssistant';
-import type { SendspinState } from '../audio/sources/sendspinState';
+import type { SendspinState, ControllerCommand } from '../audio/sources/sendspinState';
 import { asRepeatMode, nextRepeatMode, withPending, type PendingChange } from './sendspinView';
 
 /** `send` returns false when the command could not be sent, or a promise that rejects when it is refused. */

@@ -1,7 +1,7 @@
 {
   "name": "voltviz",
   "private": true,
-  "version": "0.35.1",
+  "version": "0.35.2",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "knip": "knip",
     "test": "playwright test",
     "test:unit": "vitest run",
     "test:install": "playwright install chromium",
@@ -23,27 +24,29 @@
     "report": "node scripts/report/build-report.ts"
   },
   "dependencies": {
-    "@sendspin/sendspin-js": "^5.0.0",
-    "d3-geo": "^3.1.1",
-    "lucide-react": "^1.59.0",
-    "onnxruntime-web": "^1.30.0",
+    "@sendspin/sendspin-js": "^6.0.0",
+    "d3-geo": "^3.1.2",
+    "lucide-react": "^1.74.0",
+    "onnxruntime-web": "^1.31.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "three": "^0.186.1"
+    "three": "^0.187.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
-    "@tailwindcss/vite": "^4.3.3",
+    "@playwright/test": "^1.65.1",
+    "@tailwindcss/vite": "^4.3.5",
     "@types/d3-geo": "^3.1.1",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@types/three": "^0.186.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "tailwindcss": "^4.3.3",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "knip": "^6.45.1",
+    "playwright": "^1.65.1",
+    "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
-    "vitest": "^5.0.5"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
   },
   "allowScripts": {
     "protobufjs@7.6.6": true

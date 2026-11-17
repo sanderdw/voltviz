@@ -2,7 +2,10 @@
  * Sendspin playback state as the app sees it, and the mapping from the SDK's state. Kept free of
  * the SDK runtime (type imports only) so the unit tests can load it without a browser.
  */
-import type { ControllerCommand, ControllerCommands, GroupUpdatePayload, ServerStateController, ServerStateMetadata, ServerStatePayload } from '@sendspin/sendspin-js';
+import type { ControllerCommand, ControllerCommands, GroupUpdatePayload, ServerStateMetadata, ServerStatePayload } from '@sendspin/sendspin-js';
+
+// The SDK types the rest of the app uses, so only the Sendspin source modules depend on the SDK
+export type { ControllerCommand, ControllerCommands, ServerStateMetadata };
 
 export type RepeatMode = 'off' | 'one' | 'all';
 
@@ -45,6 +48,18 @@ export const initialSendspinState: SendspinState = {
 
 export const SENDSPIN_RECONNECT_ATTEMPTS = 10;
 
+/**
+ * The WebSocket URL of a Sendspin server, from what people enter or the Home Assistant add-on
+ * configures: an http(s) or ws(s) URL, or a path relative to the page (`./sendspin-proxy/`).
+ * The endpoint is `/sendspin` below the given path, unless the path already ends with it.
+ */
+export function sendspinWebSocketUrl(serverUrl: string, pageUrl: string): string {
+  const url = new URL(serverUrl.trim(), pageUrl);
+  const secure = url.protocol === 'https:' || url.protocol === 'wss:';
+  const path = url.pathname.replace(/\/+$/, '');
+  return `${secure ? 'wss:' : 'ws:'}//${url.host}${path.endsWith('/sendspin') ? path : `${path}/sendspin`}`;
+}
+
 export type TrackProgress ={ positionMs: number; durationMs: number; playbackSpeed: number };
 
 /** What the UI drives: the live Sendspin connection, or the development fake. */
@@ -65,14 +80,7 @@ export type SdkState = {
 };
 
 export function mapSdkState(state: SdkState): Partial<SendspinState> {
-  // seek_max_ms, repeat and shuffle are on the controller in the current Sendspin spec (and Music
-  // Assistant 2.10) but not yet in the SDK's types. Older servers only put repeat and shuffle on
-  // the metadata.
-  const controller = state.serverState?.controller as (ServerStateController & {
-    seek_max_ms?: number | null;
-    repeat?: RepeatMode | null;
-    shuffle?: boolean | null;
-  }) | undefined;
+  const controller = state.serverState?.controller;
   // Always take what is there now: the SDK deletes the keys the server clears, so skipping a
   // missing value would keep the previous track on screen after the queue ends.
   const metadata = state.serverState?.metadata ?? null;
@@ -80,8 +88,8 @@ export function mapSdkState(state: SdkState): Partial<SendspinState> {
     playing: state.isPlaying,
     metadata,
     supportedCmds: controller?.supported_commands ?? [],
-    repeat: controller?.repeat ?? metadata?.repeat ?? null,
-    shuffle: controller?.shuffle ?? metadata?.shuffle ?? null,
+    repeat: controller?.repeat ?? null,
+    shuffle: controller?.shuffle ?? null,
     seekMaxMs: typeof controller?.seek_max_ms === 'number' ? controller.seek_max_ms : null,
     groupPlayback: state.groupState?.playback_state ?? null,
     groupName: state.groupState?.group_name ?? null,

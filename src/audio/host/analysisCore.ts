@@ -14,7 +14,6 @@ export class AnalysisCore {
   private phase: number[] = [];
   private kick: number[] = [];
   private threshold: number[] = [];
-  private lastTime = 0;
   private hopsSincePost = 0;
   private ctxOffset = NaN;
   private readonly sampleRate: number;
@@ -68,7 +67,6 @@ export class AnalysisCore {
     const req = a.takeNeuralRequest();
     if (req) this.post({ type: 'neuralRequest', t0: req.t0, validFrom: req.validFrom, frames: req.frames }, [req.frames.buffer]);
     if (this.hopsSincePost >= HOPS_PER_MESSAGE || this.events.length > 0) this.flush();
-    this.lastTime = a.state.time;
   }
 
   private flush(): void {
