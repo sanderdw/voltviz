@@ -10,6 +10,7 @@
 - Disconnecting from Sendspin releases the player's audio output instead of keeping it open.
 
 ### Internal
+- The README covers running and using VoltViz only; the script list, project structure and Docker/CI details moved to `CONTRIBUTING.md`.
 - `App.tsx` only composes the app: the Sendspin session (`useSendspin`), the shuffle timer (`useShuffle`) and usage events (`analytics.ts`) have their own modules.
 - Visualizers receive an app-owned `TrackMetadata`; only `src/audio/sources` imports the Sendspin SDK.
 - Every skin-specific style is in `skins.ts`; the components no longer branch on the active skin.

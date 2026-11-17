@@ -1,6 +1,6 @@
 /**
  * The layering of src/, checked on the import statements, so a shortcut across layers fails the
- * build instead of slowly eroding the structure described in the README:
+ * build instead of slowly eroding the structure described in CONTRIBUTING.md:
  *
  *   app  →  visualizers  →  audio (types only)        audio/core: pure DSP, imports nothing else
  */
