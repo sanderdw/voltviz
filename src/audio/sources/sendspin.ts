@@ -6,10 +6,8 @@
 import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ControllerCommand, ControllerCommands, SendspinStorage } from '@sendspin/sendspin-js';
 import { configurePlayerInMA, discoverMusicAssistant, MusicAssistantClient, type MusicAssistantApi } from './musicAssistant';
-import { initialSendspinState, mapSdkState, SENDSPIN_RECONNECT_ATTEMPTS, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
+import { initialSendspinState, mapSdkState, SENDSPIN_RECONNECT_ATTEMPTS, sendspinWebSocketUrl, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
 import { tapPlayerOutput } from './sendspinOutput';
-
-export { initialSendspinState, type SendspinSession, type SendspinState, type TrackProgress } from './sendspinState';
 
 // The Sendspin SDK persists its identity keypair (whose public key is the
 // client id, which Music Assistant uses as the player id) under bare
@@ -91,7 +89,8 @@ export class SendspinController implements SendspinSession {
       });
 
       const player = new SendspinPlayer({
-        baseUrl: serverUrl,
+        // The SDK only takes an absolute ws(s) URL; people enter (and the add-on configures) http(s) or relative ones
+        url: sendspinWebSocketUrl(serverUrl, window.location.href),
         audioElement: audioEl,
         clientName: 'VoltViz',
         // Music Assistant only treats a client as a standalone web player when
@@ -164,7 +163,7 @@ export class SendspinController implements SendspinSession {
       this.activationTimeout = window.setTimeout(() => {
         this.activationTimeout = null;
         if (!this.activated) {
-          cb.onError('Connected, but the server never activated the player — check that Music Assistant is 2.10.0b14 or newer and its Sendspin pairing settings.');
+          cb.onError('Connected, but the server never activated the player — check that Music Assistant is 2.10.7 or newer and its Sendspin pairing settings.');
           this.cleanup();
           cb.onClosed();
         }
@@ -189,18 +188,7 @@ export class SendspinController implements SendspinSession {
   }
 
   seek(positionMs: number): boolean {
-    if (!this.player) return false;
-    try {
-      // 'seek' is in the Sendspin spec (and Music Assistant 2.10) but not yet in sendspin-js
-      // 5.0.0's ControllerCommands. The SDK checks it against the server's supported commands
-      // and forwards the parameters as they are.
-      (this.player as unknown as { sendCommand(command: string, params: object): void })
-        .sendCommand('seek', { position_ms: Math.max(0, Math.round(positionMs)) });
-      return true;
-    } catch (err) {
-      console.warn('VoltViz: Sendspin seek failed', err);
-      return false;
-    }
+    return this.command('seek', { position_ms: Math.max(0, Math.round(positionMs)) });
   }
 
   get trackProgress(): TrackProgress | null {
@@ -249,7 +237,8 @@ export class SendspinController implements SendspinSession {
       this.cb.onMusicAssistant?.(null);
     }
     if (this.player) {
-      this.player.disconnect('user_request');
+      // destroy, not disconnect: the player is dropped, so its AudioContext has to go too
+      this.player.destroy('user_request');
       this.player = null;
     }
     // Its AudioContext closed with the player

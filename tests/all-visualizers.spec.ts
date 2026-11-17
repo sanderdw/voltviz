@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { visualizers } from '../src/visualizers';
+import { visualizers } from '../src/visualizers/registry';
 
 test.use({
   launchOptions: {

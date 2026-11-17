@@ -24,10 +24,6 @@ const HISTORY = 256;
 
 type OnsetKind = 'kick' | 'snare' | 'hat';
 
-function emptyOnset(): OnsetInfo {
-  return { hit: false, since: Infinity, envelope: 0, strength: 0 };
-}
-
 export class AudioEngine {
   readonly context: AudioContext;
   private readonly source: AudioNode;

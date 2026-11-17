@@ -3,9 +3,8 @@
  * one AudioFrame), container resize handling, DPR capping, per-layer error isolation and
  * frame-rate statistics. Framework-free; the React stage only mounts containers.
  */
-import type { ServerStateMetadata } from '@sendspin/sendspin-js';
 import type { AudioEngine } from '../../audio/AudioEngine';
-import type { VisualizerSettings } from '../../types';
+import type { TrackMetadata, VisualizerSettings } from '../../types';
 import { Probe } from './probe';
 import type { VisualizerFactory, VisualizerInstance } from './types';
 
@@ -13,7 +12,7 @@ export interface LayerHandle {
   readonly id: string;
   readonly ready: Promise<VisualizerInstance | null>;
   setSettings(s: VisualizerSettings): void;
-  setMetadata(m: ServerStateMetadata | null): void;
+  setMetadata(m: TrackMetadata | null): void;
   dispose(): void;
 }
 
@@ -22,7 +21,7 @@ interface Layer {
   container: HTMLDivElement;
   instance: VisualizerInstance | null;
   settings: VisualizerSettings;
-  metadata: ServerStateMetadata | null;
+  metadata: TrackMetadata | null;
   width: number;
   height: number;
   dpr: number;
@@ -38,7 +37,7 @@ interface Layer {
 const dprCap = () => Math.min(window.devicePixelRatio || 1, 2);
 
 export class VisualizerHost {
-  private engine: AudioEngine;
+  private readonly engine: AudioEngine;
   private readonly layers = new Set<Layer>();
   private raf = 0;
   readonly probe: Probe | null;
@@ -48,12 +47,8 @@ export class VisualizerHost {
     this.probe = Probe.fromUrl();
   }
 
-  setEngine(engine: AudioEngine): void {
-    this.engine = engine;
-  }
-
   mount(id: string, container: HTMLDivElement, factory: VisualizerFactory, settings: VisualizerSettings,
-    metadata: ServerStateMetadata | null): LayerHandle {
+    metadata: TrackMetadata | null): LayerHandle {
     const rect = container.getBoundingClientRect();
     const layer: Layer = {
       id, container, instance: null, settings, metadata,

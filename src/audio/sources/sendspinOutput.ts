@@ -8,7 +8,7 @@
  * which leaves no stream to visualize. Then the SDK's output gain node is tapped instead.
  */
 
-/** The internals of sendspin-js 5's SendspinPlayer that the tap needs. */
+/** The internals of sendspin-js 6's SendspinPlayer that the tap needs. */
 type PlayerInternals = { scheduler?: { audioContext?: AudioContext | null; gainNode?: GainNode | null } | null };
 
 /**

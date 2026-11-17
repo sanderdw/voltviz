@@ -1,22 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MonitorUp, X, Minimize } from 'lucide-react';
-import type { ControllerCommand, ControllerCommands } from '@sendspin/sendspin-js';
 import { skins } from '../skins';
-import { visualizerIds } from '../visualizers/registry';
-import VisualizerPicker from '../components/VisualizerPicker';
 import { captureMicrophone, captureSystemAudio } from '../audio/sources/capture';
-import { SendspinController, initialSendspinState, type SendspinSession, type SendspinState } from '../audio/sources/sendspin';
-import { trackKey } from '../audio/sources/sendspinState';
-import type { MusicAssistantApi } from '../audio/sources/musicAssistant';
 import { startTestAudio, testAudioParams, type TestAudio } from '../audio/sources/testFile';
+import { trackEvent } from './analytics';
 import Header from './Header';
 import SendspinBar from './SendspinBar';
 import SendspinDialog from './SendspinDialog';
 import SettingsPanel from './SettingsPanel';
+import VisualizerPicker from './VisualizerPicker';
 import VisualizerStage from './VisualizerStage';
-import { removeUrlParam, useAppState } from './useAppState';
+import { useAppState } from './useAppState';
 import { useAudioEngine } from './useAudioEngine';
-import { useMaStatus } from './useMusicAssistant';
+import { useSendspin, useTrackChange } from './useSendspin';
+import { useShuffle } from './useShuffle';
+
+const errorMessage = (err: unknown, fallback: string): string => (err instanceof Error && err.message) || fallback;
 
 export default function App() {
   const appVersion = __APP_VERSION__;
@@ -35,61 +34,23 @@ export default function App() {
   const skin = skins[activeSkin];
   const [showSendspinDialog, setShowSendspinDialog] = useState(false);
   const [sendspinUrl, setSendspinUrl] = useState('');
-  const [sendspinConnecting, setSendspinConnecting] = useState(false);
-  const [sendspin, setSendspin] = useState<SendspinState>(initialSendspinState);
-  const updateSendspin = (patch: Partial<SendspinState>) => setSendspin(prev => ({ ...prev, ...patch }));
-  const sendspinRef = useRef<SendspinSession | null>(null);
-  // Music Assistant's API, only inside the Home Assistant add-on
-  const [ma, setMa] = useState<MusicAssistantApi | null>(null);
-  const maStatus = useMaStatus(ma);
-  // Music Assistant's artwork URLs point at its own port (http://<host>:8095), which an https://
-  // page can't load and a phone away from home can't reach: through ingress when available.
-  // Memoized, so the metadata only changes when the server sends new metadata.
-  const sendspinMetadata = useMemo(() => {
-    const metadata = sendspin.metadata;
-    const artwork = metadata?.artwork_url;
-    if (!metadata || !artwork || !ma) return metadata;
-    const local = ma.localImageUrl(artwork);
-    return local === artwork ? metadata : { ...metadata, artwork_url: local };
-    // maStatus: the rewrite needs Music Assistant's base_url from its handshake
-  }, [sendspin.metadata, ma, maStatus]);
+  const sendspin = useSendspin({
+    onStream: setStream,
+    onError: setError,
+    onActivated: () => setShowSendspinDialog(false),
+  });
 
   const audio = useAudioEngine(stream ?? testAudio?.stream ?? null, { autoGain, neural: aiBeat, style: musicStyle });
 
-  // Sendspin (Music Assistant) says exactly when the track changes: let the beat tracking
-  // start over on the new song instead of detecting the change from the audio. A cleared
-  // track (queue ended, stopped) is not a change: A → nothing → B counts once.
-  const track = trackKey(sendspin.metadata);
-  const lastTrack = useRef<string | null>(null);
-  useEffect(() => {
-    if (!sendspin.active) {
-      lastTrack.current = null;
-      return;
-    }
-    if (!track) return;
-    if (lastTrack.current !== null && track !== lastTrack.current) audio?.engine.notifySongChange();
-    lastTrack.current = track;
-  }, [track, audio, sendspin.active]);
+  // Let the beat tracking start over on the new song instead of detecting the change from the audio
+  useTrackChange(sendspin.state, () => audio?.engine.notifySongChange());
 
-  // development / tests only: window.__voltvizSendspin drives the Sendspin bar without a server
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    let dispose: (() => void) | null = null;
-    let cancelled = false;
-    import('./sendspinDev').then(m => {
-      if (!cancelled) dispose = m.installSendspinDevApi({ sendspinRef, setSendspin, setMa });
-    });
-    return () => {
-      cancelled = true;
-      dispose?.();
-    };
-  }, []);
+  useShuffle({ enabled: shuffleEnabled, intervalS: shuffleInterval, pool: shufflePool, running, setActiveVisualizer });
 
   useEffect(() => {
-    (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Initial', activeVisualizer]);
+    trackEvent('Visualizer', 'Initial', activeVisualizer);
 
-    const params = new URLSearchParams(window.location.search);
-    const sendspinParam = params.get('sendspin');
+    const sendspinParam = new URLSearchParams(window.location.search).get('sendspin');
     if (sendspinParam) {
       setSendspinUrl(sendspinParam);
       setShowSendspinDialog(true);
@@ -102,24 +63,9 @@ export default function App() {
           (window as unknown as { __voltvizTestAudio?: HTMLMediaElement }).__voltvizTestAudio = t.element;
           setTestAudio(t);
         })
-        .catch(err => setError(err.message));
+        .catch(err => setError(errorMessage(err, 'Failed to start the test audio')));
     }
   }, []);
-
-  useEffect(() => {
-    if (!shuffleEnabled || !running) return;
-    const id = window.setInterval(() => {
-      setActiveVisualizer(current => {
-        const pool = shufflePool.length ? shufflePool : visualizerIds;
-        const others = pool.filter(v => v !== current);
-        if (!others.length) return current;
-        const next = others[Math.floor(Math.random() * others.length)];
-        (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Shuffle', next]);
-        return next;
-      });
-    }, shuffleInterval * 1000);
-    return () => window.clearInterval(id);
-  }, [shuffleEnabled, shuffleInterval, running, shufflePool]);
 
   useEffect(() => {
     // Allow layout to settle, then notify listeners of the size change
@@ -129,75 +75,30 @@ export default function App() {
     return () => cancelAnimationFrame(id);
   }, [showControls]);
 
-  const cleanupSendspin = () => {
-    setSendspinConnecting(false);
-    if (sendspinRef.current) {
-      sendspinRef.current.cleanup();
-      sendspinRef.current = null;
-    }
-    setSendspin(initialSendspinState);
-    setMa(null);
-    removeUrlParam('sendspin');
-  };
-
   const startMicrophone = async () => {
-    cleanupSendspin();
+    sendspin.disconnect();
     try {
-      const audioStream = await captureMicrophone();
-      setStream(audioStream);
+      setStream(await captureMicrophone());
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to access microphone');
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to access microphone'));
     }
   };
 
   const startSystemAudio = async () => {
-    cleanupSendspin();
+    sendspin.disconnect();
     try {
       let displayStream: MediaStream | null = null;
       displayStream = await captureSystemAudio(() => stopStream(displayStream));
       setStream(displayStream);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to access system audio');
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to access system audio'));
     }
   };
 
-  const startSendspin = async (url?: string) => {
-    const serverUrl = url || sendspinUrl;
-    const controller = new SendspinController({
-      onStream: s => setStream(s),
-      onState: updateSendspin,
-      onError: setError,
-      onConnecting: setSendspinConnecting,
-      onActivated: () => setShowSendspinDialog(false),
-      onClosed: () => {
-        // A newer source (or controller) has already taken over: leave its stream alone
-        if (sendspinRef.current !== controller) return;
-        sendspinRef.current = null;
-        setSendspinConnecting(false);
-        setSendspin(initialSendspinState);
-        setMa(null);
-        removeUrlParam('sendspin');
-        // The connection is gone for good: back to the source selection instead of a dead stream
-        setStream(null);
-      },
-      onMusicAssistant: client => {
-        if (sendspinRef.current === controller) setMa(client);
-      },
-    });
-    sendspinRef.current = controller;
-    await controller.connect(serverUrl);
-  };
-
-  const sendspinCommand = <T extends ControllerCommand>(command: T, params?: ControllerCommands[T]) =>
-    sendspinRef.current?.command(command, params) ?? false;
-  const sendspinSeek = (positionMs: number) => sendspinRef.current?.seek(positionMs) ?? false;
-  // Stable, so the progress bar's timer isn't restarted on every render
-  const getSendspinProgress = useCallback(() => sendspinRef.current?.trackProgress ?? null, []);
-
   const stopStream = (currentStream: MediaStream | null = stream) => {
-    cleanupSendspin();
+    sendspin.disconnect();
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -222,7 +123,6 @@ export default function App() {
         {showControls && (
           <Header
             skin={skin}
-            activeSkin={activeSkin}
             stream={running}
             activeVisualizer={activeVisualizer}
             showSettings={showSettings}
@@ -240,11 +140,11 @@ export default function App() {
           {!running ? (
             <div className="text-center max-w-md space-y-6 animate-in fade-in zoom-in duration-700 p-6">
               <div className={skin.heroIcon}>
-                <MonitorUp size={40} className={activeSkin === 'modern' ? 'text-purple-400 opacity-80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'text-[#000080]'} />
+                <MonitorUp size={40} className={skin.heroIconColor} />
               </div>
               <h2 className={skin.heroTitle}>Visualize Your Sound</h2>
               <p className={skin.heroText}>
-                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className={activeSkin === 'modern' ? 'text-white/80' : activeSkin === 'winamp' ? 'text-[#00ff00]' : activeSkin === 'crt' ? 'text-[#00ff00]' : 'font-bold'}>Share audio</strong> is checked.
+                Select an audio source above to begin. For system audio, choose "Share Tab" or "Share Screen" and ensure <strong className={skin.heroStrong}>Share audio</strong> is checked.
               </p>
             </div>
           ) : (
@@ -254,7 +154,7 @@ export default function App() {
                   host={audio.host}
                   visualizer={activeVisualizer}
                   settings={settings}
-                  sendspinMetadata={sendspinMetadata}
+                  metadata={sendspin.state.metadata}
                   transition={transitionMode}
                   showControls={showControls}
                 />
@@ -275,7 +175,6 @@ export default function App() {
           {/* Settings Panel */}
           <SettingsPanel
             skin={skin}
-            activeSkin={activeSkin}
             showSettings={showSettings}
             showControls={showControls}
             setShowSettings={setShowSettings}
@@ -295,7 +194,7 @@ export default function App() {
             musicStyle={musicStyle}
             setMusicStyle={setMusicStyle}
             engine={audio?.engine ?? null}
-            bottomInset={sendspin.active}
+            bottomInset={sendspin.state.active}
           />
 
           <div className={skin.versionLabel}>
@@ -304,15 +203,15 @@ export default function App() {
         </main>
       </div>
 
-      {sendspin.active && showControls && (
+      {sendspin.state.active && showControls && (
         <SendspinBar
           skin={skin}
-          sendspin={sendspinMetadata === sendspin.metadata ? sendspin : { ...sendspin, metadata: sendspinMetadata }}
-          sendspinCommand={sendspinCommand}
-          sendspinSeek={sendspinSeek}
-          getProgress={getSendspinProgress}
-          updateSendspin={updateSendspin}
-          ma={ma}
+          sendspin={sendspin.state}
+          sendspinCommand={sendspin.command}
+          sendspinSeek={sendspin.seek}
+          getProgress={sendspin.getProgress}
+          updateSendspin={sendspin.update}
+          ma={sendspin.ma}
         />
       )}
 
@@ -336,7 +235,7 @@ export default function App() {
           onClose={() => setShowPicker(false)}
           onSelect={(id) => {
             setActiveVisualizer(id);
-            (window as any)._paq?.push(['trackEvent', 'Visualizer', 'Select', id]);
+            trackEvent('Visualizer', 'Select', id);
           }}
         />
       )}
@@ -344,12 +243,11 @@ export default function App() {
       {showSendspinDialog && (
         <SendspinDialog
           skin={skin}
-          activeSkin={activeSkin}
           setShowSendspinDialog={setShowSendspinDialog}
           sendspinUrl={sendspinUrl}
           setSendspinUrl={setSendspinUrl}
-          sendspinConnecting={sendspinConnecting}
-          startSendspin={() => startSendspin()}
+          sendspinConnecting={sendspin.connecting}
+          startSendspin={() => sendspin.connect(sendspinUrl)}
         />
       )}
     </div>

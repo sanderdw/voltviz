@@ -14,13 +14,13 @@ export function avg(data: ArrayLike<number>, from: number, to: number): number {
   return s / (b - a);
 }
 
-/** Exponential moving average step with a per-frame (60 fps) coefficient, frame-rate independent. */
+/** Exponential moving average step with a per-frame (60 fps) coefficient, frame-rate independent. @public */
 export function ema(prev: number, value: number, coefAt60: number, dt: number): number {
   const k = 1 - Math.pow(1 - coefAt60, dt * 60);
   return prev + (value - prev) * k;
 }
 
-/** Bin index for a frequency in a byte spectrum of `bins` bins. */
+/** Bin index for a frequency in a byte spectrum of `bins` bins. @public */
 export function binFor(hz: number, sampleRate: number, bins: number): number {
   return Math.round((hz / (sampleRate / 2)) * bins);
 }

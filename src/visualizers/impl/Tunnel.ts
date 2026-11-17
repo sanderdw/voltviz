@@ -51,7 +51,6 @@ const Tunnel: VisualizerFactory = ({ container }) => {
       time += 0.005 * currentSettings.speed;
 
       const dataArray = audio.spectrum({ fftSize: 256, smoothing: 0.8 });
-      const bufferLength = dataArray.length;
 
       // Calculate frequency bands
       const bass = dataArray.slice(0, 8).reduce((a, b) => a + b, 0) / 8;

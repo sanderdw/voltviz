@@ -89,7 +89,6 @@ const PolySphere: VisualizerFactory = ({ container }) => {
       time += 0.01 * currentSettings.speed;
 
       const dataArray = audio.spectrum({ fftSize: 512, smoothing: 0.8 });
-      const bufferLength = dataArray.length;
 
       const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
       const mid = dataArray.slice(10, 50).reduce((a, b) => a + b, 0) / 40;

@@ -16,6 +16,7 @@ npm run test:install   # once: Playwright's Chromium
 
 ```bash
 npm run lint        # TypeScript
+npm run knip        # unused files, exports and dependencies
 npm run test:unit   # audio engine unit tests (vitest)
 npm test            # Playwright e2e tests (starts its own server on port 3100)
 npm run build

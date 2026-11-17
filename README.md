@@ -85,6 +85,7 @@ http://localhost:8080
 | `npm run preview` | Preview production build locally |
 | `npm run clean` | Remove build artifacts |
 | `npm run lint` | Check TypeScript for errors |
+| `npm run knip` | Report unused files, exports and dependencies |
 | `npm run test` | Run the Playwright e2e tests |
 | `npm run test:install` | Download the Playwright Chromium browser |
 | `npm run test:unit` | Run the audio engine unit tests (vitest) |
@@ -121,8 +122,8 @@ http://localhost:8080
 ```
 src/
 ├── audio/                  # Audio engine (no React, no visuals)
-│   ├── core/               # Pure DSP: onsets, tempo, beat tracking, heard beats, levels, neural arbiter
-│   ├── neural/             # Log-mel front end + ONNX beat model (runs in a Web Worker)
+│   ├── core/               # Pure DSP: onsets, tempo, beat tracking, heard beats, levels, log-mel front end, neural arbiter
+│   ├── neural/             # ONNX beat model (runs in a Web Worker)
 │   ├── host/               # AudioWorklet host (ScriptProcessor fallback), shared analyser pool
 │   ├── sources/            # Microphone, system audio, Sendspin, dev-only test audio
 │   ├── AudioEngine.ts      # One AudioContext per session -> one AudioFrame per animation frame
@@ -132,8 +133,8 @@ src/
 │   ├── runtime/            # VisualizerHost (single rAF loop, resize, errors), contract, QA probe
 │   ├── lib/                # Canvas 2D / three.js / audio helpers
 │   └── registry.ts         # Single source of truth: ids, names, picker order
-├── app/                    # React shell: header, settings, Sendspin bar/dialog, stage, URL state
-├── components/             # Visualizer picker
+├── app/                    # React shell: header, picker, settings, Sendspin bar/dialog, stage, URL state
+├── skins.ts                # Every skin-specific style (the components only name the part)
 ├── data/                   # Static data (geographic, etc.)
 └── images/                 # Asset images and picker previews
 
@@ -227,9 +228,10 @@ You can combine both: `/?sendspin=http://homeassistant.local:8927&viz=vinylsends
 
 ### Sendspin server requirements
 
-VoltViz uses `@sendspin/sendspin-js` 5.x, which speaks the encrypted Sendspin protocol of
-`aiosendspin` 9.x: use Music Assistant 2.10.0b14 or newer. The `sendspin` CLI test server
-(`uvx sendspin serve`, 7.5 at the time of writing) still uses `aiosendspin` 6.x and cannot connect.
+VoltViz uses `@sendspin/sendspin-js` 6.x, which speaks the encrypted Sendspin protocol of
+`aiosendspin` 10.x: use Music Assistant 2.10.7 or newer (older versions close the connection
+during the handshake). To try it without Music Assistant: `uvx sendspin serve --demo`
+(`sendspin` CLI 9.1 or newer).
 
 The easiest way is to run the [Docker version](#docker-deployment) of VoltViz on your local network so that it can reach the Home Assistant instance directly.
 

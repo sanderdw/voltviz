@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { ServerStateMetadata } from '@sendspin/sendspin-js';
-import { hasTrack, mapSdkState, trackKey } from '../../src/audio/sources/sendspinState';
+import { hasTrack, mapSdkState, sendspinWebSocketUrl, trackKey } from '../../src/audio/sources/sendspinState';
 import { tapPlayerOutput } from '../../src/audio/sources/sendspinOutput';
 import { asRepeatMode, deriveBarStatus, favoritesFirst, formatTime, nextRepeatMode, playOption, seekMode, statusLabel, withPending, type PendingChange } from '../../src/app/sendspinView';
 import type { MaMediaItem, MaPlayerQueue } from '../../src/audio/sources/musicAssistant';
 
 const track: ServerStateMetadata = {
+  timestamp: 0,
   title: 'Song',
   artist: 'Artist',
   album: 'Album',
@@ -16,7 +17,7 @@ describe('mapSdkState', () => {
   it('maps metadata, controller and group state', () => {
     const patch = mapSdkState({
       isPlaying: true,
-      serverState: { metadata: track, controller: { supported_commands: ['play', 'seek'], volume: 40, muted: true, seek_max_ms: 180000 } as never },
+      serverState: { metadata: track, controller: { supported_commands: ['play', 'seek'], volume: 40, muted: true, repeat: 'off', shuffle: false, seek_max_ms: 180000 } },
       groupState: { playback_state: 'playing', group_name: 'Living room' },
     });
     expect(patch).toEqual({
@@ -26,32 +27,30 @@ describe('mapSdkState', () => {
       seekMaxMs: 180000,
       volume: 40,
       muted: true,
-      repeat: null,
-      shuffle: null,
+      repeat: 'off',
+      shuffle: false,
       groupPlayback: 'playing',
       groupName: 'Living room',
     });
   });
 
-  it('takes repeat and shuffle from the controller, or from the metadata of an older server', () => {
-    const older = mapSdkState({ isPlaying: true, serverState: { metadata: { ...track, repeat: 'one', shuffle: true } } });
-    expect([older.repeat, older.shuffle]).toEqual(['one', true]);
-    const current = mapSdkState({
+  it('takes repeat and shuffle from the controller', () => {
+    const patch = mapSdkState({
       isPlaying: true,
-      serverState: { metadata: { ...track, repeat: 'one', shuffle: true }, controller: { repeat: 'all', shuffle: false } as never },
+      serverState: { metadata: track, controller: { supported_commands: [], volume: 100, muted: false, repeat: 'all', shuffle: false } },
     });
-    expect([current.repeat, current.shuffle]).toEqual(['all', false]);
+    expect([patch.repeat, patch.shuffle]).toEqual(['all', false]);
   });
 
   it('clears the track when the server removed the metadata', () => {
     // The SDK deletes keys the server sets to null, so metadata is simply gone
-    const patch = mapSdkState({ isPlaying: false, serverState: { controller: { supported_commands: ['play'] } }, groupState: {} });
+    const patch = mapSdkState({ isPlaying: false, serverState: { controller: { supported_commands: ['play'] } as never }, groupState: {} });
     expect(patch.metadata).toBeNull();
     expect(patch.groupPlayback).toBeNull();
   });
 
   it('treats a metadata object without title and artist as no track', () => {
-    const patch = mapSdkState({ isPlaying: false, serverState: { metadata: { album: null, repeat: 'off' } } });
+    const patch = mapSdkState({ isPlaying: false, serverState: { metadata: { timestamp: 0, album: 'Album' } } });
     expect(hasTrack(patch.metadata)).toBe(false);
     expect(trackKey(patch.metadata)).toBeNull();
   });
@@ -62,6 +61,22 @@ describe('mapSdkState', () => {
     expect(patch.seekMaxMs).toBeNull();
     expect('volume' in patch).toBe(false);
     expect('muted' in patch).toBe(false);
+  });
+});
+
+describe('sendspinWebSocketUrl', () => {
+  const page = 'https://ha.example/api/hassio_ingress/token/?viz=bars';
+  it.each([
+    ['http://homeassistant.local:8927', 'ws://homeassistant.local:8927/sendspin'],
+    ['https://sendspin-demo.example', 'wss://sendspin-demo.example/sendspin'],
+    ['https://host/proxy/sendspin/', 'wss://host/proxy/sendspin'],
+    ['ws://192.168.1.10:8927/sendspin', 'ws://192.168.1.10:8927/sendspin'],
+    ['wss://host:8927', 'wss://host:8927/sendspin'],
+    [' http://host:8927 ', 'ws://host:8927/sendspin'],
+    // The Home Assistant add-on's default: relative to the ingress page
+    ['./sendspin-proxy/', 'wss://ha.example/api/hassio_ingress/token/sendspin-proxy/sendspin'],
+  ])('%s -> %s', (input, expected) => {
+    expect(sendspinWebSocketUrl(input, page)).toBe(expected);
   });
 });
 
@@ -90,7 +105,7 @@ describe('tapPlayerOutput', () => {
 describe('trackKey', () => {
   it('identifies a track by artist and title', () => {
     expect(trackKey(track)).toBe('Artist\u0000Song');
-    expect(trackKey({ title: 'Radio 1' })).toBe('\u0000Radio 1');
+    expect(trackKey({ timestamp: 0, title: 'Radio 1' })).toBe('\u0000Radio 1');
     expect(trackKey(null)).toBeNull();
   });
 });
@@ -117,16 +132,16 @@ describe('deriveBarStatus', () => {
   it.each([
     ['reconnecting wins', { ...base, reconnectAttempt: 2 }, 'reconnecting'],
     ['no track is idle', { ...base, metadata: null }, 'idle'],
-    ['cleared fields are idle', { ...base, metadata: { repeat: 'off' as const } }, 'idle'],
+    ['cleared fields are idle', { ...base, metadata: { timestamp: 0 } }, 'idle'],
     ['Music Assistant playing', { ...base, metadata: paused, queueState: 'playing' }, 'playing'],
     ['Music Assistant paused', { ...base, queueState: 'paused' }, 'paused'],
     ['Music Assistant idle is stopped', { ...base, queueState: 'idle' }, 'stopped'],
     ['progress running', base, 'playing'],
     ['progress halted mid-track', { ...base, metadata: paused }, 'paused'],
     ['progress halted at the start', { ...base, metadata: stopped }, 'stopped'],
-    ['no progress, group playing', { ...base, metadata: { title: 'Song' }, groupPlayback: 'playing' as const }, 'playing'],
-    ['no progress, stream playing', { ...base, metadata: { title: 'Song' }, playing: true }, 'playing'],
-    ['no progress, nothing playing', { ...base, metadata: { title: 'Song' }, groupPlayback: 'stopped' as const }, 'stopped'],
+    ['no progress, group playing', { ...base, metadata: { timestamp: 0, title: 'Song' }, groupPlayback: 'playing' as const }, 'playing'],
+    ['no progress, stream playing', { ...base, metadata: { timestamp: 0, title: 'Song' }, playing: true }, 'playing'],
+    ['no progress, nothing playing', { ...base, metadata: { timestamp: 0, title: 'Song' }, groupPlayback: 'stopped' as const }, 'stopped'],
   ])('%s', (_name, input, status) => {
     expect(deriveBarStatus(input)).toBe(status);
   });

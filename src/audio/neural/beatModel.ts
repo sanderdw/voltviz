@@ -3,7 +3,7 @@
  * with a fixed 500-frame input). The runtime module is injected so the same code serves the
  * browser Worker (onnxruntime-web/wasm) and Node (offline evaluation).
  */
-import { N_MELS } from './melFrontend.ts';
+import { N_MELS } from '../core/melFrontend.ts';
 
 export const MODEL_FRAMES = 500;
 

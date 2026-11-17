@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.35.2] - 2026-11-17
+
+### Changed
+- Updated dependencies. `@sendspin/sendspin-js` 6.0.0 speaks the Sendspin 1.0 release-candidate protocol and requires `aiosendspin` 10.x on the server: **Music Assistant 2.10.7 or newer**. Older Music Assistant versions close the connection during the handshake.
+- A Sendspin server URL may also be given as `ws://` or `wss://`.
+
+### Fixed
+- Disconnecting from Sendspin releases the player's audio output instead of keeping it open.
+
+### Internal
+- `App.tsx` only composes the app: the Sendspin session (`useSendspin`), the shuffle timer (`useShuffle`) and usage events (`analytics.ts`) have their own modules.
+- Visualizers receive an app-owned `TrackMetadata`; only `src/audio/sources` imports the Sendspin SDK.
+- Every skin-specific style is in `skins.ts`; the components no longer branch on the active skin.
+- The log-mel front end and resampler moved to `audio/core`, which now imports nothing outside itself.
+- `tests/unit/architecture.test.ts` checks the layering (app → visualizers → audio types; `audio/core` pure), and TypeScript reports unused locals.
+- `npm run knip` (also in CI) reports unused files, exports and dependencies.
+- Removed dead code and the `src/visualizers.ts` re-export; the visualizer picker moved to `src/app`.
+
 ## [0.35.1] - 2026-10-17
 
 ### Changed

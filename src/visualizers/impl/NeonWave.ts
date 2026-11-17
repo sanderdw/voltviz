@@ -103,7 +103,6 @@ const NeonWave: VisualizerFactory = ({ container }) => {
 
       // Calculate frequency bands
       const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
-      const mid = dataArray.slice(10, 100).reduce((a, b) => a + b, 0) / 90;
 
       // Clear background
       ctx.fillStyle = '#0a001a'; // Deep purple/blue dark background

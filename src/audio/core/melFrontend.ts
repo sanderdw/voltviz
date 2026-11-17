@@ -1,4 +1,4 @@
-import { FFT, hannWindow } from '../core/fft.ts';
+import { FFT, hannWindow } from './fft.ts';
 import { Resampler } from './resampler.ts';
 
 /**

@@ -12,6 +12,3 @@ export function loadVisualizer(entry: { module: string }): Promise<VisualizerMod
   if (!load) return Promise.reject(new Error(`missing visualizer module ./impl/${entry.module}`));
   return load();
 }
-
-/** Module files present in ./impl (for consistency tests). */
-export const moduleFiles = Object.keys(modules);

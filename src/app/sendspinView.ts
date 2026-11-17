@@ -2,8 +2,7 @@
  * What the Sendspin bar shows, derived from the Sendspin state and (inside the Home Assistant
  * add-on) Music Assistant's queue. Pure, so the unit tests cover it.
  */
-import type { ServerStateMetadata } from '@sendspin/sendspin-js';
-import { hasTrack, SENDSPIN_RECONNECT_ATTEMPTS, type RepeatMode } from '../audio/sources/sendspinState';
+import { hasTrack, SENDSPIN_RECONNECT_ATTEMPTS, type RepeatMode, type ServerStateMetadata } from '../audio/sources/sendspinState';
 import type { MaMediaItem, MaPlayerQueue, MaQueueOption } from '../audio/sources/musicAssistant';
 
 export type BarStatus = 'reconnecting' | 'idle' | 'playing' | 'paused' | 'stopped';

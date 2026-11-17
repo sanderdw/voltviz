@@ -4,7 +4,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import * as ort from 'onnxruntime-web';
-import { MelFrontend, N_MELS } from '../../src/audio/neural/melFrontend.ts';
+import { MelFrontend, N_MELS } from '../../src/audio/core/melFrontend.ts';
 import { streamMono } from './lib/stream.ts';
 
 const [wav, prefix, model, outJson] = process.argv.slice(2);

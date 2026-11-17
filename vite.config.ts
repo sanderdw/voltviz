@@ -1,7 +1,7 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import {defineConfig, loadEnv, type Plugin} from 'vite';
+import {defineConfig, type Plugin} from 'vite';
 import {createReadStream, existsSync, readFileSync, readdirSync, statSync} from 'node:fs';
 import {isAbsolute, join, normalize, relative} from 'node:path';
 
@@ -101,8 +101,7 @@ function thirdPartyNotices(): Plugin {
   };
 }
 
-export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
+export default defineConfig(() => {
   const appVersion = process.env.npm_package_version ?? 'dev';
   return {
     // Relative base so built asset URLs work when served under a path
