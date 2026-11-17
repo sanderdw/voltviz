@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ['*']
+    ignore:
+      # The Node major is chosen by hand, together with ci.yml and CONTRIBUTING.md.
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
