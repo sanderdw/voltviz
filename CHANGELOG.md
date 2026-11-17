@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.35.3] - 2026-11-17
+
+### Changed
+- The Docker image is published only after the checks pass. The `<version>` image tag is written once, from `main`, together with a `v<version>` GitHub release; release branches publish `<version>-rc` instead.
+
+### Internal
+- CI and the image build are one workflow (`ci.yml`) that runs once per push. The image builds the site once instead of once per platform under emulation, actions are pinned to commits and kept current by Dependabot, and a failed Playwright run uploads its report.
+
 ## [0.35.2] - 2026-11-17
 
 ### Changed

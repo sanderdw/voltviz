@@ -1,4 +1,6 @@
-FROM node:26-alpine AS builder
+# The site is static, so build it once on the build machine's own platform instead of once per
+# target platform under emulation.
+FROM --platform=$BUILDPLATFORM node:26-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./

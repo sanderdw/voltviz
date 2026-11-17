@@ -88,15 +88,19 @@ Build and run the production image locally:
 docker build -t voltviz . && docker run --rm -p 8080:80 voltviz   # http://localhost:8080
 ```
 
-GitHub Actions runs the checks above (`ci.yml`) and builds the image for `linux/amd64` and
-`linux/arm64` (`publish-docker.yml`):
+GitHub Actions (`ci.yml`) runs the checks above and, only when they pass, builds the image for
+`linux/amd64` and `linux/arm64`:
 
 | Trigger | Result |
 |---------|--------|
-| Push to `main` | Published to `ghcr.io/sanderdw/voltviz` as `latest`, `main`, the `package.json` version and `sha-<commit>` |
-| Push to a release branch (named like `1.2.3`) | Published as the branch name, the `package.json` version and `sha-<commit>` |
-| Pull request to `main` | Built, not published |
+| Push to `main` | Published to `ghcr.io/sanderdw/voltviz` as `latest`, `main` and `sha-<commit>` |
+| Push to `main` with a new `package.json` version | Also published as that version, and a `v<version>` GitHub release is created from `CHANGELOG.md` |
+| Push to a release branch (named like `1.2.3`) | Published as `<package.json version>-rc` and `sha-<commit>` |
+| Push to any other branch, pull request from a fork | Built, not published |
 | Manual run | Same as a push to the selected branch |
+
+A version tag is written once and never moves: it is only published while no `v<version>` git
+tag exists. Bump `package.json` to release.
 
 ## Third-party code, assets and data
 
