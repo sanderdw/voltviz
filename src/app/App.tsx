@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MonitorUp, X, Minimize } from 'lucide-react';
 import { skins } from '../skins';
 import { captureMicrophone, captureSystemAudio } from '../audio/sources/capture';
 import { startTestAudio, testAudioParams, type TestAudio } from '../audio/sources/testFile';
-import { trackEvent } from './analytics';
+import { reportUsage, type AudioSource } from './analytics';
 import Header from './Header';
 import SendspinBar from './SendspinBar';
 import SendspinDialog from './SendspinDialog';
@@ -27,6 +27,8 @@ export default function App() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [testAudio, setTestAudio] = useState<TestAudio | null>(null);
   const running = stream !== null || testAudio !== null;
+  // Where the running audio comes from, for reportUsage (set just before the stream is)
+  const sourceRef = useRef<AudioSource>('microphone');
   const [error, setError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -35,7 +37,10 @@ export default function App() {
   const [showSendspinDialog, setShowSendspinDialog] = useState(false);
   const [sendspinUrl, setSendspinUrl] = useState('');
   const sendspin = useSendspin({
-    onStream: setStream,
+    onStream: s => {
+      if (s) sourceRef.current = 'sendspin';
+      setStream(s);
+    },
     onError: setError,
     onActivated: () => setShowSendspinDialog(false),
   });
@@ -47,9 +52,12 @@ export default function App() {
 
   useShuffle({ enabled: shuffleEnabled, intervalS: shuffleInterval, pool: shufflePool, running, setActiveVisualizer });
 
+  // One report each time the audio starts; not again when a running source swaps its stream.
   useEffect(() => {
-    trackEvent('Visualizer', 'Initial', activeVisualizer);
+    if (running) reportUsage({ visualizer: activeVisualizer, source: sourceRef.current, trigger: 'start', shuffle: shuffleEnabled });
+  }, [running]);
 
+  useEffect(() => {
     const sendspinParam = new URLSearchParams(window.location.search).get('sendspin');
     if (sendspinParam) {
       setSendspinUrl(sendspinParam);
@@ -60,6 +68,7 @@ export default function App() {
     if (test) {
       startTestAudio(test.url, test.start)
         .then(t => {
+          sourceRef.current = 'test';
           (window as unknown as { __voltvizTestAudio?: HTMLMediaElement }).__voltvizTestAudio = t.element;
           setTestAudio(t);
         })
@@ -78,7 +87,9 @@ export default function App() {
   const startMicrophone = async () => {
     sendspin.disconnect();
     try {
-      setStream(await captureMicrophone());
+      const micStream = await captureMicrophone();
+      sourceRef.current = 'microphone';
+      setStream(micStream);
       setError(null);
     } catch (err) {
       setError(errorMessage(err, 'Failed to access microphone'));
@@ -90,6 +101,7 @@ export default function App() {
     try {
       let displayStream: MediaStream | null = null;
       displayStream = await captureSystemAudio(() => stopStream(displayStream));
+      sourceRef.current = 'system';
       setStream(displayStream);
       setError(null);
     } catch (err) {
@@ -235,7 +247,9 @@ export default function App() {
           onClose={() => setShowPicker(false)}
           onSelect={(id) => {
             setActiveVisualizer(id);
-            trackEvent('Visualizer', 'Select', id);
+            if (running && id !== activeVisualizer) {
+              reportUsage({ visualizer: id, source: sourceRef.current, trigger: 'select', shuffle: shuffleEnabled });
+            }
           }}
         />
       )}

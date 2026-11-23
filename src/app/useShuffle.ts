@@ -1,6 +1,5 @@
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import { visualizerIds, type VisualizerType } from '../visualizers/registry';
-import { trackEvent } from './analytics';
 
 /** While enabled and audio is running, switches to a random other visualizer every `intervalS` seconds. */
 export function useShuffle({ enabled, intervalS, pool, running, setActiveVisualizer }: {
@@ -18,7 +17,6 @@ export function useShuffle({ enabled, intervalS, pool, running, setActiveVisuali
         const others = (pool.length ? pool : visualizerIds).filter(v => v !== current);
         if (!others.length) return current;
         const next = others[Math.floor(Math.random() * others.length)];
-        trackEvent('Visualizer', 'Shuffle', next);
         return next;
       });
     }, intervalS * 1000);

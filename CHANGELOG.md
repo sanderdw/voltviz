@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.0] - 2026-11-23
+
+### Changed
+- **VoltViz no longer contains any tracking.** The Matomo snippet is gone from the page, so the Docker image, the Home Assistant app and self-hosted installs send nothing anywhere. Until now every install reported its visits to the Matomo server behind voltviz.com.
+- The app reports usage only to a `window.voltvizStats` hook that a deployment may define itself: once when audio actually starts and once per visualizer picked while it runs, with the audio source. Page loads and shuffle steps are not reported. Without the hook, nothing happens.
+- The nginx config includes `/etc/nginx/site.d/*.conf` inside its server block (empty in the image), for a deployment's own additions. voltviz.com uses it for its Plausible statistics.
+- Updated dependencies: lucide-react 1.78, knip 6.48, vitest 5.1.1 and the locked versions of their dependencies; nginx 1.31.9 in the Docker image.
+
 ## [0.35.3] - 2026-11-17
 
 ### Changed

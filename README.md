@@ -127,6 +127,10 @@ More depth:
 
 These are HTML files; download or clone the repository and open them in a browser.
 
+## Privacy
+
+VoltViz itself sends no statistics: the page talks only to the server it is served from and to the Sendspin or Music Assistant server you connect to. Audio is analyzed in your browser and never leaves it. voltviz.com adds its own script that counts, in a self-hosted [Plausible](https://plausible.io), when audio starts and which visualizer is shown, without cookies or personal data.
+
 ## Contributing
 
 Contributions are welcome: new visualizers, performance work, bug fixes and docs. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, the checks to run, the project structure and how images are built. Report security issues as described in [SECURITY.md](SECURITY.md).
